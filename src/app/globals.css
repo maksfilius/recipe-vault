@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@layer theme {
+  @theme {
+    --color-background: hsl(222 47% 11%);
+    --color-foreground: hsl(210 40% 98%);
+
+    --color-card: hsl(222 47% 14%);
+    --color-card-foreground: hsl(210 40% 98%);
+
+    --color-popover: hsl(222 47% 14%);
+    --color-popover-foreground: hsl(210 40% 98%);
+
+    --color-primary: hsl(280 85% 65%);
+    --color-primary-foreground: hsl(210 40% 98%);
+
+    --color-secondary: hsl(222 47% 18%);
+    --color-secondary-foreground: hsl(210 40% 98%);
+
+    --color-muted: hsl(222 30% 20%);
+    --color-muted-foreground: hsl(215 20% 65%);
+
+    --color-accent: hsl(195 100% 55%);
+    --color-accent-foreground: hsl(222 47% 11%);
+
+    --color-destructive: hsl(0 84% 60%);
+    --color-destructive-foreground: hsl(210 40% 98%);
+
+    --color-border: hsl(222 30% 22%);
+    --color-input: hsl(222 30% 22%);
+    --color-ring: hsl(280 85% 65%);
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  .dark {
+    --color-background: hsl(222 47% 8%);
+    --color-foreground: hsl(210 40% 98%);
+
+    --color-card: hsl(222 47% 11%);
+    --color-card-foreground: hsl(210 40% 98%);
+
+    --color-popover: hsl(222 47% 11%);
+    --color-popover-foreground: hsl(210 40% 98%);
+
+    --color-primary: hsl(280 85% 68%);
+    --color-primary-foreground: hsl(210 40% 98%);
+
+    --color-secondary: hsl(222 47% 15%);
+    --color-secondary-foreground: hsl(210 40% 98%);
+
+    --color-muted: hsl(222 30% 18%);
+    --color-muted-foreground: hsl(215 20% 70%);
+
+    --color-accent: hsl(195 100% 58%);
+    --color-accent-foreground: hsl(222 47% 8%);
+
+    --color-destructive: hsl(0 84% 65%);
+    --color-destructive-foreground: hsl(210 40% 98%);
+
+    --color-border: hsl(222 30% 18%);
+    --color-input: hsl(222 30% 18%);
+    --color-ring: hsl(280 85% 68%);
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+}
+
+:root {
+  --hero-gradient: linear-gradient(135deg, hsl(280 85% 65%), hsl(195 100% 55%));
+  --card-hover-shadow: 0 25px 50px -12px hsl(280 85% 65% / 0.4);
+  --glow-purple: 0 0 60px hsl(280 85% 65% / 0.3);
+  --glow-cyan: 0 0 60px hsl(195 100% 55% / 0.3);
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  --sidebar-background: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+.dark {
+  --sidebar-background: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@layer utilities {
+  @keyframes fade-in { from { opacity: 0; transform: translateY(6px)} to { opacity: 1; transform: translateY(0)} }
+  .animate-fade-in { animation: fade-in .8s ease-out both; }
+  .animate-fade-in-delayed { animation: fade-in .8s ease-out .2s both; }
+  .animate-fade-in-more { animation: fade-in .8s ease-out .4s both; }
+}
