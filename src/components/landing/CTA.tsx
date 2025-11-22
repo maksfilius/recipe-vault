@@ -8,7 +8,7 @@ const CTA = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="py-20 bg-gradient-to-br from-primary to-accent overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-primary via-primary/80 to-primary/60 overflow-hidden">
       <div className="container mx-auto max-w-7xl px-6">
         <div
           ref={ref}
@@ -16,26 +16,22 @@ const CTA = () => {
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-primary-foreground">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
             Ready to Transform Your Cooking?
           </h2>
 
-          <p className="text-xl text-primary-foreground/90 mb-8">
+          <p className="text-xl text-foreground/90 mb-8">
             Join thousands of home cooks who've organized their recipe collections and rediscovered the joy of cooking.
           </p>
 
           <div className="flex justify-center">
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 bg-white/10 backdrop-blur-sm border-primary-foreground/40 text-primary-foreground hover:bg-white/20 hover:scale-105 transition-transform duration-300"
-            >
+            <Button size="lg" variant="primary" className="text-lg px-8">
               Start Your Free Trial
               <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
           </div>
 
-          <p className="text-sm text-primary-foreground/75 mt-4">
+          <p className="text-sm text-foreground/75 mt-4">
             No credit card required • Free forever plan available
           </p>
         </div>

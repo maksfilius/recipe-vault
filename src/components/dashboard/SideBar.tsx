@@ -30,8 +30,8 @@ export default function Sidebar({
   const items = navItems();
 
   return (
-    <div className="sticky top-0 flex h-[100dvh] flex-col bg-transparent px-2 py-4 text-white">
-      <div className={`px-3 text-sm font-semibold text-white/90 transition-all ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+    <div className="sticky top-0 flex h-[100dvh] flex-col bg-transparent px-2 py-4 text-foreground">
+      <div className={`px-3 text-sm font-semibold text-foreground transition-all ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
         Recipe Vault
       </div>
       {showCollapseToggle && (
@@ -40,7 +40,7 @@ export default function Sidebar({
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-pressed={collapsed}
           onClick={onToggle}
-          className="absolute right-3 bottom-20 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-white/20 text-white shadow-sm backdrop-blur transition hover:bg-white/40"
+          className="absolute right-3 bottom-20 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-foreground/10 text-foreground shadow-sm backdrop-blur transition hover:bg-foreground/20"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
@@ -58,12 +58,12 @@ export default function Sidebar({
                 'group flex items-center rounded-2xl px-4 py-3 text-sm no-underline transition-all',
                 collapsed ? 'justify-center' : 'gap-3',
                 active
-                  ? 'bg-white/25 font-semibold text-white shadow-lg shadow-primary/20'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+                  ? 'bg-primary/20 font-semibold text-foreground shadow-lg shadow-primary/30'
+                  : 'text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
               ].join(' ')}
               onClick={() => onNavigate?.()}
             >
-              <Icon className="h-4 w-4 text-white/80" />
+              <Icon className="h-4 w-4 text-foreground/80" />
               <span
                 className={[
                   'transition-[opacity,width] overflow-hidden',
@@ -77,10 +77,10 @@ export default function Sidebar({
         })}
       </nav>
 
-      <div className="border-t border-white/15 pt-4">
+      <div className="border-t border-border/60 pt-4">
         <button
           className={[
-            'flex w-full items-center gap-2 rounded-2xl border border-white/25 px-3 py-3 text-left text-sm text-white transition hover:bg-white/10',
+            'flex w-full items-center gap-2 rounded-2xl border border-border/60 px-3 py-3 text-left text-sm text-foreground transition hover:bg-foreground/10',
             collapsed ? 'text-center px-0' : ''
           ].join(' ')}
           onClick={() => onNavigate?.()}

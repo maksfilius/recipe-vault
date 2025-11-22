@@ -61,7 +61,7 @@ const Features = () => {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className={`group w-full max-w-sm border border-border hover:shadow-[var(--card-hover-shadow)] transition-all duration-500 hover:-translate-y-2 hover:scale-105 ${
+              className={`group w-full max-w-sm border border-border hover:shadow-[0_25px_60px_hsl(var(--background)_/_0.7)] transition-all duration-500 hover:-translate-y-2 hover:scale-105 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
@@ -70,7 +70,7 @@ const Features = () => {
                 <div className="w-14 h-14 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 mx-auto">
                   <feature.icon className="h-7 w-7 text-primary transition-transform duration-300 group-hover:rotate-12" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-card-foreground">
+                <h3 className="text-xl font-semibold mb-3 text-foreground">
                   {feature.title}
                 </h3>
                 <p className="text-muted-foreground leading-relaxed">

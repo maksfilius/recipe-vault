@@ -4,19 +4,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const cardVariants = cva(
-  "group relative flex flex-col overflow-hidden rounded-2xl border border-black/5 bg-card text-card-foreground shadow-[0_25px_65px_rgba(0,0,0,0.45)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:border-white/10",
+  "group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card text-foreground shadow-[0_25px_65px_hsl(var(--background)_/_0.65)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
   {
     variants: {
       variant: {
-        elevated:
-          "bg-gradient-to-b from-slate-950/80 via-slate-950/60 to-slate-900/70 dark:from-slate-900 dark:via-slate-900/90 dark:to-black/60",
-        subtle: "border-white/5 bg-muted/20 shadow-[0_15px_45px_rgba(0,0,0,0.35)]",
-        outline: "border-dashed border-white/15 bg-transparent shadow-none",
-        glass:
-          "border-white/10 bg-white/5 text-white shadow-[0_30px_80px_rgba(0,0,0,0.55)] supports-[backdrop-filter]:backdrop-blur-2xl",
+        elevated: "bg-card",
+        subtle: "bg-muted/40",
+        outline: "border-dashed border-border/60 bg-transparent shadow-none",
+        glass: "border-border/40 bg-foreground/5 supports-[backdrop-filter]:backdrop-blur-2xl",
       },
       interactive: {
-        true: "hover:-translate-y-1 hover:shadow-[0_35px_85px_rgba(0,0,0,0.6)] focus-within:-translate-y-1",
+        true: "hover:-translate-y-1 hover:shadow-[0_35px_85px_hsl(var(--background)_/_0.7)] focus-within:-translate-y-1",
         false: "",
       },
       padding: {
@@ -47,7 +45,7 @@ Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn("flex flex-col gap-2 px-6 pb-4 pt-6 text-left", className)} {...props} />
+    <div ref={ref} className={cn("flex flex-col gap-2 px-6 pb-4 pt-6 text-left text-foreground", className)} {...props} />
   ),
 );
 CardHeader.displayName = "CardHeader";
@@ -65,7 +63,7 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm leading-relaxed text-muted-foreground/90", className)} {...props} />
+    <p ref={ref} className={cn("text-sm leading-relaxed text-muted-foreground", className)} {...props} />
   ),
 );
 CardDescription.displayName = "CardDescription";
