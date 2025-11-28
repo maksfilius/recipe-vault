@@ -1,26 +1,41 @@
-import {useState} from "react";
+import { useState } from "react";
+import { Recipe, RecipeCategory } from "../../../types/recipe";
 
-const categories = ['breakfast', 'snack', 'lunch', 'dinner']
+export type RecipeFormValues = Omit<Recipe, "id">;
 
-export default function RecipeForm() {
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState(categories[0]);
-  const [description, setDescription] = useState('');
-  const [sourceUrl, setSourceUrl] = useState('');
-  const [imageFile, setImageFile] = useState<File | null>(null)
+type RecipeFormProps = {
+  mode: "create" | "edit";
+  initialValue?: Recipe;
+  onSubmit: (values: RecipeFormValues) => void;
+}
+
+const categories: RecipeCategory[] = ["breakfast", "snack", "lunch", "dinner"];
+
+export default function RecipeForm({ mode, initialValue, onSubmit } : RecipeFormProps) {
+  const [title, setTitle] = useState(() => initialValue?.title ?? "");
+  const [category, setCategory] = useState<RecipeCategory>(
+    () => initialValue?.category ?? categories[0]
+  );
+  const [description, setDescription] = useState(
+    () => initialValue?.description ?? ""
+  );
+  const [sourceUrl, setSourceUrl] = useState(
+    () => initialValue?.sourceUrl ?? ""
+  );
+  const [image, setImage] = useState<string>(
+    () => initialValue?.image ?? ""
+  );
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const recipe = {
-      title,
+    onSubmit({
+      title: title.trim(),
       category,
-      description,
-      sourceUrl,
-      imageFile,
-    };
-
-    console.log('Recipe:', recipe);
+      description: description.trim(),
+      sourceUrl: sourceUrl.trim() || undefined,
+      image: image || undefined,
+    });
   };
 
   return (
@@ -40,7 +55,7 @@ export default function RecipeForm() {
         <select
           className="w-full border p-2"
           value={category}
-          onChange={(event) => setCategory(event.target.value)}
+          onChange={(event) => setCategory(event.target.value as RecipeCategory)}
         >
           {categories.map((category) => (
             <option key={category} value={category}>
@@ -62,7 +77,12 @@ export default function RecipeForm() {
           accept="image/*"
           onChange={(event) => {
             const file = event.target.files?.[0] ?? null;
-            setImageFile(file);
+            if (file) {
+              const objectUrl = URL.createObjectURL(file);
+              setImage(objectUrl);
+            } else {
+              setImage("");
+            }
           }}
           className="w-full border p-2"
         />
@@ -78,7 +98,7 @@ export default function RecipeForm() {
           type="submit"
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-secondary rounded shadow-md transition"
         >
-          Save
+          {mode === "edit" ? "Update recipe" : "Save recipe"}
         </button>
       </form>
     </div>
