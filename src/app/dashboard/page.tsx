@@ -7,13 +7,13 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../../components/ui/dialog";
 
 import type { Recipe } from "../../types/recipe";
 import { RecipeCard } from "../../components/dashboard/recipe/RecipeCard";
 import { Button } from "../../components/ui/button";
 import { useState } from "react";
+import {RecipeDetails} from "@/src/components/dashboard/recipe/RecipeDetails";
 
 export default function Dashboard() {
   const initialRecipes: Recipe[] = [
@@ -44,69 +44,96 @@ export default function Dashboard() {
   ];
   const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleAddRecipe = () => {
-    setSelectedRecipe(null);
+    setEditingRecipe(null);
     setIsDialogOpen(true);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
-    setSelectedRecipe(recipe);
+    setEditingRecipe(recipe);
     setIsDialogOpen(true);
   };
 
+  const handleFormSubmit = (values: Omit<Recipe, "id">) => {
+    if (editingRecipe) {
+      const updatedRecipe: Recipe = { ...editingRecipe, ...values };
+
+      setRecipes(prev =>
+        prev.map(recipe =>
+          recipe.id === editingRecipe.id ? updatedRecipe : recipe
+        )
+      );
+
+      setSelectedRecipe(prev =>
+        prev && prev.id === editingRecipe.id ? updatedRecipe : prev
+      );
+
+      setEditingRecipe(updatedRecipe);
+    } else {
+      const newRecipe: Recipe = {
+        id: Date.now(),
+        ...values,
+      };
+
+      setRecipes(prev => [...prev, newRecipe]);
+    }
+
+    setIsDialogOpen(false);
+  };
+
+
   return (
     <>
-      <div className="flex justify-between items-center sticky">
-        <h1 className="hidden sm:block text-2xl font-semibold text-foreground">My Recipes</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="primary" size="sm" className="hidden sm:inline-flex px-4" onClick={handleAddRecipe}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingRecipe ? "Edit recipe" : "Add recipe"}
+            </DialogTitle>
+          </DialogHeader>
+          <RecipeForm
+            key={editingRecipe?.id ?? "new"}
+            mode={editingRecipe ? "edit" : "create"}
+            initialValue={editingRecipe ?? undefined}
+            onSubmit={handleFormSubmit}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {selectedRecipe ? (
+        <>
+          <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} />
+        </>
+      ) : (
+        <>
+          <div className="flex justify-between items-center sticky">
+            <h1 className="hidden sm:block text-2xl font-semibold text-foreground">
+              My Recipes
+            </h1>
+            <Button
+              variant="primary"
+              size="sm"
+              className="hidden sm:inline-flex px-4"
+              onClick={handleAddRecipe}
+            >
               + Add new recipe
             </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add/Edit Recipe</DialogTitle>
-              <RecipeForm
-                key={selectedRecipe?.id ?? "new"}
-                mode={selectedRecipe ? "edit" : "create"}
-                initialValue={selectedRecipe ?? undefined}
-                onSubmit={(values) => {
-                  if (selectedRecipe) {
-                    setRecipes(prev =>
-                      prev.map((recipe) =>
-                        recipe.id === selectedRecipe.id
-                          ? { ...recipe, ...values }
-                          : recipe
-                      )
-                    );
-                  } else {
-                    setRecipes(prev => [
-                      ...prev,
-                      {
-                        id: Date.now(),
-                        ...values,
-                      } as Recipe,
-                    ]);
-                  }
-                  setIsDialogOpen(false);
-                  setSelectedRecipe(null);
-                }}
-              />
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {recipes.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} onClick={() => {
-            handleEditRecipe(recipe);
-          }}/>
-        ))}
-      </div>
+          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {recipes.map((recipe) => (
+              <RecipeCard
+                key={recipe.id}
+                recipe={recipe}
+                onClick={() => setSelectedRecipe(recipe)}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }
