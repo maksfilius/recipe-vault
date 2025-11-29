@@ -1,37 +1,7 @@
-import type { CSSProperties } from "react";
-import type { Recipe, RecipeCategory } from "../../../types/recipe";
+import type { Recipe } from "../../../types/recipe";
 import { Bookmark, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
-
-const categoryTokens: Record<
-  RecipeCategory,
-  { name: string; label: string; gradientStart: string; gradientEnd: string }
-> = {
-  breakfast: {
-    name: "Breakfast",
-    label: "--cat-breakfast-label",
-    gradientStart: "--cat-breakfast-grad-start",
-    gradientEnd: "--cat-breakfast-grad-end",
-  },
-  lunch: {
-    name: "Lunch",
-    label: "--cat-lunch-label",
-    gradientStart: "--cat-lunch-grad-start",
-    gradientEnd: "--cat-lunch-grad-end",
-  },
-  dinner: {
-    name: "Dinner",
-    label: "--cat-dinner-label",
-    gradientStart: "--cat-dinner-grad-start",
-    gradientEnd: "--cat-dinner-grad-end",
-  },
-  snack: {
-    name: "Snack",
-    label: "--cat-snack-label",
-    gradientStart: "--cat-snack-grad-start",
-    gradientEnd: "--cat-snack-grad-end",
-  },
-};
+import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -39,36 +9,8 @@ type RecipeCardProps = {
 };
 
 export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
-  const tokens = categoryTokens[recipe.category];
-  const hasImage = Boolean(recipe.image);
-
-  const gradientStyle: CSSProperties = {
-    backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart})), hsl(var(${tokens.gradientEnd})))`,
-  };
-
-  const heroBackground: CSSProperties = hasImage
-    ? {
-        backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart}) / 0.35), hsl(var(${tokens.gradientEnd}) / 0.8)), url(${recipe.image})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }
-    : {
-        backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart}) / 0.35), hsl(var(${tokens.gradientEnd}) / 0.75))`,
-      };
-
-  const labelStyles: CSSProperties = {
-    color: `hsl(var(${tokens.label}))`,
-    borderColor: `hsl(var(${tokens.label}) / 0.45)`,
-    backgroundColor: `hsl(var(${tokens.gradientStart}) / 0.2)`,
-  };
-
-  const labelAccentStyles: CSSProperties = {
-    backgroundColor: `hsl(var(${tokens.label}))`,
-  };
-
-  const metaDotStyles: CSSProperties = {
-    backgroundColor: `hsl(var(${tokens.gradientStart}))`,
-  };
+  const { tokens, gradientStyle, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
+    getRecipeCategoryStyles(recipe.category, recipe.image);
 
   return (
     <Card
