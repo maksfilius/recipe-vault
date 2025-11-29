@@ -57,6 +57,14 @@ export default function Dashboard() {
     setIsDialogOpen(true);
   };
 
+  const handleDeleteRecipe = (id: number) => {
+    setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+
+    if (selectedRecipe?.id === id) {
+      setSelectedRecipe(null);
+    }
+  }
+
   const handleFormSubmit = (values: Omit<Recipe, "id">) => {
     if (editingRecipe) {
       const updatedRecipe: Recipe = { ...editingRecipe, ...values };
@@ -105,7 +113,7 @@ export default function Dashboard() {
 
       {selectedRecipe ? (
         <>
-          <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} />
+          <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} onDelete={() => handleDeleteRecipe(selectedRecipe.id)} />
         </>
       ) : (
         <>

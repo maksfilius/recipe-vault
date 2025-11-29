@@ -4,9 +4,10 @@ type RecipeDetailsProps = {
   recipe: Recipe;
   onBack: () => void;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-export function RecipeDetails ({recipe, onBack, onEdit} : RecipeDetailsProps) {
+export function RecipeDetails ({recipe, onBack, onEdit, onDelete} : RecipeDetailsProps) {
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="text-sm text-muted-foreground">
@@ -18,6 +19,9 @@ export function RecipeDetails ({recipe, onBack, onEdit} : RecipeDetailsProps) {
 
       <button onClick={onEdit} className="text-sm text-muted-foreground">
         Edit recipe
+      </button>
+      <button onClick={onDelete} className="text-sm text-muted-foreground">
+        Delete
       </button>
     </div>
   );
