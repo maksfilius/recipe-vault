@@ -12,9 +12,12 @@ type RecipeDetailsProps = {
   onDelete: () => void;
 }
 
-export function RecipeDetails({recipe, onBack, onEdit, onDelete}: RecipeDetailsProps) {
+export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetailsProps) {
   const { tokens, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
     getRecipeCategoryStyles(recipe.category, recipe.image);
+
+  const hasIngredients = recipe.ingredients && recipe.ingredients.length > 0;
+  const hasSteps = recipe.steps && recipe.steps.length > 0;
 
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-12">
@@ -97,6 +100,77 @@ export function RecipeDetails({recipe, onBack, onEdit, onDelete}: RecipeDetailsP
                 <span>No source link added</span>
               </div>
             )}
+
+            <div className="rounded-2xl border border-border/60 bg-foreground/[0.02] p-5 shadow-inner shadow-background/15">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-foreground">Ingredients</span>
+                {hasIngredients && (
+                  <span className="text-xs text-muted-foreground">
+                    {recipe.ingredients.length} item{recipe.ingredients.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {hasIngredients ? (
+                <ul className="mt-3 space-y-2 text-sm">
+                  {recipe.ingredients.map((ingredient) => (
+                    <li
+                      key={ingredient.id}
+                      className="flex items-baseline gap-2"
+                    >
+                      <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-muted-foreground/80" />
+                      <span className="text-foreground">
+                        {ingredient.amount !== undefined && ingredient.amount !== null && (
+                          <span className="font-medium">
+                            {ingredient.amount}{" "}
+                          </span>
+                        )}
+                        {ingredient.unit && (
+                          <span className="font-medium">
+                            {ingredient.unit}{" "}
+                          </span>
+                        )}
+                        <span>{ingredient.name}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  No ingredients added yet.
+                </p>
+              )}
+            </div>
+
+            <div className="rounded-2xl border border-border/60 bg-foreground/[0.02] p-5 shadow-inner shadow-background/15">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-semibold text-foreground">Steps</span>
+                {hasSteps && (
+                  <span className="text-xs text-muted-foreground">
+                    {recipe.steps.length} step{recipe.steps.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              {hasSteps ? (
+                <ol className="mt-3 space-y-3">
+                  {recipe.steps.map((step, index) => (
+                    <li key={step.id} className="flex gap-3">
+                      <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-foreground/10 text-xs font-semibold text-foreground">
+                        {index + 1}
+                      </span>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {step.text}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="mt-3 text-xs text-muted-foreground">
+                  No steps added yet.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-foreground/[0.03] p-5 text-sm text-muted-foreground shadow-inner shadow-background/25">

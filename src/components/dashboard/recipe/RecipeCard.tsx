@@ -1,6 +1,6 @@
 import type { Recipe } from "../../../types/recipe";
 import { Bookmark, ExternalLink } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
+import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
 import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
 
 type RecipeCardProps = {
@@ -48,13 +48,6 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
           <CardDescription className="text-sm leading-relaxed text-muted-foreground">{recipe.description}</CardDescription>
         </CardHeader>
 
-        <CardContent className="px-6">
-          <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full" style={metaDotStyles} />
-            {tokens.name}
-          </div>
-        </CardContent>
-
         <CardFooter className="border-border/60 text-xs text-muted-foreground">
           <span>Updated just now</span>
           {recipe.sourceUrl ? (
@@ -62,7 +55,7 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
               href={recipe.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 text-primary transition hover:text-primary/80"
+              className="inline-flex items-center gap-1 text-white transition hover:text-primary/80"
             >
               View source
               <ExternalLink className="h-3.5 w-3.5" />

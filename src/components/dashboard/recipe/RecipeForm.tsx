@@ -158,7 +158,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
         </label>
 
         <div className="grid grid-cols-1 gap-6">
-          <label className="space-y-2">
+          <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Ingredients</span>
             <div className="space-y-3 rounded-2xl border border-border/60 bg-background/40 p-4 shadow-inner shadow-foreground/5">
               {ingredients.map((ingredient, index) => (
@@ -233,9 +233,9 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 + Add ingredient
               </Button>
             </div>
-          </label>
+          </section>
 
-          <label className="space-y-2">
+          <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Steps</span>
             <div className="space-y-3 rounded-2xl border border-border/60 bg-background/40 p-4 shadow-inner shadow-foreground/5">
               {steps.map((step, index) => (
@@ -278,11 +278,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 + Add step
               </Button>
             </div>
-          </label>
+          </section>
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          <label className="space-y-2">
+          <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">
               Image (optional)
             </span>
@@ -311,9 +311,9 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 </div>
               )}
             </div>
-          </label>
+          </section>
 
-          <label className="space-y-2">
+          <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">
               Source link
             </span>
@@ -325,7 +325,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
             <p className="text-xs text-muted-foreground">
               Optional — link to the original source or blog post.
             </p>
-          </label>
+          </section>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3">
