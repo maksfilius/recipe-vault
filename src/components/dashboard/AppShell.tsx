@@ -38,9 +38,9 @@ export default function AppShell({ children }: AppShellProps) {
   const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
 
   return (
-    <div className="relative min-h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
+    <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
       <div
-        className="relative mx-auto flex min-h-[100dvh] w-full flex-col border-x border-border/60 bg-background/20 shadow-[0_35px_120px_hsl(var(--background)_/_0.65)] md:grid"
+        className="relative mx-auto flex h-[100dvh] w-full flex-col border-x border-border/60 bg-background/20 shadow-[0_35px_120px_hsl(var(--background)_/_0.65)] md:grid"
         style={{
           gridTemplateColumns: `${collapsed ? '4rem' : '12rem'} 1fr`,
           backgroundImage: `linear-gradient(120deg, hsl(var(--background)), hsl(var(--primary) / 0.2))`,
@@ -48,13 +48,13 @@ export default function AppShell({ children }: AppShellProps) {
           backgroundPosition: 'center',
         }}
       >
-        <aside className="relative z-10 hidden border-r border-border/60 bg-card/60 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.7)] backdrop-blur-2xl md:block">
+        <aside className="relative z-10 hidden h-full border-r border-border/60 bg-card/60 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.7)] backdrop-blur-2xl md:block">
           <Sidebar collapsed={collapsed} onToggle={handleToggle} />
         </aside>
 
-        <div className="relative z-10 flex min-w-0 flex-1 flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl">
+        <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-scroll">
           <Topbar onMenuClick={openMobileSidebar} />
-          <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10">{children}</main>
+          <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
       </div>
 

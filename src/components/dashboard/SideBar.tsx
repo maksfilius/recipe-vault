@@ -31,7 +31,7 @@ export default function Sidebar({
 
   return (
     <div className="sticky top-0 flex h-[100dvh] flex-col bg-transparent px-2 py-4 text-foreground">
-      <div className={`px-3 text-sm font-semibold text-foreground transition-all ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
+      <div className={`px-3 text-sm font-semibold text-foreground transition-all flex items-center h-14 ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
         Recipe Vault
       </div>
       {showCollapseToggle && (
@@ -40,7 +40,7 @@ export default function Sidebar({
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-pressed={collapsed}
           onClick={onToggle}
-          className="absolute right-3 bottom-20 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-foreground/10 text-foreground shadow-sm backdrop-blur transition hover:bg-foreground/20"
+          className="absolute right-4 bottom-20 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-border/70 bg-foreground/10 text-foreground shadow-sm backdrop-blur transition hover:bg-foreground/20"
         >
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
@@ -58,7 +58,7 @@ export default function Sidebar({
                 'group flex items-center rounded-2xl px-4 py-3 text-sm no-underline transition-all',
                 collapsed ? 'justify-center' : 'gap-3',
                 active
-                  ? 'bg-primary/20 font-semibold text-foreground shadow-lg shadow-primary/30'
+                  ? 'bg-primary/20 font-semibold text-foreground'
                   : 'text-foreground/70 hover:bg-foreground/10 hover:text-foreground'
               ].join(' ')}
               onClick={() => onNavigate?.()}

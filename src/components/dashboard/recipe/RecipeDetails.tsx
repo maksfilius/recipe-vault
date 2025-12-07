@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ExternalLink, Pencil, Trash } from "lucide-react";
 
 import { Recipe } from "../../../types/recipe";
@@ -19,27 +20,79 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
   const hasIngredients = recipe.ingredients && recipe.ingredients.length > 0;
   const hasSteps = recipe.steps && recipe.steps.length > 0;
 
+  const [isPinned, setIsPinned] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsPinned(!entry.isIntersecting);
+      },
+      {
+        threshold: 0,
+        rootMargin: "-4px 0px 0px 0px",
+      }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6 lg:py-12">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button variant="ghost" size="sm" className="gap-2 px-3" onClick={onBack}>
+    <section className="mx-auto flex max-w-5xl flex-col gap-6 px-4 sm:px-6">
+      <div ref={sentinelRef} aria-hidden="true" className="h-0" />
+
+      <div
+        className={[
+          "sticky top-0 z-20 flex flex-wrap items-center gap-3 transition-all duration-300",
+          isPinned
+            ? "justify-between rounded-2xl bg-background/70 px-4 py-2 backdrop-blur shadow-lg mx-5"
+            : "justify-between"
+        ].join(" ")}
+      >
+        <Button
+          variant="ghost"
+          size={isPinned ? "icon" : "sm"}
+          className={[
+            "gap-2 transition-all duration-200",
+            isPinned ? "rounded-full bg-background/80 shadow-md" : "px-3"
+          ].join(" ")}
+          onClick={onBack}
+        >
           <ArrowLeft className="h-4 w-4" />
-          Back to recipes
+          {!isPinned && <span>Back to recipes</span>}
         </Button>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button variant="ghost" size="sm" className="gap-2 px-3" onClick={onEdit}>
-            <Pencil className="h-4 w-4" />
-            Edit
-          </Button>
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
-            size="sm"
-            className="gap-2 px-3 border border-red-400/40 text-red-300 hover:border-red-400 hover:text-red-200"
+            size={isPinned ? "icon" : "sm"}
+            className={[
+              "gap-2 transition-all duration-200",
+              isPinned ? "rounded-full bg-background/80 shadow-md" : "px-3"
+            ].join(" ")}
+            onClick={onEdit}
+          >
+            <Pencil className="h-4 w-4" />
+            {!isPinned && <span>Edit</span>}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size={isPinned ? "icon" : "sm"}
+            className={[
+              "gap-2 border border-red-400/40 text-red-300 transition-all duration-200 hover:border-red-400 hover:text-red-200",
+              isPinned
+                ? "rounded-full bg-background/80 shadow-md"
+                : "px-3"
+            ].join(" ")}
             onClick={onDelete}
           >
             <Trash className="h-4 w-4" />
-            Delete
+            {!isPinned && <span>Delete</span>}
           </Button>
         </div>
       </div>
@@ -49,7 +102,7 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
         padding="none"
         className="overflow-hidden border-border/70 bg-background/60"
       >
-        <div className="relative h-64 w-full overflow-hidden" style={heroBackground}>
+        <div className="relative h-32 w-full overflow-hidden" style={heroBackground}>
           <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/35 to-background/75" />
           <div className="absolute left-6 top-6 flex items-center gap-2">
             <span
