@@ -15,6 +15,7 @@ import {
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import {useState} from "react";
+import {supabase} from "@/src/lib/supabase-client";
 
 interface AuthFormProps {
   type: 'login' | 'register'
@@ -57,10 +58,42 @@ export default function AuthForm({type}: AuthFormProps) {
     }
   });
 
-  function onSubmit(values: LoginValues | RegisterValues) {
+  async function onSubmit(values: LoginValues | RegisterValues) {
     try {
       setLoading(true);
-      console.log(values)
+
+      if (type === "register") {
+        const registerValues = values as RegisterValues;
+
+        const { data, error } = await supabase.auth.signUp({
+          email: registerValues.email,
+          password: registerValues.password,
+          options: {
+            data: {
+              username: registerValues.username,
+            },
+          },
+        });
+
+        if (error) {
+          form.setError("email", { message: error.message });
+          return;
+        }
+
+        // TODO: Redirect
+      } else {
+        const loginValues = values as LoginValues;
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: loginValues.email,
+          password: loginValues.password,
+        });
+
+        if (error) {
+          form.setError("password", { message: error.message });
+          return;
+        }
+      }
     } finally {
       setLoading(false);
     }
