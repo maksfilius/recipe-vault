@@ -76,9 +76,11 @@ export default function Dashboard() {
     }
 
     if (editingRecipe) {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("recipes")
-        .update({
+        .upsert({
+          id: editingRecipe.id,
+          user_id: user.id,
           title: values.title,
           description: values.description,
           category: values.category,
@@ -86,17 +88,19 @@ export default function Dashboard() {
           steps: values.steps,
           image_url: values.image ?? null,
           source_url: values.sourceUrl ?? null,
-        })
-        .eq("id", editingRecipe.id)
-        .select("*")
-        .single();
+        }, { onConflict: "id" });
 
-      if (error || !data) {
+      if (error) {
         console.error("Failed to update recipe", error);
         return;
       }
 
-      const updated = mapRowToRecipe(data);
+      const updated: Recipe = {
+        ...editingRecipe,
+        ...values,
+        image: values.image ?? undefined,
+        sourceUrl: values.sourceUrl ?? undefined,
+      };
 
       setRecipes((prev) =>
         prev.map((recipe) => (recipe.id === updated.id ? updated : recipe))
