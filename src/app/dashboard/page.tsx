@@ -1,7 +1,11 @@
 "use client";
 
-import RecipeForm from "../../components/dashboard/recipe/RecipeForm";
+import { useEffect, useState } from "react";
 
+import RecipeForm from "../../components/dashboard/recipe/RecipeForm";
+import { RecipeCard } from "../../components/dashboard/recipe/RecipeCard";
+import { RecipeDetails } from "@/src/components/dashboard/recipe/RecipeDetails";
+import { Button } from "../../components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,42 +14,37 @@ import {
 } from "../../components/ui/dialog";
 
 import type { Recipe } from "../../types/recipe";
-import { RecipeCard } from "../../components/dashboard/recipe/RecipeCard";
-import { Button } from "../../components/ui/button";
-import { useState } from "react";
-import {RecipeDetails} from "@/src/components/dashboard/recipe/RecipeDetails";
+import { mapRowToRecipe } from "@/src/lib/recipes";
+import { supabase } from "@/src/lib/supabase-client";
 
 export default function Dashboard() {
-  const initialRecipes: Recipe[] = [
-    {
-      id: 1,
-      title: "Spaghetti Bolognese",
-      category: 'lunch',
-      description: "Classic pasta with meat sauce.",
-      image: "",
-      sourceUrl: ""
-    },
-    {
-      id: 2,
-      title: "Spaghetti Bolognese",
-      category: 'dinner',
-      description: "Classic pasta with meat sauce.",
-      image: "",
-      sourceUrl: ""
-    },
-    {
-      id: 3,
-      title: "Spaghetti Bolognese",
-      category: "breakfast",
-      description: "Classic pasta with meat sauce.",
-      image: "",
-      sourceUrl: "https://ui.shadcn.com/docs/components/dialog#installation"
-    }
-  ];
-  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setRecipes([]);
+        return;
+      }
+
+      const { data } = await supabase
+        .from("recipes")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+
+      const mapped = (data ?? []).map(mapRowToRecipe);
+      setRecipes(mapped);
+    };
+
+    void fetchRecipes();
+  }, []);
 
   const handleAddRecipe = () => {
     setEditingRecipe(null);
@@ -57,36 +56,79 @@ export default function Dashboard() {
     setIsDialogOpen(true);
   };
 
-  const handleDeleteRecipe = (id: number) => {
-    setRecipes(prev => prev.filter(recipe => recipe.id !== id));
+  const handleDeleteRecipe = async (id: string) => {
+    await supabase.from("recipes").delete().eq("id", id);
+
+    setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
 
     if (selectedRecipe?.id === id) {
       setSelectedRecipe(null);
     }
-  }
+  };
 
-  const handleFormSubmit = (values: Omit<Recipe, "id">) => {
+  const handleFormSubmit = async (values: Omit<Recipe, "id">) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      console.error("User is not authenticated");
+      return;
+    }
+
     if (editingRecipe) {
-      const updatedRecipe: Recipe = { ...editingRecipe, ...values };
+      const { data, error } = await supabase
+        .from("recipes")
+        .update({
+          title: values.title,
+          description: values.description,
+          category: values.category,
+          ingredients: values.ingredients,
+          steps: values.steps,
+          image_url: values.image ?? null,
+          source_url: values.sourceUrl ?? null,
+        })
+        .eq("id", editingRecipe.id)
+        .select("*")
+        .single();
 
-      setRecipes(prev =>
-        prev.map(recipe =>
-          recipe.id === editingRecipe.id ? updatedRecipe : recipe
-        )
+      if (error || !data) {
+        console.error("Failed to update recipe", error);
+        return;
+      }
+
+      const updated = mapRowToRecipe(data);
+
+      setRecipes((prev) =>
+        prev.map((recipe) => (recipe.id === updated.id ? updated : recipe))
       );
 
-      setSelectedRecipe(prev =>
-        prev && prev.id === editingRecipe.id ? updatedRecipe : prev
+      setSelectedRecipe((prev) =>
+        prev && prev.id === updated.id ? updated : prev
       );
-
-      setEditingRecipe(updatedRecipe);
+      setEditingRecipe(updated);
     } else {
-      const newRecipe: Recipe = {
-        id: Date.now(),
-        ...values,
-      };
+      const { data, error } = await supabase
+        .from("recipes")
+        .insert({
+          user_id: user.id,
+          title: values.title,
+          description: values.description,
+          category: values.category,
+          ingredients: values.ingredients,
+          steps: values.steps,
+          image_url: values.image ?? null,
+          source_url: values.sourceUrl ?? null,
+        })
+        .select("*")
+        .single();
 
-      setRecipes(prev => [...prev, newRecipe]);
+      if (error || !data) {
+        console.error("Failed to create recipe", error);
+        return;
+      }
+
+      const created = mapRowToRecipe(data);
+      setRecipes((prev) => [...prev, created]);
     }
 
     setIsDialogOpen(false);
@@ -112,9 +154,12 @@ export default function Dashboard() {
       </Dialog>
 
       {selectedRecipe ? (
-        <>
-          <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} onDelete={() => handleDeleteRecipe(selectedRecipe.id)} />
-        </>
+        <RecipeDetails
+          recipe={selectedRecipe}
+          onBack={() => setSelectedRecipe(null)}
+          onEdit={() => handleEditRecipe(selectedRecipe)}
+          onDelete={() => handleDeleteRecipe(selectedRecipe.id)}
+        />
       ) : (
         <>
           <div className="flex justify-between items-center sticky">

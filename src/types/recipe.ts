@@ -13,7 +13,7 @@ export type Step = {
 }
 
 export type Recipe = {
-  id: number;
+  id: string;
   title: string;
   category: RecipeCategory;
   description: string;
