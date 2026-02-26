@@ -12,6 +12,7 @@ type SidebarProps = {
   onToggle: () => void;
   showCollapseToggle?: boolean;
   onNavigate?: () => void;
+  onSignOut?: () => void;
 };
 
 const navItems = (): NavItem[] => ([
@@ -24,7 +25,8 @@ export default function Sidebar({
   collapsed,
   onToggle,
   showCollapseToggle = true,
-  onNavigate
+  onNavigate,
+  onSignOut
 }: SidebarProps) {
   const pathname = usePathname();
   const items = navItems();
@@ -79,11 +81,12 @@ export default function Sidebar({
 
       <div className="border-t border-border/60 pt-4">
         <button
+          type="button"
           className={[
             'flex w-full items-center gap-2 rounded-2xl border border-border/60 px-3 py-3 text-left text-sm text-foreground transition hover:bg-foreground/10',
             collapsed ? 'text-center px-0' : ''
           ].join(' ')}
-          onClick={() => onNavigate?.()}
+          onClick={onSignOut}
           title={collapsed ? 'Sign out' : undefined}
         >
           <LogOut className="h-4 w-4" />

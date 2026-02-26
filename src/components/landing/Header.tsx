@@ -1,5 +1,6 @@
 'use client'
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Menu, X, ChefHat } from "lucide-react";
@@ -33,7 +34,12 @@ const Header = () => {
           <button onClick={() => scrollToSection("cta")} className="text-foreground/80 hover:text-primary transition-colors">
             Get Started
           </button>
-          <Button size="sm">Sign In</Button>
+          <Button size="sm" variant="ghost" asChild>
+            <Link href="/login">Sign In</Link>
+          </Button>
+          <Button size="sm" asChild>
+            <Link href="/register">Sign Up</Link>
+          </Button>
         </div>
 
         <button
@@ -65,7 +71,12 @@ const Header = () => {
             >
               Get Started
             </button>
-            <Button size="sm" className="w-full">Sign In</Button>
+            <Button size="sm" className="w-full" variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button size="sm" className="w-full" asChild>
+              <Link href="/register">Sign Up</Link>
+            </Button>
           </div>
         </div>
       )}

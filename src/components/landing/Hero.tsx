@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Button } from "../../components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useRef } from "react";
@@ -42,7 +43,7 @@ const Hero = () => {
 
       <div className="container relative z-10 px-6 py-20 text-center">
         <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 animate-fade-in">
-          Your Kitchen's Best Friend
+          Your Kitchen&apos;s Best Friend
         </h1>
 
         <p
@@ -52,9 +53,11 @@ const Hero = () => {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-more">
-          <Button size="lg" variant="primary" className="text-lg px-8">
-            Get Started Free
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+          <Button size="lg" variant="primary" className="text-lg px-8" asChild>
+            <Link href="/register">
+              Get Started Free
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
 
           <Button

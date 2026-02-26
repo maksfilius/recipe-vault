@@ -1,3 +1,5 @@
+"use client";
+
 import Hero from "@/src/components/landing/Hero";
 import Features from "@/src/components/landing/Features";
 import Footer from "@/src/components/landing/Footer";

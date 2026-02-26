@@ -1,6 +1,9 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -14,7 +17,6 @@ import {
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import {useState} from "react";
 import {supabase} from "@/src/lib/supabase-client";
 
 interface AuthFormProps {
@@ -40,10 +42,16 @@ type RegisterValues = z.infer<typeof registerSchema>;
 const formTitles = {
   login: 'Login',
   register: 'Register'
-}
+};
+
+const submitLabels = {
+  login: "Sign in",
+  register: "Create account",
+};
 
 export default function AuthForm({type}: AuthFormProps) {
   const [isLoading, setLoading] = useState<boolean>(false);
+  const router = useRouter();
 
   const schema = type === "login" ? loginSchema : registerSchema;
 
@@ -65,7 +73,7 @@ export default function AuthForm({type}: AuthFormProps) {
       if (type === "register") {
         const registerValues = values as RegisterValues;
 
-        const { data, error } = await supabase.auth.signUp({
+        const { error } = await supabase.auth.signUp({
           email: registerValues.email,
           password: registerValues.password,
           options: {
@@ -80,11 +88,11 @@ export default function AuthForm({type}: AuthFormProps) {
           return;
         }
 
-        // TODO: Redirect
+        router.replace("/dashboard");
       } else {
         const loginValues = values as LoginValues;
 
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signInWithPassword({
           email: loginValues.email,
           password: loginValues.password,
         });
@@ -93,6 +101,8 @@ export default function AuthForm({type}: AuthFormProps) {
           form.setError("password", { message: error.message });
           return;
         }
+
+        router.replace("/dashboard");
       }
     } finally {
       setLoading(false);
@@ -115,7 +125,11 @@ export default function AuthForm({type}: AuthFormProps) {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Name" {...field} />
+                      <Input
+                        placeholder="Name"
+                        autoComplete="nickname"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -129,7 +143,12 @@ export default function AuthForm({type}: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Email</FormLabel>
                   <FormControl>
-                    <Input type="email" placeholder="Email" {...field} />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      autoComplete="email"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,7 +161,12 @@ export default function AuthForm({type}: AuthFormProps) {
                 <FormItem>
                   <FormLabel>Password</FormLabel>
                   <FormControl>
-                    <Input type="password" placeholder="Password" {...field} />
+                    <Input
+                      type="password"
+                      placeholder="Password"
+                      autoComplete={type === "register" ? "new-password" : "current-password"}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -154,19 +178,33 @@ export default function AuthForm({type}: AuthFormProps) {
                 name="repeatPassword"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Repeat Password</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Repeat Password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FormLabel>Repeat Password</FormLabel>
+                  <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="Repeat Password"
+                        autoComplete="new-password"
+                        {...field}
+                      />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
                 )}
               />
             ) }
             <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Loading..." : "Submit"}
+              {isLoading ? "Loading..." : submitLabels[type]}
             </Button>
           </form>
+          <p className="mt-5 text-center text-sm text-foreground/75">
+            {type === "login" ? "No account yet?" : "Already have an account?"}{" "}
+            <Link
+              href={type === "login" ? "/register" : "/login"}
+              className="font-semibold text-primary hover:underline"
+            >
+              {type === "login" ? "Create one" : "Sign in"}
+            </Link>
+          </p>
       </Form>
     </div>
     </div>

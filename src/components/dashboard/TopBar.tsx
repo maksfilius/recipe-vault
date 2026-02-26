@@ -4,9 +4,10 @@ import { Menu } from 'lucide-react';
 
 type TopbarProps = {
   onMenuClick: () => void;
+  userName?: string;
 };
 
-export default function Topbar({ onMenuClick }: TopbarProps) {
+export default function Topbar({ onMenuClick, userName }: TopbarProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 shadow-[0_10px_35px_hsl(var(--background)_/_0.6)] backdrop-blur-md">
       <div className="flex h-20 items-center gap-4 px-4 sm:px-6">
@@ -19,7 +20,9 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
           <Menu className="h-5 w-5" />
         </button>
         <div className="leading-tight text-foreground">
-          <p className="text-lg font-semibold sm:text-2xl">Hi there! Ready to cook?</p>
+          <p className="text-lg font-semibold sm:text-2xl">
+            Hi {userName ?? 'there'}! Ready to cook?
+          </p>
           <span className="text-sm text-muted-foreground">Let&apos;s organize dinner plans with style</span>
         </div>
       </div>

@@ -1,16 +1,20 @@
 'use client';
 
 import { ReactNode, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Sidebar from './SideBar';
 import Topbar from './TopBar';
+import { supabase } from '@/src/lib/supabase-client';
 
 type AppShellProps = {
   children: ReactNode;
 };
 
 export default function AppShell({ children }: AppShellProps) {
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
     try {
@@ -30,12 +34,49 @@ export default function AppShell({ children }: AppShellProps) {
     } catch {}
   }, [collapsed]);
 
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        setUserName(null);
+        return;
+      }
+
+      const metadata = user.user_metadata as
+        | { username?: string; full_name?: string }
+        | undefined;
+      const displayName =
+        metadata?.username?.trim() ||
+        metadata?.full_name?.trim() ||
+        user.email?.split('@')[0] ||
+        null;
+
+      setUserName(displayName);
+    };
+
+    void fetchUserName();
+  }, []);
+
   const handleToggle = () => {
     setCollapsed(prev => !prev);
   };
 
   const openMobileSidebar = () => setIsMobileSidebarOpen(true);
   const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    closeMobileSidebar();
+
+    if (error) {
+      console.error('Failed to sign out', error);
+      return;
+    }
+
+    router.replace('/login');
+  };
 
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
@@ -49,11 +90,11 @@ export default function AppShell({ children }: AppShellProps) {
         }}
       >
         <aside className="relative z-10 hidden h-full border-r border-border/60 bg-card/60 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.7)] backdrop-blur-2xl md:block">
-          <Sidebar collapsed={collapsed} onToggle={handleToggle} />
+          <Sidebar collapsed={collapsed} onToggle={handleToggle} onSignOut={handleSignOut} />
         </aside>
 
         <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-scroll">
-          <Topbar onMenuClick={openMobileSidebar} />
+          <Topbar onMenuClick={openMobileSidebar} userName={userName ?? undefined} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
       </div>
@@ -82,6 +123,7 @@ export default function AppShell({ children }: AppShellProps) {
           onToggle={() => {}}
           showCollapseToggle={false}
           onNavigate={closeMobileSidebar}
+          onSignOut={handleSignOut}
         />
       </div>
     </div>
