@@ -1,4 +1,6 @@
-export type RecipeCategory = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+export const RECIPE_CATEGORIES = ["breakfast", "lunch", "dinner", "snack"] as const;
+
+export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 
 export type Ingredient = {
   id: string,

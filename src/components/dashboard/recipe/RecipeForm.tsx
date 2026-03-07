@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Recipe, RecipeCategory, Ingredient, Step } from "../../../types/recipe";
+import { Recipe, RecipeCategory, Ingredient, Step, RECIPE_CATEGORIES } from "../../../types/recipe";
 import { Button } from "../../ui/button";
 
 export type RecipeFormValues = Omit<Recipe, "id">;
@@ -10,24 +10,26 @@ type RecipeFormProps = {
   onSubmit: (values: RecipeFormValues) => void;
 };
 
+const createId = () =>
+  globalThis.crypto?.randomUUID?.() ??
+  `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
 const createEmptyIngredient = (): Ingredient => ({
-  id: crypto.randomUUID(),
+  id: createId(),
   name: "",
   amount: undefined,
   unit: "",
 });
 
 const createEmptyStep = (): Step => ({
-  id: crypto.randomUUID(),
+  id: createId(),
   text: "",
 });
-
-const categories: RecipeCategory[] = ["breakfast", "snack", "lunch", "dinner"];
 
 export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormProps) {
   const [title, setTitle] = useState(() => initialValue?.title ?? "");
   const [category, setCategory] = useState<RecipeCategory>(
-    () => initialValue?.category ?? categories[0]
+    () => initialValue?.category ?? RECIPE_CATEGORIES[0]
   );
   const [description, setDescription] = useState(
     () => initialValue?.description ?? ""
@@ -137,7 +139,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 setCategory(event.target.value as RecipeCategory)
               }
             >
-              {categories.map(category => (
+              {RECIPE_CATEGORIES.map(category => (
                 <option key={category} value={category}>
                   {category}
                 </option>

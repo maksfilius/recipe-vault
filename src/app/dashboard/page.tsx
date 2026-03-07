@@ -1,27 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 
 import RecipeForm from "../../components/dashboard/recipe/RecipeForm";
 import { RecipeCard } from "../../components/dashboard/recipe/RecipeCard";
 import { RecipeDetails } from "@/src/components/dashboard/recipe/RecipeDetails";
 import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "../../components/ui/dialog";
+import { Search } from "lucide-react";
 
-import type { Recipe } from "../../types/recipe";
+import { cn } from "@/src/lib/utils";
+import { RECIPE_CATEGORIES, type Recipe, type RecipeCategory } from "../../types/recipe";
 import { mapRowToRecipe } from "@/src/lib/recipes";
 import { supabase } from "@/src/lib/supabase-client";
 
 export default function Dashboard() {
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<RecipeCategory[]>([]);
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -29,7 +34,7 @@ export default function Dashboard() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        setRecipes([]);
+        setAllRecipes([]);
         return;
       }
 
@@ -40,11 +45,28 @@ export default function Dashboard() {
         .order("created_at", { ascending: false });
 
       const mapped = (data ?? []).map(mapRowToRecipe);
-      setRecipes(mapped);
+      setAllRecipes(mapped);
     };
 
     void fetchRecipes();
   }, []);
+
+  const toggleCategory = (category: RecipeCategory)=> {
+    setSelectedCategories((prev) =>
+      prev.includes(category) ? prev.filter((cat) => cat !== category) : [...prev, category]
+
+    )
+  }
+
+  const filteredRecipes = useMemo(() => {
+    return allRecipes.filter((recipe) => {
+      const matchesSearch = recipe.title.toLowerCase().includes(searchTerm.trim().toLowerCase());
+      const matchesCategory =
+        selectedCategories.length === 0 || selectedCategories.includes(recipe.category);
+
+      return matchesSearch && matchesCategory;
+    });
+  }, [allRecipes, searchTerm, selectedCategories]);
 
   const handleAddRecipe = () => {
     setEditingRecipe(null);
@@ -59,7 +81,7 @@ export default function Dashboard() {
   const handleDeleteRecipe = async (id: string) => {
     await supabase.from("recipes").delete().eq("id", id);
 
-    setRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
+    setAllRecipes((prev) => prev.filter((recipe) => recipe.id !== id));
 
     if (selectedRecipe?.id === id) {
       setSelectedRecipe(null);
@@ -102,7 +124,7 @@ export default function Dashboard() {
         sourceUrl: values.sourceUrl ?? undefined,
       };
 
-      setRecipes((prev) =>
+      setAllRecipes((prev) =>
         prev.map((recipe) => (recipe.id === updated.id ? updated : recipe))
       );
 
@@ -132,12 +154,15 @@ export default function Dashboard() {
       }
 
       const created = mapRowToRecipe(data);
-      setRecipes((prev) => [...prev, created]);
+      setAllRecipes((prev) => [...prev, created]);
     }
 
     setIsDialogOpen(false);
   };
 
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
 
   return (
     <>
@@ -180,8 +205,60 @@ export default function Dashboard() {
             </Button>
           </div>
 
+          <div className="mt-4 sm:mt-6">
+            <label htmlFor="recipe-search" className="sr-only">
+              Search recipes
+            </label>
+            <div className="relative max-w-xl">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                id="recipe-search"
+                type="text"
+                placeholder="Search recipes by title"
+                value={searchTerm}
+                onChange={handleChange}
+                className="h-10 bg-card pl-9"
+              />
+            </div>
+            <div className="relative max-w-xl">
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant={selectedCategories.length === 0 ? "primary" : "ghost"}
+                  size="xs"
+                  className={cn(
+                    "rounded-full px-4 capitalize",
+                    selectedCategories.length !== 0 && "border-border/60 bg-card/40"
+                  )}
+                  onClick={() => setSelectedCategories([])}
+                >
+                  all
+                </Button>
+              {RECIPE_CATEGORIES.map((value) => (
+                <Button
+                  type="button"
+                  key={value}
+                  aria-pressed={selectedCategories.includes(value)}
+                  onClick={() => toggleCategory(value)}
+                  variant={selectedCategories.includes(value) ? "primary" : "ghost"}
+                  size="xs"
+                  className={cn(
+                    "rounded-full px-4 capitalize",
+                    !selectedCategories.includes(value) && "border-border/60 bg-card/40"
+                  )}
+                >
+                  {value}
+                </Button>
+              ))}
+              </div>
+            </div>
+          </div>
+
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {recipes.map((recipe) => (
+            {filteredRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
                 recipe={recipe}
