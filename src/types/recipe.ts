@@ -23,4 +23,6 @@ export type Recipe = {
   steps: Step[];
   image?: string;
   sourceUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };

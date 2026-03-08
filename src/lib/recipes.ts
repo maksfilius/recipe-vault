@@ -10,6 +10,8 @@ export type RecipeRow = {
   steps: Step[] | null;
   image_url: string | null;
   source_url: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 };
 
 export function mapRowToRecipe(row: RecipeRow): Recipe {
@@ -22,5 +24,7 @@ export function mapRowToRecipe(row: RecipeRow): Recipe {
     steps: row.steps ?? [],
     image: row.image_url ?? undefined,
     sourceUrl: row.source_url ?? undefined,
+    createdAt: row.created_at ?? undefined,
+    updatedAt: row.updated_at ?? row.created_at ?? undefined,
   };
 }
