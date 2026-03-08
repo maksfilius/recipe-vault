@@ -15,6 +15,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
     try {
@@ -42,6 +43,8 @@ export default function AppShell({ children }: AppShellProps) {
 
       if (!user) {
         setUserName(null);
+        setIsAuthChecking(false);
+        router.replace('/login');
         return;
       }
 
@@ -55,10 +58,11 @@ export default function AppShell({ children }: AppShellProps) {
         null;
 
       setUserName(displayName);
+      setIsAuthChecking(false);
     };
 
     void fetchUserName();
-  }, []);
+  }, [router]);
 
   const handleToggle = () => {
     setCollapsed(prev => !prev);
@@ -78,6 +82,14 @@ export default function AppShell({ children }: AppShellProps) {
     router.replace('/login');
   };
 
+  if (isAuthChecking) {
+    return (
+      <div className="flex h-[100dvh] items-center justify-center bg-background text-muted-foreground">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
       <div
@@ -93,7 +105,7 @@ export default function AppShell({ children }: AppShellProps) {
           <Sidebar collapsed={collapsed} onToggle={handleToggle} onSignOut={handleSignOut} />
         </aside>
 
-        <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-scroll">
+        <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-hidden">
           <Topbar onMenuClick={openMobileSidebar} userName={userName ?? undefined} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
