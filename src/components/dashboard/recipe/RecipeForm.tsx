@@ -200,10 +200,13 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                       <input
                         className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         type="number"
+                        min={0}
                         value={ingredient.amount ?? ""}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, {
-                            amount: event.target.value ? Number(event.target.value) : undefined,
+                            amount: event.target.value
+                              ? Math.max(0, Number(event.target.value))
+                              : undefined,
                           })
                         }
                       />
