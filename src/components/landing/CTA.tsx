@@ -1,39 +1,37 @@
 'use client';
 
+import Link from "next/link";
 import { Button } from "../../components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { useScrollAnimation } from "../../hooks/use-scroll-animation";
 
 const CTA = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="py-20 bg-gradient-to-br from-primary via-primary/80 to-primary/60 overflow-hidden">
-      <div className="container mx-auto max-w-7xl px-6">
+    <section className="overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-primary/60 py-20">
+      <div className="mx-auto max-w-7xl px-6">
         <div
           ref={ref}
           className={`max-w-3xl mx-auto text-center transition-all duration-700 ${
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">
-            Ready to Transform Your Cooking?
+          <h2 className="mb-6 text-4xl font-bold text-foreground md:text-5xl">
+            Ready To Organize Your Recipes?
           </h2>
 
-          <p className="text-xl text-foreground/90 mb-8">
-            Join thousands of home cooks who've organized their recipe collections and rediscovered the joy of cooking.
+          <p className="mb-8 text-xl text-foreground/90">
+            Create recipes, keep them searchable, and manage your kitchen notes in one place.
           </p>
 
-          <div className="flex justify-center">
-            <Button size="lg" variant="primary" className="text-lg px-8">
-              Start Your Free Trial
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+          <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button size="lg" variant="primary" className="px-8 text-lg" asChild>
+              <Link href="/register">Create account</Link>
+            </Button>
+            <Button size="lg" variant="ghost" className="border border-foreground/30 bg-foreground/10 px-8 text-lg text-foreground hover:bg-foreground/20" asChild>
+              <Link href="/login">Sign in</Link>
             </Button>
           </div>
-
-          <p className="text-sm text-foreground/75 mt-4">
-            No credit card required • Free forever plan available
-          </p>
         </div>
       </div>
     </section>

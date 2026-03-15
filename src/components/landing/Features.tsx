@@ -1,39 +1,39 @@
 'use client';
 
-import { BookOpen, Search, Share2, Heart, Clock, Sparkles } from "lucide-react";
+import { BookOpen, Filter, ListChecks, Search, SquarePen, View } from "lucide-react";
 import { Card, CardContent } from "../../components/ui/card";
 import { useScrollAnimation } from "../../hooks/use-scroll-animation";
 
 const features = [
   {
-    icon: BookOpen,
-    title: "Organize Everything",
-    description: "Keep all your recipes in one beautifully organized digital cookbook.",
+    icon: SquarePen,
+    title: "Create & edit recipes",
+    description: "Add title, description, ingredients, steps, source link, and image in one flow.",
   },
   {
     icon: Search,
-    title: "Smart Search",
-    description: "Find any recipe instantly with powerful search and filtering.",
+    title: "Fast title search",
+    description: "Find recipes instantly while typing with a lightweight search experience.",
   },
   {
-    icon: Share2,
-    title: "Easy Sharing",
-    description: "Share your favorite recipes with friends and family effortlessly.",
+    icon: Filter,
+    title: "Category filters",
+    description: "Switch between categories and combine them with search for faster browsing.",
   },
   {
-    icon: Heart,
-    title: "Save Favorites",
-    description: "Mark your go-to recipes and build your personal collection.",
+    icon: View,
+    title: "Readable details view",
+    description: "See recipe notes, source, ingredients, and full step-by-step instructions.",
   },
   {
-    icon: Clock,
-    title: "Meal Planning",
-    description: "Plan your weekly meals and generate shopping lists automatically.",
+    icon: ListChecks,
+    title: "Mobile-ready dashboard",
+    description: "Use the same key actions on desktop and mobile with an adaptive layout.",
   },
   {
-    icon: Sparkles,
-    title: "Import from Web",
-    description: "Save recipes from any website with just one click.",
+    icon: BookOpen,
+    title: "Clean recipe library",
+    description: "Keep all your personal recipes in one place and update them over time.",
   },
 ];
 
@@ -41,39 +41,39 @@ const Features = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="py-20 bg-background">
-      <div className="container mx-auto max-w-7xl px-6">
+    <section className="bg-background py-20">
+      <div className="mx-auto max-w-7xl px-6">
         <div
           ref={ref}
           className={`text-center mb-16 transition-all duration-700 ${
             isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
           }`}
         >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-            Everything You Need
+          <h2 className="mb-4 text-4xl font-bold text-foreground md:text-5xl">
+            Built Around Real Workflows
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Powerful features to help you manage your recipe collection like a pro
+          <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
+            No filler features. Everything below reflects what you can use right now.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => (
             <Card
               key={index}
-              className={`group w-full max-w-sm border border-border hover:shadow-[0_25px_60px_hsl(var(--background)_/_0.7)] transition-all duration-500 hover:-translate-y-2 hover:scale-105 ${
+              className={`group w-full border border-border/60 bg-card/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_hsl(var(--background)_/_0.7)] ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
-              <CardContent className="p-8 text-center">
-                <div className="w-14 h-14 rounded-lg bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-6 transition-all duration-300 group-hover:scale-110 mx-auto">
-                  <feature.icon className="h-7 w-7 text-primary transition-transform duration-300 group-hover:rotate-12" />
+              <CardContent className="p-7">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 transition-all duration-300 group-hover:bg-primary/25">
+                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3 text-foreground">
+                <h3 className="mb-3 text-xl font-semibold text-foreground">
                   {feature.title}
                 </h3>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="leading-relaxed text-muted-foreground">
                   {feature.description}
                 </p>
               </CardContent>

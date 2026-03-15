@@ -8,7 +8,7 @@ import Header from "@/src/components/landing/Header";
 
 export default function LangingPage() {
   return (
-    <div className="min-h-screen scroll-smooth">
+    <div className="min-h-screen scroll-smooth bg-background">
       <Header />
       <div id="hero">
         <Hero />

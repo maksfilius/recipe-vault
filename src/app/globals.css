@@ -23,29 +23,29 @@
   --background: 265 55% 6%;
   --foreground: 0 0% 96%;
   --card: 266 40% 11%;
-  --primary: 310 65% 28%;
-  --primary-foreground: 262 48% 12%;
+  --primary: 34 86% 55%;
+  --primary-foreground: 24 80% 11%;
   --muted: 258 32% 20%;
   --muted-foreground: 265 20% 78%;
   --border: 258 25% 30%;
   --destructive: 3 76% 57%;
   --ring: var(--primary);
 
-  --cat-breakfast-label: 42 92% 80%;
-  --cat-breakfast-grad-start: 35 86% 42%;
-  --cat-breakfast-grad-end: 16 70% 30%;
+  --cat-breakfast-label: 43 92% 82%;
+  --cat-breakfast-grad-start: 34 84% 44%;
+  --cat-breakfast-grad-end: 22 72% 32%;
 
-  --cat-lunch-label: 155 55% 74%;
-  --cat-lunch-grad-start: 152 60% 40%;
-  --cat-lunch-grad-end: 190 60% 30%;
+  --cat-lunch-label: 176 62% 78%;
+  --cat-lunch-grad-start: 174 58% 36%;
+  --cat-lunch-grad-end: 192 52% 27%;
 
-  --cat-dinner-label: 292 75% 82%;
-  --cat-dinner-grad-start: 280 70% 40%;
-  --cat-dinner-grad-end: 310 65% 28%;
+  --cat-dinner-label: 8 86% 76%;
+  --cat-dinner-grad-start: 6 70% 36%;
+  --cat-dinner-grad-end: 2 58% 24%;
 
-  --cat-snack-label: 338 80% 78%;
-  --cat-snack-grad-start: 330 70% 45%;
-  --cat-snack-grad-end: 10 70% 32%;
+  --cat-snack-label: 236 86% 84%;
+  --cat-snack-grad-start: 234 72% 46%;
+  --cat-snack-grad-end: 254 64% 34%;
 }
 
 .dark {
@@ -54,29 +54,29 @@
   --background: 265 63% 4%;
   --foreground: 0 0% 98%;
   --card: 267 44% 9%;
-  --primary: 281 78% 65%;
-  --primary-foreground: 264 52% 14%;
+  --primary: 34 86% 55%;
+  --primary-foreground: 24 80% 11%;
   --muted: 257 35% 18%;
   --muted-foreground: 260 18% 82%;
   --border: 260 28% 24%;
   --destructive: 3 78% 55%;
   --ring: var(--primary);
 
-  --cat-breakfast-label: 42 92% 80%;
-  --cat-breakfast-grad-start: 35 86% 42%;
-  --cat-breakfast-grad-end: 16 70% 30%;
+  --cat-breakfast-label: 43 92% 82%;
+  --cat-breakfast-grad-start: 34 84% 44%;
+  --cat-breakfast-grad-end: 22 72% 32%;
 
-  --cat-lunch-label: 155 55% 74%;
-  --cat-lunch-grad-start: 152 60% 40%;
-  --cat-lunch-grad-end: 190 60% 30%;
+  --cat-lunch-label: 176 62% 78%;
+  --cat-lunch-grad-start: 174 58% 36%;
+  --cat-lunch-grad-end: 192 52% 27%;
 
-  --cat-dinner-label: 292 75% 82%;
-  --cat-dinner-grad-start: 280 70% 40%;
-  --cat-dinner-grad-end: 310 65% 28%;
+  --cat-dinner-label: 8 86% 76%;
+  --cat-dinner-grad-start: 6 70% 36%;
+  --cat-dinner-grad-end: 2 58% 24%;
 
-  --cat-snack-label: 338 80% 78%;
-  --cat-snack-grad-start: 330 70% 45%;
-  --cat-snack-grad-end: 10 70% 32%;
+  --cat-snack-label: 236 86% 84%;
+  --cat-snack-grad-start: 234 72% 46%;
+  --cat-snack-grad-end: 254 64% 34%;
 }
 
 @layer base {

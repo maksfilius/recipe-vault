@@ -17,21 +17,21 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl">
+      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <button
           onClick={() => scrollToSection("hero")}
-          className="flex items-center gap-2 text-xl font-bold text-primary hover:opacity-80 transition-opacity"
+          className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
         >
-          <ChefHat className="w-8 h-8" />
+          <ChefHat className="h-8 w-8 text-primary" />
           <span>RecipeVault</span>
         </button>
 
-        <div className="hidden md:flex items-center gap-8">
-          <button onClick={() => scrollToSection("features")} className="text-foreground/80 hover:text-primary transition-colors">
+        <div className="hidden items-center gap-8 md:flex">
+          <button onClick={() => scrollToSection("features")} className="text-foreground/80 transition-colors hover:text-foreground">
             Features
           </button>
-          <button onClick={() => scrollToSection("cta")} className="text-foreground/80 hover:text-primary transition-colors">
+          <button onClick={() => scrollToSection("cta")} className="text-foreground/80 transition-colors hover:text-foreground">
             Get Started
           </button>
           <Button size="sm" variant="ghost" asChild>
@@ -44,30 +44,24 @@ const Header = () => {
 
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="md:hidden p-2 text-foreground hover:text-primary transition-colors"
+          className="p-2 text-foreground transition-colors hover:text-primary md:hidden"
         >
-          {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </nav>
 
       {isMenuOpen && (
-        <div className="md:hidden bg-background border-b border-border">
-          <div className="container mx-auto px-4 py-4 flex flex-col gap-4">
+        <div className="border-b border-border/60 bg-background md:hidden">
+          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4">
             <button
               onClick={() => scrollToSection("features")}
-              className="text-left text-foreground/80 hover:text-primary transition-colors py-2"
+              className="py-2 text-left text-foreground/80 transition-colors hover:text-foreground"
             >
               Features
             </button>
             <button
-              onClick={() => scrollToSection("stats")}
-              className="text-left text-foreground/80 hover:text-primary transition-colors py-2"
-            >
-              Stats
-            </button>
-            <button
               onClick={() => scrollToSection("cta")}
-              className="text-left text-foreground/80 hover:text-primary transition-colors py-2"
+              className="py-2 text-left text-foreground/80 transition-colors hover:text-foreground"
             >
               Get Started
             </button>

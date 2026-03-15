@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Button } from "../../components/ui/button";
-import { ArrowRight } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 const Hero = () => {
@@ -29,43 +28,33 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden pt-20">
       <div
         ref={bgRef}
         className="absolute inset-0 z-0 transition-transform duration-75 ease-out will-change-transform"
         style={{
           backgroundImage:
-            "linear-gradient(135deg, color-mix(in hsl, var(--color-primary) 95%, transparent), color-mix(in hsl, var(--color-muted) 85%, transparent))",
+            "radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), linear-gradient(180deg, color-mix(in hsl, var(--color-background) 70%, transparent), color-mix(in hsl, var(--color-card) 90%, transparent))",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
       />
 
-      <div className="container relative z-10 px-6 py-20 text-center">
-        <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 animate-fade-in">
-          Your Kitchen&apos;s Best Friend
+      <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
+        <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
+          Keep recipes organized, searchable, and ready while you cook.
         </h1>
 
-        <p
-          className="text-xl md:text-2xl text-foreground/90 mb-8 max-w-2xl mx-auto animate-fade-in-delayed"
-        >
-          Store, organize, and discover your favorite recipes all in one place. Never lose a family recipe again.
+        <p className="animate-fade-in-delayed mx-auto mt-5 max-w-3xl text-lg text-foreground/85 sm:text-xl">
+          Create and edit recipes, filter by category, search by title, and keep all steps and ingredients in one clean dashboard.
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-more">
-          <Button size="lg" variant="primary" className="text-lg px-8" asChild>
-            <Link href="/register">
-              Get Started Free
-              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-            </Link>
+        <div className="animate-fade-in-more mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
+          <Button size="lg" variant="primary" className="px-7 text-base" asChild>
+            <Link href="/register">Start free</Link>
           </Button>
-
-          <Button
-            size="lg"
-            variant="secondary"
-            className="text-lg px-8"
-          >
-            Watch Demo
+          <Button size="lg" variant="ghost" className="border border-border/60 px-7 text-base" asChild>
+            <Link href="/login">Open dashboard</Link>
           </Button>
         </div>
       </div>
