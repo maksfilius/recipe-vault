@@ -17,6 +17,7 @@ type RecipeDetailsProps = {
 export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetailsProps) {
   const { tokens, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
     getRecipeCategoryStyles(recipe.category, recipe.image);
+  const hasImage = Boolean(recipe.image);
 
   const hasIngredients = recipe.ingredients && recipe.ingredients.length > 0;
   const hasSteps = recipe.steps && recipe.steps.length > 0;
@@ -103,9 +104,12 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
         padding="none"
         className="overflow-hidden border-border/70 bg-background/60"
       >
-        <div className="relative h-32 w-full overflow-hidden" style={heroBackground}>
+        <div
+          className={["relative w-full overflow-hidden", hasImage ? "h-32" : "h-16"].join(" ")}
+          style={heroBackground}
+        >
           <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/35 to-background/75" />
-          <div className="absolute left-6 top-6 flex items-center gap-2">
+          <div className={["absolute left-6 flex items-center gap-2", hasImage ? "top-6" : "top-1/2 -translate-y-1/2"].join(" ")}>
             <span
               className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
               style={labelStyles}

@@ -44,9 +44,6 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   const [sourceUrl, setSourceUrl] = useState(
     () => initialValue?.sourceUrl ?? ""
   );
-  const [image, setImage] = useState<string>(
-    () => initialValue?.image ?? ""
-  );
 
   const addIngredient = () => {
     setIngredients(prev => [
@@ -107,7 +104,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
       category,
       description: description.trim(),
       sourceUrl: sourceUrl.trim() || undefined,
-      image: image || undefined,
+      image: initialValue?.image,
       ingredients,
       steps
     });
@@ -287,37 +284,6 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
         </div>
 
         <div className="grid grid-cols-1 gap-4">
-          <section className="space-y-2">
-            <span className="block text-sm font-semibold text-foreground">
-              Image (optional)
-            </span>
-            <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border/70 bg-background/40 p-4">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={event => {
-                  const file = event.target.files?.[0] ?? null;
-                  if (file) {
-                    const objectUrl = URL.createObjectURL(file);
-                    setImage(objectUrl);
-                  } else {
-                    setImage("");
-                  }
-                }}
-                className="text-sm text-muted-foreground file:mr-3 file:rounded-md file:border file:border-border/70 file:bg-muted file:px-3 file:py-2 file:text-foreground file:hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              />
-              {image && (
-                <div className="relative overflow-hidden rounded-lg border border-border/60 bg-muted/50">
-                  <img
-                    src={image}
-                    alt="Recipe preview"
-                    className="h-40 w-full object-cover"
-                  />
-                </div>
-              )}
-            </div>
-          </section>
-
           <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">
               Source link
