@@ -86,7 +86,34 @@
 
 @layer utilities {
   @keyframes fade-in { from { opacity: 0; transform: translateY(6px)} to { opacity: 1; transform: translateY(0)} }
+  @keyframes card-in {
+    0% {
+      opacity: 0;
+      transform: translateY(18px) scale(0.985);
+      filter: blur(6px);
+      border-color: transparent;
+      box-shadow: 0 0 0 hsl(var(--background) / 0);
+    }
+    65% {
+      border-color: transparent;
+      box-shadow: 0 0 0 hsl(var(--background) / 0);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      filter: blur(0);
+      border-color: hsl(var(--border) / 0.6);
+      box-shadow: 0 35px 90px hsl(var(--background) / 0.75);
+    }
+  }
+  @keyframes image-shimmer {
+    0% { transform: translateX(-120%); opacity: 0; }
+    20% { opacity: 0.35; }
+    100% { transform: translateX(140%); opacity: 0; }
+  }
   .animate-fade-in { animation: fade-in .8s ease-out both; }
   .animate-fade-in-delayed { animation: fade-in .8s ease-out .2s both; }
   .animate-fade-in-more { animation: fade-in .8s ease-out .4s both; }
+  .animate-card-in { animation: card-in .55s cubic-bezier(.22,1,.36,1) both; }
+  .animate-image-shimmer { animation: image-shimmer 1.8s ease-out infinite; }
 }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import RecipeForm from "../../components/dashboard/recipe/RecipeForm";
-import { RecipeCard } from "../../components/dashboard/recipe/RecipeCard";
+import { RecipeCard, RecipeCardSkeleton } from "../../components/dashboard/recipe/RecipeCard";
 import { RecipeDetails } from "@/src/components/dashboard/recipe/RecipeDetails";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -405,10 +405,7 @@ export default function Dashboard() {
           <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
-                <div
-                  key={`skeleton-${index}`}
-                  className="h-64 animate-pulse rounded-2xl border border-border/60 bg-card/40"
-                />
+                <RecipeCardSkeleton key={`skeleton-${index}`} />
               ))
             ) : filteredRecipes.length === 0 ? (
               <div className="col-span-full rounded-2xl border border-border/60 bg-card/50 px-5 py-8 text-center">
