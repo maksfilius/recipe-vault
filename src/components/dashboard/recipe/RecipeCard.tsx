@@ -8,6 +8,8 @@ import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
 type RecipeCardProps = {
   recipe: Recipe;
   onClick: () => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (recipeId: string) => void;
 };
 
 function RecipeCardHeroImage({ src }: { src: string }) {
@@ -31,7 +33,12 @@ function RecipeCardHeroImage({ src }: { src: string }) {
   );
 }
 
-export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
+export function RecipeCard({
+  recipe,
+  onClick,
+  isFavorite = false,
+  onToggleFavorite,
+}: RecipeCardProps) {
   const { tokens, gradientStyle, heroBackground, labelStyles, labelAccentStyles } =
     getRecipeCategoryStyles(recipe.category, recipe.image);
   const hasImage = Boolean(recipe.image);
@@ -70,20 +77,27 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
               {tokens.name}
             </span>
           </div>
-          {hasImage ? (
-            <button
-              type="button"
-              className="absolute right-3 top-3 rounded-full border border-border/60 bg-background/80 p-2 text-foreground transition hover:scale-105 hover:bg-background"
-              aria-label="Save recipe"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <Bookmark className="h-4 w-4" />
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className={[
+              "absolute right-3 top-3 rounded-full border p-2 transition hover:scale-105",
+              isFavorite
+                ? "border-amber-400/70 bg-amber-400/15 text-amber-200 hover:bg-amber-400/20"
+                : "border-border/60 bg-background/80 text-foreground hover:bg-background"
+            ].join(" ")}
+            aria-label={isFavorite ? "Remove recipe from favorites" : "Add recipe to favorites"}
+            aria-pressed={isFavorite}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleFavorite?.(recipe.id);
+            }}
+          >
+            <Bookmark className={["h-4 w-4", isFavorite ? "fill-current" : ""].join(" ")} />
+          </button>
         </div>
 
         <CardHeader className="gap-3 text-foreground">
-          <CardTitle className="text-lg font-semibold text-foreground">{recipe.title}</CardTitle>
+          <CardTitle className="text-3xl sm:text-2xl font-semibold text-foreground">{recipe.title}</CardTitle>
           <CardDescription className="text-sm leading-relaxed text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
             {recipe.description}
           </CardDescription>
@@ -111,15 +125,14 @@ export function RecipeCard({ recipe, onClick }: RecipeCardProps)  {
   );
 }
 
-
 export function RecipeCardSkeleton() {
   return (
     <div className="relative flex h-64 flex-col overflow-hidden rounded-2xl border border-border/60 bg-card/55 shadow-[0_25px_65px_hsl(var(--background)_/_0.45)]">
       <div className="absolute inset-0 animate-image-shimmer bg-gradient-to-r from-transparent via-white/8 to-transparent" />
       <div className="h-40 shrink-0 rounded-b-[1.5rem] bg-gradient-to-br from-muted/80 via-card/90 to-muted/60" />
-      <div className="mb-4 flex flex-1 flex-col px-6 pb-4 pt-6">
+      <div className="flex flex-1 flex-col px-6 pb-4 pt-6 mb-4">
         <div className="h-6 w-24 rounded-full bg-foreground/10" />
-        <div className="mb-3 mt-2 space-y-2">
+        <div className="mt-2 mb-3 space-y-2">
           <div className="h-7 w-3/4 rounded-lg bg-foreground/12" />
         </div>
       </div>

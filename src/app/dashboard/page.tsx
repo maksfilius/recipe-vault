@@ -20,6 +20,11 @@ import { Plus, Search } from "lucide-react";
 
 import { cn } from "@/src/lib/utils";
 import { RECIPE_CATEGORIES, type Recipe, type RecipeCategory } from "../../types/recipe";
+import {
+  addFavoriteRecipe,
+  fetchFavoriteRecipeIds,
+  removeFavoriteRecipe,
+} from "@/src/lib/favorites";
 import { mapRowToRecipe } from "@/src/lib/recipes";
 import { supabase } from "@/src/lib/supabase-client";
 
@@ -41,6 +46,7 @@ export default function Dashboard() {
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
+  const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("q") ?? "");
   const [selectedCategories, setSelectedCategories] = useState<RecipeCategory[]>(() => {
     const value = searchParams.get("cat");
@@ -81,6 +87,12 @@ export default function Dashboard() {
       }
 
       const mapped = (data ?? []).map(mapRowToRecipe);
+      try {
+        const favoriteIds = await fetchFavoriteRecipeIds(user.id);
+        setFavoriteRecipeIds(Array.from(favoriteIds));
+      } catch {
+        setNotice({ type: "error", message: "Failed to load favorites." });
+      }
       setAllRecipes(mapped);
       setIsLoading(false);
     };
@@ -240,6 +252,34 @@ export default function Dashboard() {
     }
 
     setIsDialogOpen(false);
+  };
+
+  const handleToggleFavorite = async (recipeId: string) => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      setNotice({ type: "error", message: "User is not authenticated." });
+      router.replace("/login");
+      return;
+    }
+
+    const isFavorite = favoriteRecipeIds.includes(recipeId);
+
+    try {
+      if (isFavorite) {
+        await removeFavoriteRecipe(user.id, recipeId);
+        setFavoriteRecipeIds((prev) => prev.filter((id) => id !== recipeId));
+        setNotice({ type: "success", message: "Removed from favorites." });
+      } else {
+        await addFavoriteRecipe(user.id, recipeId);
+        setFavoriteRecipeIds((prev) => [...prev, recipeId]);
+        setNotice({ type: "success", message: "Added to favorites." });
+      }
+    } catch {
+      setNotice({ type: "error", message: "Failed to update favorites." });
+    }
   };
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -448,6 +488,8 @@ export default function Dashboard() {
                   key={recipe.id}
                   recipe={recipe}
                   onClick={() => setSelectedRecipe(recipe)}
+                  isFavorite={favoriteRecipeIds.includes(recipe.id)}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               ))
             )}
