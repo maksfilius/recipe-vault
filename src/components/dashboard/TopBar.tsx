@@ -21,9 +21,9 @@ export default function Topbar({ onMenuClick, userName }: TopbarProps) {
         </button>
         <div className="leading-tight text-foreground">
           <p className="text-lg font-semibold sm:text-2xl">
-            Hi {userName ?? 'there'}! Ready to cook?
+            Hi {userName ?? 'there'}! What are you cooking next?
           </p>
-          <span className="text-sm text-muted-foreground">Let&apos;s organize dinner plans with style</span>
+          <span className="text-sm text-muted-foreground">Keep recipes, favorites, and kitchen notes in one place.</span>
         </div>
       </div>
     </header>

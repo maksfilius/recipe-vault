@@ -7,33 +7,33 @@ import { useScrollAnimation } from "../../hooks/use-scroll-animation";
 const features = [
   {
     icon: SquarePen,
-    title: "Create & edit recipes",
-    description: "Add title, description, ingredients, steps, source link, and image in one flow.",
+    title: "Capture the full recipe",
+    description: "Store ingredients, steps, source links, and notes without splitting recipe details across apps.",
   },
   {
     icon: Search,
-    title: "Fast title search",
-    description: "Find recipes instantly while typing with a lightweight search experience.",
+    title: "Find dinner fast",
+    description: "Search by title and jump back to the recipe you need before the stove is even hot.",
   },
   {
     icon: Filter,
-    title: "Category filters",
-    description: "Switch between categories and combine them with search for faster browsing.",
+    title: "Browse by cooking context",
+    description: "Filter breakfast, lunch, dinner, and snacks to narrow the list to the kind of meal you want to make.",
   },
   {
     icon: View,
-    title: "Readable details view",
-    description: "See recipe notes, source, ingredients, and full step-by-step instructions.",
+    title: "Read while you cook",
+    description: "Open a clean detail view with notes, source, ingredients, and step-by-step instructions that stay easy to scan.",
   },
   {
     icon: ListChecks,
-    title: "Mobile-ready dashboard",
-    description: "Use the same key actions on desktop and mobile with an adaptive layout.",
+    title: "Use it anywhere in the kitchen",
+    description: "The dashboard works on desktop and mobile, so recipes stay usable from the desk to the countertop.",
   },
   {
     icon: BookOpen,
-    title: "Clean recipe library",
-    description: "Keep all your personal recipes in one place and update them over time.",
+    title: "Keep a library that improves over time",
+    description: "Update saved recipes, favorite the ones you repeat, and build a cookbook that reflects how you actually cook.",
   },
 ];
 
@@ -50,10 +50,10 @@ const Features = () => {
           }`}
         >
           <h2 className="mb-4 text-4xl font-bold text-foreground md:text-5xl">
-            Built Around Real Workflows
+            Built for the way home cooks actually save recipes
           </h2>
           <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
-            No filler features. Everything below reflects what you can use right now.
+            RecipeVault focuses on the small set of actions that matter most: save, find, edit, and cook.
           </p>
         </div>
 

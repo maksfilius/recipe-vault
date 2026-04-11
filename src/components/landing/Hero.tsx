@@ -42,11 +42,11 @@ const Hero = () => {
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
         <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
-          Keep recipes organized, searchable, and ready while you cook.
+          Your personal recipe library, organized for real weeknight cooking.
         </h1>
 
         <p className="animate-fade-in-delayed mx-auto mt-5 max-w-3xl text-lg text-foreground/85 sm:text-xl">
-          Create and edit recipes, filter by category, search by title, and keep all steps and ingredients in one clean dashboard.
+          Save ingredients, steps, source links, and favorites in one place so dinner ideas are easy to find when you need them.
         </p>
 
         <div className="animate-fade-in-more mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">

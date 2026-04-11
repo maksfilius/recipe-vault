@@ -19,6 +19,8 @@
 
 :root {
   color-scheme: dark;
+  --font-sans: "Segoe UI", "SF Pro Display", "Helvetica Neue", Helvetica, sans-serif;
+  --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
   --background: 265 55% 6%;
   --foreground: 0 0% 96%;
@@ -81,7 +83,9 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; }
+  html { font-family: var(--font-sans); }
+  body { @apply bg-background text-foreground; font-family: var(--font-sans); }
+  code, pre, kbd, samp { font-family: var(--font-mono); }
 }
 
 @layer utilities {

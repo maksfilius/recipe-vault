@@ -17,11 +17,11 @@ const CTA = () => {
           }`}
         >
           <h2 className="mb-6 text-4xl font-bold text-foreground md:text-5xl">
-            Ready To Organize Your Recipes?
+            Stop hunting through notes, tabs, and screenshots
           </h2>
 
           <p className="mb-8 text-xl text-foreground/90">
-            Create recipes, keep them searchable, and manage your kitchen notes in one place.
+            Create your RecipeVault account and keep your go-to recipes in a dashboard that is ready every time you cook.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">

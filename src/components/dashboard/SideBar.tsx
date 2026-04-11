@@ -35,7 +35,7 @@ export default function Sidebar({
   return (
     <div className="sticky top-0 flex h-[100dvh] flex-col bg-transparent px-2 py-3 text-foreground">
       <div className={`px-3 text-sm font-semibold text-foreground transition-all flex items-center h-14 ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-        Recipe Vault
+        RecipeVault
       </div>
       {showCollapseToggle && (
         <button

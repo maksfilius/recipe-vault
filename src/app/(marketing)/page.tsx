@@ -1,12 +1,18 @@
-"use client";
+import type { Metadata } from "next";
 
 import Hero from "@/src/components/landing/Hero";
 import Features from "@/src/components/landing/Features";
 import Footer from "@/src/components/landing/Footer";
 import CTA from "@/src/components/landing/CTA";
 import Header from "@/src/components/landing/Header";
+import { env } from "@/src/lib/env";
 
-export default function LangingPage() {
+export const metadata: Metadata = {
+  metadataBase: new URL(env.siteUrl),
+  title: "RecipeVault",
+};
+
+export default function LandingPage() {
   return (
     <div className="min-h-screen scroll-smooth bg-background">
       <Header />

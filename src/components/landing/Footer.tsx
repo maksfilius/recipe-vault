@@ -8,7 +8,7 @@ const Footer = () => {
           <div className="max-w-sm">
             <h3 className="mb-4 text-lg font-bold text-foreground">RecipeVault</h3>
             <p className="text-sm text-muted-foreground">
-              Practical recipe management for everyday cooking.
+              A clean home for the recipes you actually cook.
             </p>
           </div>
 
