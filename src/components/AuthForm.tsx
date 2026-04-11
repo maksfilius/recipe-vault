@@ -3,10 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  getAuthRedirectUrl,
+} from "@/src/lib/auth";
+import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import {
   Form,
   FormControl,
@@ -51,7 +55,9 @@ const submitLabels = {
 
 export default function AuthForm({type}: AuthFormProps) {
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const schema = type === "login" ? loginSchema : registerSchema;
 
@@ -69,22 +75,38 @@ export default function AuthForm({type}: AuthFormProps) {
   async function onSubmit(values: LoginValues | RegisterValues) {
     try {
       setLoading(true);
+      setNotice(null);
 
       if (type === "register") {
         const registerValues = values as RegisterValues;
 
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email: registerValues.email,
           password: registerValues.password,
           options: {
             data: {
               username: registerValues.username,
             },
+            emailRedirectTo: getAuthRedirectUrl("/dashboard"),
           },
         });
 
         if (error) {
-          form.setError("email", { message: error.message });
+          form.setError("email", { message: getFriendlyAuthErrorMessage(error.message) });
+          return;
+        }
+
+        if (!data.session) {
+          setNotice({
+            type: "success",
+            message: "Account created. Check your email to confirm your address before signing in.",
+          });
+          form.reset({
+            email: registerValues.email,
+            password: "",
+            username: registerValues.username,
+            repeatPassword: "",
+          });
           return;
         }
 
@@ -98,7 +120,7 @@ export default function AuthForm({type}: AuthFormProps) {
         });
 
         if (error) {
-          form.setError("password", { message: error.message });
+          form.setError("password", { message: getFriendlyAuthErrorMessage(error.message) });
           return;
         }
 
@@ -115,6 +137,25 @@ export default function AuthForm({type}: AuthFormProps) {
         <h2 className="text-3xl font-bold text-foreground mb-6 text-center">
           {formTitles[type]}
         </h2>
+        {searchParams.get("reset") === "success" && type === "login" ? (
+          <div className="mb-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+            Password updated. Sign in with your new password.
+          </div>
+        ) : null}
+        {notice ? (
+          <div
+            className={[
+              "mb-4 rounded-lg border px-4 py-3 text-sm",
+              notice.type === "error"
+                ? "border-red-400/40 bg-red-500/10 text-red-100"
+                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+            ].join(" ")}
+            role="status"
+            aria-live="polite"
+          >
+            {notice.message}
+          </div>
+        ) : null}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             { type == "register" && (
@@ -172,6 +213,16 @@ export default function AuthForm({type}: AuthFormProps) {
                 </FormItem>
               )}
             />
+            {type === "login" ? (
+              <div className="-mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-semibold text-primary hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            ) : null}
             { type == "register" && (
               <FormField
                 control={form.control}

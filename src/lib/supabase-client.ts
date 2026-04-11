@@ -1,6 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import {
+  browserUserStorage,
+  cookieSessionStorage,
+  SUPABASE_AUTH_STORAGE_KEY,
+} from "@/src/lib/auth";
+import { env } from "@/src/lib/env";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
+  auth: {
+    storageKey: SUPABASE_AUTH_STORAGE_KEY,
+    storage: cookieSessionStorage,
+    userStorage: browserUserStorage,
+  },
+});

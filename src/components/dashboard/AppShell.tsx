@@ -8,14 +8,14 @@ import { supabase } from '@/src/lib/supabase-client';
 
 type AppShellProps = {
   children: ReactNode;
+  initialUserName?: string | null;
 };
 
-export default function AppShell({ children }: AppShellProps) {
+export default function AppShell({ children, initialUserName = null }: AppShellProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [userName, setUserName] = useState<string | null>(initialUserName);
 
   useEffect(() => {
     try {
@@ -36,32 +36,20 @@ export default function AppShell({ children }: AppShellProps) {
   }, [collapsed]);
 
   useEffect(() => {
-    const fetchUserName = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setUserName(null);
-        setIsAuthChecking(false);
-        router.replace('/login');
-        return;
-      }
-
-      const metadata = user.user_metadata as
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const metadata = session?.user?.user_metadata as
         | { username?: string; full_name?: string }
         | undefined;
       const displayName =
         metadata?.username?.trim() ||
         metadata?.full_name?.trim() ||
-        user.email?.split('@')[0] ||
+        session?.user?.email?.split('@')[0] ||
         null;
 
       setUserName(displayName);
-      setIsAuthChecking(false);
-    };
+    });
 
-    void fetchUserName();
+    return () => data.subscription.unsubscribe();
   }, [router]);
 
   const handleToggle = () => {
@@ -81,14 +69,6 @@ export default function AppShell({ children }: AppShellProps) {
 
     router.replace('/login');
   };
-
-  if (isAuthChecking) {
-    return (
-      <div className="flex h-[100dvh] items-center justify-center bg-background text-muted-foreground">
-        Loading...
-      </div>
-    );
-  }
 
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
