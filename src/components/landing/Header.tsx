@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { Menu, X, ChefHat } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -23,7 +23,6 @@ const Header = () => {
           onClick={() => scrollToSection("hero")}
           className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
         >
-          <ChefHat className="h-8 w-8 text-primary" />
           <span>RecipeVault</span>
         </button>
 

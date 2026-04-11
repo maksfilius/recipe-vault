@@ -10,6 +10,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default function OpenGraphImage() {
+  const siteHost = new URL(env.siteUrl).host;
+
   return new ImageResponse(
     (
       <div
@@ -53,7 +55,7 @@ export default function OpenGraphImage() {
             Keep ingredients, steps, favorites, and source links organized for the next time you cook.
           </div>
         </div>
-        <div style={{ fontSize: 24, color: "#fed7aa" }}>recipevault.app</div>
+        <div style={{ fontSize: 24, color: "#fed7aa" }}>{siteHost}</div>
       </div>
     ),
     size,
