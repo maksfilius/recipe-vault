@@ -35,22 +35,16 @@ export const categoryTokens: Record<RecipeCategory, CategoryToken> = {
   },
 };
 
-export function getRecipeCategoryStyles(category: RecipeCategory, image?: string) {
+export function getRecipeCategoryStyles(category: RecipeCategory) {
   const tokens = categoryTokens[category];
 
   const gradientStyle: CSSProperties = {
     backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart})), hsl(var(${tokens.gradientEnd})))`,
   };
 
-  const heroBackground: CSSProperties = image
-    ? {
-      backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart}) / 0.35), hsl(var(${tokens.gradientEnd}) / 0.8)), url(${image})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }
-    : {
-      backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart}) / 0.35), hsl(var(${tokens.gradientEnd}) / 0.75))`,
-    };
+  const heroBackground: CSSProperties = {
+    backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart}) / 0.35), hsl(var(${tokens.gradientEnd}) / 0.75))`,
+  };
 
   const labelStyles: CSSProperties = {
     color: `hsl(var(${tokens.label}))`,

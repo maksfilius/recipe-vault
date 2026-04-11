@@ -128,8 +128,7 @@ export default function Favorites() {
         <RecipeDetails
           recipe={selectedRecipe}
           onBack={() => setSelectedRecipe(null)}
-          onEdit={() => {}}
-          onDelete={() => {}}
+          showActions={false}
         />
       ) : (
         <section className="mx-auto max-w-6xl space-y-5">

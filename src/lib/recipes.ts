@@ -22,7 +22,6 @@ export function mapRowToRecipe(row: RecipeRow): Recipe {
     description: row.description ?? '',
     ingredients: row.ingredients ?? [],
     steps: row.steps ?? [],
-    image: row.image_url ?? undefined,
     sourceUrl: row.source_url ?? undefined,
     createdAt: row.created_at ?? undefined,
     updatedAt: row.updated_at ?? row.created_at ?? undefined,

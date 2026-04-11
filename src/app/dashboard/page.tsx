@@ -202,7 +202,6 @@ export default function Dashboard() {
           category: values.category,
           ingredients: values.ingredients,
           steps: values.steps,
-          image_url: values.image ?? null,
           source_url: values.sourceUrl ?? null,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" })
@@ -235,7 +234,6 @@ export default function Dashboard() {
           category: values.category,
           ingredients: values.ingredients,
           steps: values.steps,
-          image_url: values.image ?? null,
           source_url: values.sourceUrl ?? null,
         })
         .select("*")

@@ -10,14 +10,20 @@ import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
 type RecipeDetailsProps = {
   recipe: Recipe;
   onBack: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  showActions?: boolean;
 }
 
-export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetailsProps) {
+export function RecipeDetails({
+  recipe,
+  onBack,
+  onEdit,
+  onDelete,
+  showActions = true,
+}: RecipeDetailsProps) {
   const { tokens, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
-    getRecipeCategoryStyles(recipe.category, recipe.image);
-  const hasImage = Boolean(recipe.image);
+    getRecipeCategoryStyles(recipe.category);
 
   const hasIngredients = recipe.ingredients && recipe.ingredients.length > 0;
   const hasSteps = recipe.steps && recipe.steps.length > 0;
@@ -68,6 +74,7 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
           {!isPinned && <span>Back to recipes</span>}
         </Button>
 
+        {showActions ? (
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="ghost"
@@ -97,6 +104,7 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
             {!isPinned && <span>Delete</span>}
           </Button>
         </div>
+        ) : null}
       </div>
 
       <Card
@@ -105,11 +113,11 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete }: RecipeDetail
         className="overflow-hidden border-border/70 bg-background/60"
       >
         <div
-          className={["relative w-full overflow-hidden", hasImage ? "h-32" : "h-16"].join(" ")}
+          className="relative h-16 w-full overflow-hidden"
           style={heroBackground}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/35 to-background/75" />
-          <div className={["absolute left-6 flex items-center gap-2", hasImage ? "top-6" : "top-1/2 -translate-y-1/2"].join(" ")}>
+          <div className="absolute left-6 top-1/2 flex -translate-y-1/2 items-center gap-2">
             <span
               className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
               style={labelStyles}

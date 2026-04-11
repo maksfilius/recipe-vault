@@ -104,7 +104,6 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
       category,
       description: description.trim(),
       sourceUrl: sourceUrl.trim() || undefined,
-      image: initialValue?.image,
       ingredients,
       steps
     });
@@ -297,6 +296,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
               Optional — link to the original source or blog post.
             </p>
           </section>
+
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-3">

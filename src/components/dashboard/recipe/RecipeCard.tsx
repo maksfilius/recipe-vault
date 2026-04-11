@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Recipe } from "../../../types/recipe";
 import { Bookmark, ExternalLink } from "lucide-react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
@@ -12,27 +11,6 @@ type RecipeCardProps = {
   onToggleFavorite?: (recipeId: string) => void;
 };
 
-function RecipeCardHeroImage({ src }: { src: string }) {
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  return (
-    <>
-      <div className="absolute inset-0 animate-image-shimmer bg-gradient-to-br from-white/8 via-white/18 to-transparent opacity-60" />
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className={[
-          "absolute inset-0 h-full w-full object-cover transition duration-700 ease-out",
-          isLoaded ? "scale-100 opacity-100" : "scale-105 opacity-0"
-        ].join(" ")}
-        onLoad={() => setIsLoaded(true)}
-        onError={() => setIsLoaded(true)}
-      />
-    </>
-  );
-}
-
 export function RecipeCard({
   recipe,
   onClick,
@@ -40,8 +18,7 @@ export function RecipeCard({
   onToggleFavorite,
 }: RecipeCardProps) {
   const { tokens, gradientStyle, heroBackground, labelStyles, labelAccentStyles } =
-    getRecipeCategoryStyles(recipe.category, recipe.image);
-  const hasImage = Boolean(recipe.image);
+    getRecipeCategoryStyles(recipe.category);
 
   return (
     <Card
@@ -56,19 +33,11 @@ export function RecipeCard({
       <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background/70" />
       <div className="relative z-10 flex h-full flex-col bg-background/5 backdrop-blur-[1px]">
         <div
-          className={[
-            "relative w-full overflow-hidden rounded-b-[1.5rem]",
-            hasImage ? "h-40" : "h-16"
-          ].join(" ")}
-          style={hasImage ? gradientStyle : heroBackground}
+          className="relative h-16 w-full overflow-hidden rounded-b-[1.5rem]"
+          style={heroBackground}
         >
-          {hasImage ? (
-            <>
-              <RecipeCardHeroImage key={recipe.image} src={recipe.image!} />
-            </>
-          ) : null}
           <div className="absolute inset-0 bg-gradient-to-br from-background/5 via-transparent to-background/25" />
-          <div className={["absolute left-4 flex items-center gap-2", hasImage ? "top-4" : "top-1/2 -translate-y-1/2"].join(" ")}>
+          <div className="absolute left-4 top-1/2 flex -translate-y-1/2 items-center gap-2">
             <span
               className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
               style={labelStyles}
@@ -134,6 +103,7 @@ export function RecipeCardSkeleton() {
         <div className="h-6 w-24 rounded-full bg-foreground/10" />
         <div className="mt-2 mb-3 space-y-2">
           <div className="h-7 w-3/4 rounded-lg bg-foreground/12" />
+          <div className="h-4 w-full rounded-lg bg-foreground/10" />
         </div>
       </div>
     </div>
