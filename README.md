@@ -49,10 +49,13 @@ npm run typecheck
 npm run test:unit
 npm run test
 npm run build
+npm run build:turbopack
 npm run build:webpack
+npm run predeploy
 ```
 
 `npm run test` runs linting, TypeScript validation, and a small unit test suite.
+`npm run predeploy` is the recommended final local check before shipping.
 
 ## Supabase notes
 
@@ -92,4 +95,8 @@ npx supabase db push
 
 ## Launch notes
 
-- `npm run build` uses Turbopack by default in Next 16. In restricted sandbox environments it may fail for non-app reasons; `npm run build:webpack` is included as a reliable production verification path.
+- `npm run build` now uses webpack as the default production build path because it is stable in this project.
+- `npm run build:turbopack` is kept as an explicit opt-in check while Turbopack behavior is being evaluated.
+- Before deploying, run `npm run predeploy`.
+- Before deploying, make sure Supabase Auth has the correct Site URL and password reset redirect URL for your real domain.
+- Before deploying, push the committed schema migration with `npx supabase db push`.
