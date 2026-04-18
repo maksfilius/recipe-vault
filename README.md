@@ -62,6 +62,34 @@ npm run build:webpack
 - The dashboard server gate depends on Supabase session tokens being mirrored into cookies by the client.
 - If you want self-serve account deletion in settings, set `SUPABASE_SERVICE_ROLE_KEY` on the server.
 
+## Database schema and migrations
+
+This repo now tracks the database schema in `supabase/migrations/20260418_initial_schema.sql`.
+
+Why this matters:
+
+- the app depends on `recipes` and `favorite_recipes` existing with the expected columns
+- RLS policies are part of the app's behavior, not just a dashboard setting
+- a new Supabase project can be recreated from code instead of manual clicks
+
+Suggested learning flow with the Supabase CLI:
+
+```bash
+npx supabase init
+npx supabase start
+npx supabase db reset
+```
+
+Useful follow-up commands:
+
+```bash
+npx supabase migration new add_some_change
+npx supabase db diff -f describe_dashboard_changes
+npx supabase db push
+```
+
+`db reset` is the key confidence check: it rebuilds the local database from migrations, so you know the schema is reproducible.
+
 ## Launch notes
 
 - `npm run build` uses Turbopack by default in Next 16. In restricted sandbox environments it may fail for non-app reasons; `npm run build:webpack` is included as a reliable production verification path.
