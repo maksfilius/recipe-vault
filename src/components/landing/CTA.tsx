@@ -3,16 +3,34 @@
 import Link from "next/link";
 import { Button } from "../../components/ui/button";
 import { useScrollAnimation } from "../../hooks/use-scroll-animation";
+import ctaBackground from "@/src/assets/CTA.png";
 
 const CTA = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="overflow-hidden bg-gradient-to-br from-primary via-primary/80 to-primary/60 py-20">
+    <section className="relative overflow-hidden py-20">
+      <div
+        className="absolute inset-0 md:hidden"
+        style={{
+          backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.34), hsl(var(--background) / 0.74)), url(${ctaBackground.src})`,
+          backgroundSize: "cover",
+          backgroundPosition: "right center",
+        }}
+      />
+      <div
+        className="absolute inset-0 hidden md:block"
+        style={{
+          backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.34), hsl(var(--background) / 0.74)), url(${ctaBackground.src})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center center",
+        }}
+      />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.32),transparent_45%),linear-gradient(180deg,hsl(var(--background)_/_0.08),hsl(var(--background)_/_0.38))]" />
       <div className="mx-auto max-w-7xl px-6">
         <div
           ref={ref}
-          className={`max-w-3xl mx-auto text-center transition-all duration-700 ${
+          className={`relative max-w-3xl mx-auto text-center transition-all duration-700 ${
             isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >

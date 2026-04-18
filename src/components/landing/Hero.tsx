@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "../../components/ui/button";
 import { useEffect, useRef } from "react";
+import heroBackground from "@/src/assets/Hero.png";
 
 const Hero = () => {
   const scrollYRef = useRef(0);
@@ -10,6 +11,13 @@ const Hero = () => {
   const ticking = useRef(false);
 
   useEffect(() => {
+    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isMobileViewport = window.matchMedia("(max-width: 767px)").matches;
+
+    if (isReducedMotion || isMobileViewport) {
+      return;
+    }
+
     const onScroll = () => {
       scrollYRef.current = window.scrollY;
       if (!ticking.current) {
@@ -17,7 +25,7 @@ const Hero = () => {
         requestAnimationFrame(() => {
           const y = scrollYRef.current;
           if (bgRef.current) {
-            bgRef.current.style.transform = `translateY(${y * 0.5}px) scale(${1 + y * 0.0002})`;
+            bgRef.current.style.transform = `translate3d(0, ${y * 0.18}px, 0) scale(${1 + y * 0.00008})`;
           }
           ticking.current = false;
         });
@@ -30,15 +38,25 @@ const Hero = () => {
   return (
     <section className="relative flex min-h-[92vh] items-center justify-center overflow-hidden pt-20">
       <div
-        ref={bgRef}
-        className="absolute inset-0 z-0 transition-transform duration-75 ease-out will-change-transform"
+        className="absolute inset-0 z-0 transition-transform duration-75 ease-out will-change-transform md:hidden"
         style={{
           backgroundImage:
-            "radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), linear-gradient(180deg, color-mix(in hsl, var(--color-background) 70%, transparent), color-mix(in hsl, var(--color-card) 90%, transparent))",
+            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
           backgroundSize: "cover",
-          backgroundPosition: "center",
+          backgroundPosition: "right center",
         }}
       />
+      <div
+        ref={bgRef}
+        className="absolute inset-0 z-0 hidden transition-transform duration-75 ease-out will-change-transform md:block"
+        style={{
+          backgroundImage:
+            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
+          backgroundSize: "cover",
+          backgroundPosition: "56% center",
+        }}
+      />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,hsl(var(--background)_/_0.28),transparent_42%,hsl(var(--background)_/_0.42))]" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
         <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
