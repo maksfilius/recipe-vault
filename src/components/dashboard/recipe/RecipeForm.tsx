@@ -110,10 +110,10 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   };
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto">
+    <div className="max-h-[80vh] overflow-y-auto px-1">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-3xl space-y-6 rounded-2xl border border-border/70 bg-card/80 p-6 shadow-[0_15px_45px_hsl(var(--foreground)_/_0.08)] backdrop-blur"
+        className="w-full max-w-3xl space-y-4 pb-1 sm:space-y-6 sm:rounded-2xl sm:border sm:border-border/70 sm:bg-card/80 sm:p-6 sm:shadow-[0_15px_45px_hsl(var(--foreground)_/_0.08)] sm:backdrop-blur"
       >
         <div className="grid grid-cols-1 gap-4">
           <label className="space-y-2">
@@ -155,19 +155,19 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
           />
         </label>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Ingredients</span>
-            <div className="space-y-3 rounded-2xl border border-border/60 bg-background/40 p-4 shadow-inner shadow-foreground/5">
+            <div className="space-y-3 sm:rounded-2xl sm:border sm:border-border/60 sm:bg-background/40 sm:p-4 sm:shadow-inner sm:shadow-foreground/5">
               {ingredients.map((ingredient, index) => (
-                <div key={ingredient.id} className="space-y-3 rounded-xl bg-card/60 p-3 shadow-sm ring-1 ring-border/60">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground/80">
+                <div key={ingredient.id} className="space-y-2.5 rounded-lg border border-border/45 bg-card/40 p-2.5 sm:space-y-3 sm:rounded-xl sm:border-transparent sm:bg-card/60 sm:p-3 sm:shadow-sm sm:ring-1 sm:ring-border/60">
+                  <div className="flex items-center justify-end text-xs text-muted-foreground sm:justify-between">
+                    <span className="hidden font-semibold text-foreground/80 sm:inline">
                       Ingredient {index + 1}
                     </span>
                     <button
                       type="button"
-                      className="text-xs font-semibold text-red-500 transition hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="text-[11px] font-semibold text-red-500 transition hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-xs"
                       onClick={() => removeIngredient(ingredient.id)}
                     >
                       Remove
@@ -176,11 +176,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
 
                   <div className="grid gap-2 sm:grid-cols-[minmax(0,1.8fr)_minmax(0,0.7fr)_minmax(0,0.9fr)]">
                     <div className="space-y-1">
-                      <span className="block text-xs font-medium text-muted-foreground">
+                      <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
                         Name
                       </span>
                       <input
-                        className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
                         value={ingredient.name}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, { name: event.target.value })
@@ -190,11 +190,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                     </div>
 
                     <div className="space-y-1">
-                      <span className="block text-xs font-medium text-muted-foreground">
+                      <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
                         Qty
                       </span>
                       <input
-                        className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
                         type="number"
                         min={0}
                         value={ingredient.amount ?? ""}
@@ -209,11 +209,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                     </div>
 
                     <div className="space-y-1">
-                      <span className="block text-xs font-medium text-muted-foreground">
+                      <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
                         Unit
                       </span>
                       <input
-                        className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
                         value={ingredient.unit ?? ""}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, { unit: event.target.value })
@@ -228,7 +228,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="w-full justify-center border border-dashed border-border/70 bg-background/60 text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border"
+                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border sm:bg-background/60"
                 onClick={addIngredient}
               >
                 + Add ingredient
@@ -238,19 +238,19 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
 
           <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Steps</span>
-            <div className="space-y-3 rounded-2xl border border-border/60 bg-background/40 p-4 shadow-inner shadow-foreground/5">
+            <div className="space-y-3 sm:rounded-2xl sm:border sm:border-border/60 sm:bg-background/40 sm:p-4 sm:shadow-inner sm:shadow-foreground/5">
               {steps.map((step, index) => (
                 <div
                   key={step.id}
-                  className="space-y-2 rounded-xl bg-card/60 p-3 shadow-sm ring-1 ring-border/60"
+                  className="space-y-2 rounded-lg border border-border/45 bg-card/40 p-2.5 sm:rounded-xl sm:border-transparent sm:bg-card/60 sm:p-3 sm:shadow-sm sm:ring-1 sm:ring-border/60"
                 >
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground/80">
+                  <div className="flex items-center justify-end text-xs text-muted-foreground sm:justify-between">
+                    <span className="hidden font-semibold text-foreground/80 sm:inline">
                       Step {index + 1}
                     </span>
                     <button
                       type="button"
-                      className="text-xs font-semibold text-red-500 transition hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="text-[11px] font-semibold text-red-500 transition hover:text-red-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-xs"
                       onClick={() => removeStep(step.id)}
                     >
                       Remove
@@ -258,7 +258,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                   </div>
 
                   <textarea
-                    className="w-full rounded-lg border border-border/60 bg-background/60 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
                     rows={3}
                     value={step.text}
                     onChange={event =>
@@ -273,7 +273,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="w-full justify-center border border-dashed border-border/70 bg-background/60 text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border"
+                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border sm:bg-background/60"
                 onClick={addStep}
               >
                 + Add step

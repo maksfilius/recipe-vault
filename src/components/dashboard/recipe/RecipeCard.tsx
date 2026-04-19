@@ -3,6 +3,7 @@ import { Bookmark, ExternalLink } from "lucide-react";
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "../../ui/card";
 import { formatRelativeTime } from "@/src/lib/format-relative-time";
 import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
+import { formatSourceUrl } from "@/src/lib/utils";
 
 type RecipeCardProps = {
   recipe: Recipe;
@@ -17,6 +18,7 @@ export function RecipeCard({
   isFavorite = false,
   onToggleFavorite,
 }: RecipeCardProps) {
+  const formattedSourceUrl = recipe.sourceUrl ? formatSourceUrl(recipe.sourceUrl) : null;
   const { tokens, gradientStyle, heroBackground, labelStyles, labelAccentStyles } =
     getRecipeCategoryStyles(recipe.category);
 
@@ -82,7 +84,7 @@ export function RecipeCard({
               className="inline-flex items-center gap-1 rounded-md text-foreground/95 underline-offset-4 transition"
               onClick={(event) => event.stopPropagation()}
             >
-              View source
+              {formattedSourceUrl}
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           ) : (

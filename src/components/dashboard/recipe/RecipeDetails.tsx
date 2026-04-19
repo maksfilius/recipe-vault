@@ -6,6 +6,7 @@ import { Button } from "../../ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { formatRelativeTime } from "@/src/lib/format-relative-time";
 import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
+import { formatSourceUrl } from "@/src/lib/utils";
 
 type RecipeDetailsProps = {
   recipe: Recipe;
@@ -22,6 +23,7 @@ export function RecipeDetails({
   onDelete,
   showActions = true,
 }: RecipeDetailsProps) {
+  const formattedSourceUrl = recipe.sourceUrl ? formatSourceUrl(recipe.sourceUrl) : null;
   const { tokens, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
     getRecipeCategoryStyles(recipe.category);
 
@@ -158,7 +160,7 @@ export function RecipeDetails({
                   <span>View source</span>
                 </div>
                 <span className="w-full text-xs text-muted-foreground break-all sm:w-auto sm:max-w-[55%] sm:truncate sm:break-normal">
-                  {recipe.sourceUrl}
+                  {formattedSourceUrl}
                 </span>
               </a>
             ) : (
