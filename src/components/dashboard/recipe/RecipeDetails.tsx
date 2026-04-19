@@ -237,8 +237,8 @@ export function RecipeDetails({
             {hasSteps ? (
               <ol className="mt-3 space-y-3">
                 {recipe.steps.map((step, index) => (
-                  <li key={step.id} className="flex gap-3">
-                    <span className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-xs font-semibold text-foreground">
+                  <li key={step.id} className="space-y-2">
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground/10 px-1 text-[11px] font-semibold text-foreground">
                       {index + 1}
                     </span>
                     <p className="break-words text-sm leading-relaxed text-muted-foreground">
