@@ -289,7 +289,7 @@ export default function Dashboard() {
       {notice && (
         <div
           className={cn(
-            "fixed right-4 top-24 z-[70] max-w-[calc(100vw-2rem)] rounded-xl border px-4 py-3 text-sm font-medium shadow-lg",
+            "fixed right-4 top-3 z-[80] max-w-[calc(100vw-2rem)] rounded-xl border px-4 py-3 text-sm font-medium shadow-lg sm:top-4",
             notice.type === "error"
               ? "border-red-400/60 bg-red-500/20 text-red-100"
               : "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
