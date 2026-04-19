@@ -26,6 +26,25 @@ const createEmptyStep = (): Step => ({
   text: "",
 });
 
+const INGREDIENT_UNITS = [
+  "",
+  "g",
+  "kg",
+  "ml",
+  "l",
+  "tsp",
+  "tbsp",
+  "cup",
+  "oz",
+  "lb",
+  "pinch",
+  "clove",
+  "slice",
+  "piece",
+  "can",
+  "pack",
+] as const;
+
 export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormProps) {
   const [title, setTitle] = useState(() => initialValue?.title ?? "");
   const [category, setCategory] = useState<RecipeCategory>(
@@ -119,7 +138,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
           <label className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Recipe name</span>
             <input
-              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-base text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
               value={title}
               onChange={event => setTitle(event.target.value)}
               required
@@ -129,7 +148,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
           <label className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Category</span>
             <select
-              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-base text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
               value={category}
               onChange={event =>
                 setCategory(event.target.value as RecipeCategory)
@@ -147,7 +166,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
         <label className="space-y-2">
           <span className="block text-sm font-semibold text-foreground">Description</span>
           <textarea
-            className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-base text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
             rows={4}
             value={description}
             onChange={event => setDescription(event.target.value)}
@@ -180,7 +199,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                         Name
                       </span>
                       <input
-                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60 sm:text-sm"
                         value={ingredient.name}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, { name: event.target.value })
@@ -191,10 +210,10 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
 
                     <div className="space-y-1">
                       <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
-                        Qty
+                        Quantity
                       </span>
                       <input
-                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60 sm:text-sm"
                         type="number"
                         min={0}
                         value={ingredient.amount ?? ""}
@@ -212,13 +231,24 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                       <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
                         Unit
                       </span>
-                      <input
-                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
+                      <select
+                        className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60 sm:text-sm"
                         value={ingredient.unit ?? ""}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, { unit: event.target.value })
                         }
-                      />
+                      >
+                        <option value="">Select unit</option>
+                        {INGREDIENT_UNITS.filter((unit) => unit !== "").map((unit) => (
+                          <option key={unit} value={unit}>
+                            {unit}
+                          </option>
+                        ))}
+                        {ingredient.unit &&
+                        !INGREDIENT_UNITS.includes(ingredient.unit as (typeof INGREDIENT_UNITS)[number]) ? (
+                          <option value={ingredient.unit}>{ingredient.unit}</option>
+                        ) : null}
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -258,7 +288,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                   </div>
 
                   <textarea
-                    className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60"
+                    className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60 sm:text-sm"
                     rows={3}
                     value={step.text}
                     onChange={event =>
@@ -288,7 +318,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
               Source link
             </span>
             <input
-              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-sm text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-base text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
               value={sourceUrl}
               onChange={event => setSourceUrl(event.target.value)}
             />

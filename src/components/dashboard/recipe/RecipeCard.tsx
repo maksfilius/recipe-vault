@@ -35,7 +35,7 @@ export function RecipeCard({
       <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background/70" />
       <div className="relative z-10 flex h-full flex-col bg-background/5 backdrop-blur-[1px]">
         <div
-          className="relative h-16 w-full overflow-hidden rounded-b-[1.5rem]"
+          className="relative h-16 w-full overflow-hidden"
           style={heroBackground}
         >
           <div className="absolute inset-0 bg-gradient-to-br from-background/5 via-transparent to-background/25" />
