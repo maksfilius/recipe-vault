@@ -33,6 +33,24 @@ type Notice = {
   message: string;
 };
 
+type AddRecipeMode = "select" | "manual" | "import";
+
+function createDraftRecipe(partial?: Partial<Omit<Recipe, "id">>): Recipe {
+  return {
+    id: `draft-import-${globalThis.crypto.randomUUID()}`,
+    title: partial?.title ?? "",
+    category: partial?.category ?? "dinner",
+    description: partial?.description ?? "",
+    ingredients: partial?.ingredients ?? [],
+    steps: partial?.steps ?? [],
+    sourceUrl: partial?.sourceUrl,
+  };
+}
+
+function isDraftImportedRecipe(recipe: Recipe | null) {
+  return Boolean(recipe?.id.startsWith("draft-import-"));
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const pathname = usePathname();
@@ -42,11 +60,15 @@ export default function Dashboard() {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [addRecipeMode, setAddRecipeMode] = useState<AddRecipeMode>("select");
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [notice, setNotice] = useState<Notice | null>(null);
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
   const [favoriteRecipeIds, setFavoriteRecipeIds] = useState<string[]>([]);
+  const [importUrl, setImportUrl] = useState("");
+  const [isImportingRecipe, setIsImportingRecipe] = useState(false);
+  const [importError, setImportError] = useState("");
   const [searchTerm, setSearchTerm] = useState(() => searchParams.get("q") ?? "");
   const [selectedCategories, setSelectedCategories] = useState<RecipeCategory[]>(() => {
     const value = searchParams.get("cat");
@@ -149,12 +171,27 @@ export default function Dashboard() {
 
   const handleAddRecipe = () => {
     setEditingRecipe(null);
+    setAddRecipeMode("select");
+    setImportUrl("");
+    setImportError("");
     setIsDialogOpen(true);
   };
 
   const handleEditRecipe = (recipe: Recipe) => {
     setEditingRecipe(recipe);
+    setAddRecipeMode("manual");
     setIsDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+
+    if (!open) {
+      setAddRecipeMode("select");
+      setImportUrl("");
+      setImportError("");
+      setEditingRecipe(null);
+    }
   };
 
   const requestDeleteRecipe = (recipe: Recipe) => {
@@ -191,7 +228,7 @@ export default function Dashboard() {
       return;
     }
 
-    if (editingRecipe) {
+    if (editingRecipe && !isDraftImportedRecipe(editingRecipe)) {
       const { data, error } = await supabase
         .from("recipes")
         .upsert({
@@ -250,6 +287,49 @@ export default function Dashboard() {
     }
 
     setIsDialogOpen(false);
+    setAddRecipeMode("select");
+    setImportUrl("");
+    setImportError("");
+    setEditingRecipe(null);
+  };
+
+  const handleImportRecipe = async () => {
+    const normalizedUrl = importUrl.trim();
+
+    if (!normalizedUrl) {
+      setImportError("Paste a recipe URL first.");
+      return;
+    }
+
+    setIsImportingRecipe(true);
+    setImportError("");
+
+    try {
+      const response = await fetch("/api/recipes/import", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ url: normalizedUrl }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | (Partial<Omit<Recipe, "id">> & { error?: string })
+        | null;
+
+      if (!response.ok || !payload) {
+        setImportError(payload?.error ?? "Failed to import recipe.");
+        return;
+      }
+
+      setEditingRecipe(createDraftRecipe(payload));
+      setAddRecipeMode("manual");
+      setNotice({ type: "success", message: "Recipe imported. Review and save it." });
+    } catch {
+      setImportError("Failed to import recipe.");
+    } finally {
+      setIsImportingRecipe(false);
+    }
   };
 
   const handleToggleFavorite = async (recipeId: string) => {
@@ -301,19 +381,73 @@ export default function Dashboard() {
         </div>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingRecipe ? "Edit recipe" : "Add recipe"}
+              {editingRecipe
+                ? addRecipeMode === "manual" && editingRecipe.id !== "draft-import"
+                  ? "Edit recipe"
+                  : "Review imported recipe"
+                : "Add recipe"}
             </DialogTitle>
+            {!editingRecipe && addRecipeMode === "select" ? (
+              <DialogDescription>
+                Choose how you want to add this recipe.
+              </DialogDescription>
+            ) : null}
           </DialogHeader>
-          <RecipeForm
-            key={editingRecipe?.id ?? "new"}
-            mode={editingRecipe ? "edit" : "create"}
-            initialValue={editingRecipe ?? undefined}
-            onSubmit={handleFormSubmit}
-          />
+          {!editingRecipe && addRecipeMode === "select" ? (
+            <div className="grid gap-3">
+              <button
+                type="button"
+                className="rounded-2xl border border-border/60 bg-card/50 p-4 text-left transition hover:border-border hover:bg-card"
+                onClick={() => setAddRecipeMode("manual")}
+              >
+                <p className="text-sm font-semibold text-foreground">Add manually</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Fill out the recipe form yourself.
+                </p>
+              </button>
+              <div className="rounded-2xl border border-border/60 bg-card/50 p-4">
+                <p className="text-sm font-semibold text-foreground">Import from URL</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Paste a recipe page link and we&apos;ll try to prefill the form.
+                </p>
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                  <Input
+                    type="url"
+                    value={importUrl}
+                    onChange={(event) => setImportUrl(event.target.value)}
+                    placeholder="https://example.com/recipe"
+                    className="flex-1"
+                  />
+                  <Button type="button" onClick={handleImportRecipe} disabled={isImportingRecipe}>
+                    {isImportingRecipe ? "Importing..." : "Import recipe"}
+                  </Button>
+                </div>
+                {importError ? (
+                  <p className="mt-3 text-sm text-red-300">{importError}</p>
+                ) : null}
+              </div>
+            </div>
+          ) : addRecipeMode === "manual" ? (
+            <>
+              {!editingRecipe ? (
+                <div className="mb-2">
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setAddRecipeMode("select")}>
+                    Back
+                  </Button>
+                </div>
+              ) : null}
+              <RecipeForm
+                key={editingRecipe?.id ?? "new"}
+                mode={editingRecipe && !editingRecipe.id.startsWith("draft-import-") ? "edit" : "create"}
+                initialValue={editingRecipe ?? undefined}
+                onSubmit={handleFormSubmit}
+              />
+            </>
+          ) : null}
         </DialogContent>
       </Dialog>
 

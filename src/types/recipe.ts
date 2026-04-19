@@ -5,7 +5,7 @@ export type RecipeCategory = (typeof RECIPE_CATEGORIES)[number];
 export type Ingredient = {
   id: string,
   name: string,
-  amount?: number,
+  amount?: string,
   unit?: string
 }
 
