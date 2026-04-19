@@ -8,14 +8,12 @@ import { supabase } from '@/src/lib/supabase-client';
 
 type AppShellProps = {
   children: ReactNode;
-  initialUserName?: string | null;
 };
 
-export default function AppShell({ children, initialUserName = null }: AppShellProps) {
+export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [userName, setUserName] = useState<string | null>(initialUserName);
 
   useEffect(() => {
     try {
@@ -34,23 +32,6 @@ export default function AppShell({ children, initialUserName = null }: AppShellP
       window.localStorage.setItem('sidebar:collapsed', collapsed ? '1' : '0');
     } catch {}
   }, [collapsed]);
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      const metadata = session?.user?.user_metadata as
-        | { username?: string; full_name?: string }
-        | undefined;
-      const displayName =
-        metadata?.username?.trim() ||
-        metadata?.full_name?.trim() ||
-        session?.user?.email?.split('@')[0] ||
-        null;
-
-      setUserName(displayName);
-    });
-
-    return () => data.subscription.unsubscribe();
-  }, [router]);
 
   const handleToggle = () => {
     setCollapsed(prev => !prev);
@@ -86,7 +67,7 @@ export default function AppShell({ children, initialUserName = null }: AppShellP
         </aside>
 
         <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-hidden">
-          <Topbar onMenuClick={openMobileSidebar} userName={userName ?? undefined} />
+          <Topbar onMenuClick={openMobileSidebar} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
       </div>

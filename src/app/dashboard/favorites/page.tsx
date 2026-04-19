@@ -132,14 +132,6 @@ export default function Favorites() {
         />
       ) : (
         <section className="mx-auto max-w-6xl space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground">Favorites</h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Recipes you saved from the main dashboard.
-              </p>
-            </div>
-          </div>
 
           {loadError ? (
             <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">

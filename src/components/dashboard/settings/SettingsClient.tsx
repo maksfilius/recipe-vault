@@ -204,13 +204,6 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
         </div>
       ) : null}
 
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">Account settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Update your profile, change your password, and manage active sessions.
-        </p>
-      </div>
-
       <form
         onSubmit={handleProfileSubmit}
         className="space-y-4 rounded-2xl border border-border/60 bg-card/50 p-5"
@@ -335,4 +328,3 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
     </section>
   );
 }
-

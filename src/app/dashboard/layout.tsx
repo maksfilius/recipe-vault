@@ -13,14 +13,5 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     redirect("/login");
   }
 
-  const metadata = user.user_metadata as
-    | { username?: string; full_name?: string }
-    | undefined;
-  const userName =
-    metadata?.username?.trim() ||
-    metadata?.full_name?.trim() ||
-    user.email?.split("@")[0] ||
-    null;
-
-  return <AppShell initialUserName={userName}>{children}</AppShell>;
+  return <AppShell>{children}</AppShell>;
 }

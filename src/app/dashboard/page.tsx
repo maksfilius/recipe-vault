@@ -364,47 +364,45 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="flex justify-between items-center sticky">
-            <h1 className="hidden sm:block text-2xl font-semibold text-foreground">
-              My Recipes
-            </h1>
-            <Button
-              variant="primary"
-              size="sm"
-              className="inline-flex h-10 rounded-full border border-primary/40 bg-primary/90 px-4 text-sm font-semibold sm:hidden"
-              onClick={handleAddRecipe}
-            >
-              <Plus className="h-4 w-4" />
-              Add
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              className="hidden sm:inline-flex h-10 rounded-full border border-primary/40 bg-primary/90 px-5 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-primary"
-              onClick={handleAddRecipe}
-            >
-              <Plus className="h-4 w-4" />
-              Add recipe
-            </Button>
-          </div>
-
           <div className="mt-4 sm:mt-6">
-            <label htmlFor="recipe-search" className="sr-only">
-              Search recipes
-            </label>
-            <div className="relative max-w-xl">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                aria-hidden="true"
-              />
-              <Input
-                id="recipe-search"
-                type="text"
-                placeholder="Search recipes by title"
-                value={searchTerm}
-                onChange={handleChange}
-                className="h-10 bg-card pl-9"
-              />
+            <div className="flex justify-center sm:hidden">
+              <Button
+                variant="primary"
+                size="sm"
+                className="inline-flex h-10 rounded-full border border-primary/40 bg-primary/90 px-4 text-sm font-semibold"
+                onClick={handleAddRecipe}
+              >
+                <Plus className="h-4 w-4" />
+                Add new recipe
+              </Button>
+            </div>
+            <div className="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center sm:justify-between">
+              <label htmlFor="recipe-search" className="sr-only">
+                Search recipes
+              </label>
+              <div className="relative w-full max-w-xl">
+                <Search
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <Input
+                  id="recipe-search"
+                  type="text"
+                  placeholder="Search recipes by title"
+                  value={searchTerm}
+                  onChange={handleChange}
+                  className="h-10 bg-card pl-9"
+                />
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                className="hidden h-10 rounded-full border border-primary/40 bg-primary/90 px-5 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-primary sm:inline-flex"
+                onClick={handleAddRecipe}
+              >
+                <Plus className="h-4 w-4" />
+                Add recipe
+              </Button>
             </div>
             <div className="relative max-w-xl">
               <div className="mt-3 flex flex-wrap gap-2">
@@ -413,7 +411,7 @@ export default function Dashboard() {
                   variant={selectedCategories.length === 0 ? "primary" : "ghost"}
                   size="xs"
                   className={cn(
-                    "rounded-full px-4 capitalize",
+                    "rounded-full px-[10px] capitalize",
                     selectedCategories.length !== 0 && "border-border/60 bg-card/40"
                   )}
                   onClick={() => setSelectedCategories([])}
@@ -429,7 +427,7 @@ export default function Dashboard() {
                   variant={selectedCategories.includes(value) ? "primary" : "ghost"}
                   size="xs"
                   className={cn(
-                    "rounded-full px-4 capitalize",
+                    "rounded-full px-[10px] capitalize",
                     !selectedCategories.includes(value) && "border-border/60 bg-card/40"
                   )}
                 >

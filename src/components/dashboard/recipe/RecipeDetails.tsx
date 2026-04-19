@@ -141,7 +141,7 @@ export function RecipeDetails({
             <div className="rounded-2xl border border-border/60 bg-foreground/[0.03] p-5 shadow-inner shadow-background/20">
               <div className="flex items-center gap-2 text-foreground">
                 <span className="h-2 w-2 rounded-full" style={metaDotStyles} />
-                <span className="text-sm font-semibold">Recipe notes</span>
+                <span className="text-sm font-semibold">Description</span>
               </div>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
                 {recipe.description || "Add a description to tell people how to enjoy this dish."}
