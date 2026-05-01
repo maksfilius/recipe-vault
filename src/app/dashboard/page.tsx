@@ -365,18 +365,7 @@ export default function Dashboard() {
           )}
 
           <div className="mt-4 sm:mt-6">
-            <div className="flex justify-center sm:hidden">
-              <Button
-                variant="primary"
-                size="sm"
-                className="inline-flex h-10 rounded-full border border-primary/40 bg-primary/90 px-4 text-sm font-semibold"
-                onClick={handleAddRecipe}
-              >
-                <Plus className="h-4 w-4" />
-                Add new recipe
-              </Button>
-            </div>
-            <div className="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <label htmlFor="recipe-search" className="sr-only">
                 Search recipes
               </label>
@@ -394,15 +383,6 @@ export default function Dashboard() {
                   className="h-10 bg-card pl-9"
                 />
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                className="hidden h-10 rounded-full border border-primary/40 bg-primary/90 px-5 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-primary sm:inline-flex"
-                onClick={handleAddRecipe}
-              >
-                <Plus className="h-4 w-4" />
-                Add recipe
-              </Button>
             </div>
             <div className="relative max-w-xl">
               <div className="mt-3 flex flex-wrap gap-2">
@@ -438,7 +418,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-8 pb-24 sm:pb-28">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
                 <RecipeCardSkeleton key={`skeleton-${index}`} />
@@ -489,7 +470,18 @@ export default function Dashboard() {
                 />
               ))
             )}
+            </div>
           </div>
+
+          <Button
+            type="button"
+            variant="primary"
+            className="fixed bottom-5 right-4 z-20 h-12 rounded-full border border-primary/40 bg-primary/95 px-4 text-sm font-semibold shadow-[0_14px_40px_hsl(var(--foreground)_/_0.18)] transition hover:-translate-y-0.5 hover:bg-primary sm:bottom-6 sm:right-6 sm:h-11"
+            onClick={handleAddRecipe}
+          >
+            <Plus className="h-4 w-4" />
+            Add recipe
+          </Button>
         </>
       )}
     </>
