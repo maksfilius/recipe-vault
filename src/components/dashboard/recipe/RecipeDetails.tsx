@@ -112,7 +112,7 @@ export function RecipeDetails({
       <Card
         variant="subtle"
         padding="none"
-        className="overflow-hidden border-border/70 bg-background/60"
+        className="overflow-hidden border-0 bg-transparent sm:border sm:border-border/70 sm:bg-background/60"
       >
         <div
           className="relative h-16 w-full overflow-hidden"
@@ -130,13 +130,13 @@ export function RecipeDetails({
           </div>
         </div>
 
-        <CardHeader className="gap-3">
-          <CardTitle className="text-3xl font-semibold leading-tight text-foreground sm:text-4xl">
+        <CardHeader className="gap-3 px-0 sm:px-6">
+          <CardTitle className="text-[24px] font-semibold leading-tight text-foreground sm:text-4xl">
             {recipe.title}
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="grid gap-6 px-4 pb-8 pt-0 sm:px-6 md:grid-cols-[1fr_0.55fr] md:gap-10">
+        <CardContent className="grid gap-6 px-0 pb-8 pt-0 sm:px-6 md:grid-cols-[1fr_0.55fr] md:gap-10">
           <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
             <div className="rounded-2xl border border-border/60 bg-foreground/[0.03] p-5 shadow-inner shadow-background/20">
               <div className="flex items-center gap-2 text-foreground">
@@ -164,7 +164,7 @@ export function RecipeDetails({
                 </span>
               </a>
             ) : (
-              <div className="flex items-center justify-between rounded-xl border border-dashed border-border/60 bg-foreground/[0.02] px-4 py-3 text-sm text-muted-foreground">
+              <div className="flex items-center justify-between rounded-xl border-0 bg-transparent px-0 py-0 text-sm text-muted-foreground sm:border sm:border-dashed sm:border-border/60 sm:bg-foreground/[0.02] sm:px-4 sm:py-3">
                 <span>No source link added</span>
               </div>
             )}
@@ -212,7 +212,7 @@ export function RecipeDetails({
 
           </div>
 
-          <div className="rounded-2xl border border-border/60 bg-foreground/[0.03] p-5 text-sm text-muted-foreground shadow-inner shadow-background/25">
+          <div className="rounded-2xl border-0 bg-transparent p-0 text-sm text-muted-foreground shadow-none sm:border sm:border-border/60 sm:bg-foreground/[0.03] sm:p-5 sm:shadow-inner sm:shadow-background/25">
             <h3 className="text-sm font-semibold text-foreground">Quick facts</h3>
             <div className="mt-4 grid grid-cols-1 gap-3">
               <div className="rounded-xl border border-border/60 bg-background/50 p-3">

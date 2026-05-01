@@ -68,7 +68,7 @@ export function RecipeCard({
         </div>
 
         <CardHeader className="gap-3 text-foreground">
-          <CardTitle className="text-3xl sm:text-2xl font-semibold text-foreground">{recipe.title}</CardTitle>
+          <CardTitle className="text-[24px] sm:text-2xl font-semibold text-foreground">{recipe.title}</CardTitle>
           <CardDescription className="text-sm leading-relaxed text-muted-foreground [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] overflow-hidden">
             {recipe.description}
           </CardDescription>
