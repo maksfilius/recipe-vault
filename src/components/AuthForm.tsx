@@ -246,6 +246,19 @@ export default function AuthForm({type}: AuthFormProps) {
             <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? "Loading..." : submitLabels[type]}
             </Button>
+            {type === "register" ? (
+              <p className="text-center text-xs leading-5 text-foreground/70">
+                By creating an account, you agree to our{" "}
+                <Link href="/terms" className="font-semibold text-primary hover:underline">
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="font-semibold text-primary hover:underline">
+                  Privacy Policy
+                </Link>
+                .
+              </p>
+            ) : null}
           </form>
           <p className="mt-5 text-center text-sm text-foreground/75">
             {type === "login" ? "No account yet?" : "Already have an account?"}{" "}
