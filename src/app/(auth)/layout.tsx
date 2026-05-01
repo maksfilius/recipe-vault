@@ -10,7 +10,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             href="/"
             className="pointer-events-auto text-sm font-semibold tracking-[0.18em] text-foreground/90 uppercase transition-colors hover:text-foreground"
           >
-            Recipe Vault
+            Keep &amp; Cook
           </Link>
         </div>
       </div>

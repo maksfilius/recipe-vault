@@ -1,6 +1,6 @@
-# RecipeVault
+# Keep & Cook
 
-RecipeVault is a Next.js + Supabase app for saving personal recipes in a searchable dashboard.
+Keep & Cook is a Next.js + Supabase app for saving personal recipes in a searchable dashboard.
 
 ## What it includes
 

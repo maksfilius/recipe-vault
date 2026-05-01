@@ -53,7 +53,7 @@ const Features = () => {
             Built for the way home cooks actually save recipes
           </h2>
           <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
-            RecipeVault focuses on the small set of actions that matter most: save, find, edit, and cook.
+            Keep &amp; Cook focuses on the small set of actions that matter most: save, find, edit, and cook.
           </p>
         </div>
 

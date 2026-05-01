@@ -39,7 +39,7 @@ const CTA = () => {
           </h2>
 
           <p className="mb-8 text-xl text-foreground/90">
-            Create your RecipeVault account and keep your go-to recipes in a dashboard that is ready every time you cook.
+            Create your Keep &amp; Cook account and keep your go-to recipes in a dashboard that is ready every time you cook.
           </p>
 
           <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">

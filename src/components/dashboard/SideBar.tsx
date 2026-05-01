@@ -1,9 +1,11 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { BookOpen, ChevronLeft, ChevronRight, Heart, LogOut, Settings } from 'lucide-react';
+import logo from '@/src/assets/Logo.svg';
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
 
@@ -34,8 +36,24 @@ export default function Sidebar({
 
   return (
     <div className="sticky top-0 flex h-[100dvh] flex-col bg-transparent px-2 py-3 text-foreground">
-      <div className={`px-3 text-sm font-semibold text-foreground transition-all flex items-center h-14 ${collapsed ? 'w-0 opacity-0' : 'w-auto opacity-100'}`}>
-        RecipeVault
+      <div
+        className={[
+          'flex h-14 items-center overflow-hidden transition-all',
+          collapsed ? 'justify-center' : 'w-full px-3'
+        ].join(' ')}
+      >
+        {collapsed ? (
+          <Image
+            src={logo}
+            alt="Keep & Cook logo"
+            className="h-8 w-auto"
+            priority
+          />
+        ) : (
+          <span className="block w-full text-[20px] font-semibold text-foreground">
+            Keep &amp; Cook
+          </span>
+        )}
       </div>
       {showCollapseToggle && (
         <button

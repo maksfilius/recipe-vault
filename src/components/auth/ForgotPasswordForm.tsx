@@ -41,7 +41,7 @@ export default function ForgotPasswordForm() {
       <div className="w-full max-w-md rounded-lg bg-[#1F2937] p-8 shadow-xl">
         <h1 className="mb-3 text-center text-3xl font-bold text-foreground">Reset your password</h1>
         <p className="mb-6 text-center text-sm text-foreground/75">
-          Enter the email you use for RecipeVault and we&apos;ll send a reset link.
+          Enter the email you use for Keep &amp; Cook and we&apos;ll send a reset link.
         </p>
 
         {notice ? (

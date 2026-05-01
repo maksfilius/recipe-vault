@@ -9,7 +9,7 @@ import { env } from "@/src/lib/env";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
-  title: "RecipeVault",
+  title: "Keep & Cook",
 };
 
 export default function LandingPage() {

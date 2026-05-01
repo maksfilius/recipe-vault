@@ -19,9 +19,9 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   siteUrl:
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ?? "https://recipevault.app",
-  productName: "Recipe Vault",
+  productName: "Keep & Cook",
   productDescription:
-    "Recipe Vault keeps your recipes searchable, organized, and ready while you cook.",
+    "Keep & Cook keeps your recipes searchable, organized, and ready while you cook.",
 };
 
 export function isAccountDeletionEnabled() {

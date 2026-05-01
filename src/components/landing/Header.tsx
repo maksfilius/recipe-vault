@@ -1,9 +1,11 @@
 'use client'
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Menu, X } from "lucide-react";
+import logo from "@/src/assets/Logo.svg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,9 +23,15 @@ const Header = () => {
       <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <button
           onClick={() => scrollToSection("hero")}
-          className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
+          className="flex items-center gap-3 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
         >
-          <span>RecipeVault</span>
+          <Image
+            src={logo}
+            alt="Keep & Cook logo"
+            className="h-9 w-auto"
+            priority
+          />
+          <span>Keep &amp; Cook</span>
         </button>
 
         <div className="hidden items-center gap-8 md:flex">
