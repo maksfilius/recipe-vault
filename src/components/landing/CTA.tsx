@@ -13,7 +13,7 @@ const CTA = () => {
       <div
         className="absolute inset-0 md:hidden"
         style={{
-          backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.34), hsl(var(--background) / 0.74)), url(${ctaBackground.src})`,
+          backgroundImage: `linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.76) 12%, hsl(var(--background) / 0.34) 38%, hsl(var(--background) / 0.34) 62%, hsl(var(--background) / 0.78) 84%, hsl(var(--background)) 100%), url(${ctaBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "right center",
         }}
@@ -21,12 +21,12 @@ const CTA = () => {
       <div
         className="absolute inset-0 hidden md:block"
         style={{
-          backgroundImage: `linear-gradient(135deg, hsl(var(--background) / 0.34), hsl(var(--background) / 0.74)), url(${ctaBackground.src})`,
+          backgroundImage: `linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.76) 12%, hsl(var(--background) / 0.34) 38%, hsl(var(--background) / 0.34) 62%, hsl(var(--background) / 0.78) 84%, hsl(var(--background)) 100%), url(${ctaBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
         }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.32),transparent_45%),linear-gradient(180deg,hsl(var(--background)_/_0.08),hsl(var(--background)_/_0.38))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.28),transparent_42%),linear-gradient(180deg,hsl(var(--background)_/_0.08),transparent_34%,hsl(var(--background)_/_0.3))]" />
       <div className="mx-auto max-w-7xl px-6">
         <div
           ref={ref}

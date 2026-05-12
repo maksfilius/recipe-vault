@@ -41,7 +41,7 @@ const Hero = () => {
         className="absolute inset-0 z-0 transition-transform duration-75 ease-out will-change-transform md:hidden"
         style={{
           backgroundImage:
-            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
+            `linear-gradient(180deg, hsl(var(--background) / 0.82) 0%, hsl(var(--background) / 0.48) 16%, hsl(var(--background) / 0.42) 54%, hsl(var(--background) / 0.8) 82%, hsl(var(--background)) 100%), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "right center",
         }}
@@ -51,12 +51,12 @@ const Hero = () => {
         className="absolute inset-0 z-0 hidden transition-transform duration-75 ease-out will-change-transform md:block"
         style={{
           backgroundImage:
-            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
+            `linear-gradient(180deg, hsl(var(--background) / 0.82) 0%, hsl(var(--background) / 0.48) 16%, hsl(var(--background) / 0.42) 54%, hsl(var(--background) / 0.8) 82%, hsl(var(--background)) 100%), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "56% center",
         }}
       />
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,hsl(var(--background)_/_0.28),transparent_42%,hsl(var(--background)_/_0.42))]" />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,hsl(var(--background)_/_0.2),transparent_38%,hsl(var(--background)_/_0.3))]" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
         <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">

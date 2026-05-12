@@ -37,8 +37,8 @@ export default function ForgotPasswordForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#111827] px-4">
-      <div className="w-full max-w-md rounded-lg bg-[#1F2937] p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
+      <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
         <h1 className="mb-3 text-center text-3xl font-bold text-foreground">Reset your password</h1>
         <p className="mb-6 text-center text-sm text-foreground/75">
           Enter the email you use for Keep &amp; Cook and we&apos;ll send a reset link.
@@ -49,8 +49,8 @@ export default function ForgotPasswordForm() {
             className={[
               "mb-4 rounded-lg border px-4 py-3 text-sm",
               notice.type === "error"
-                ? "border-red-400/40 bg-red-500/10 text-red-100"
-                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+                ? "border-red-400/40 bg-red-500/10 text-red-700 dark:text-red-100"
+                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100",
             ].join(" ")}
           >
             {notice.message}

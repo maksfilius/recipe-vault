@@ -26,25 +26,6 @@ const createEmptyStep = (): Step => ({
   text: "",
 });
 
-const INGREDIENT_UNITS = [
-  "",
-  "g",
-  "kg",
-  "ml",
-  "l",
-  "tsp",
-  "tbsp",
-  "cup",
-  "oz",
-  "lb",
-  "pinch",
-  "clove",
-  "slice",
-  "piece",
-  "can",
-  "pack",
-] as const;
-
 export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormProps) {
   const [title, setTitle] = useState(() => initialValue?.title ?? "");
   const [category, setCategory] = useState<RecipeCategory>(
@@ -54,11 +35,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
     () => initialValue?.description ?? ""
   );
   const [ingredients, setIngredients] = useState<Ingredient[]>(() =>
-    initialValue?.ingredients ?? [createEmptyIngredient()]
+    initialValue?.ingredients ?? []
   );
 
   const [steps, setSteps] = useState<Step[]>(() =>
-    initialValue?.steps ?? [createEmptyStep()]
+    initialValue?.steps ?? []
   );
   const [sourceUrl, setSourceUrl] = useState(
     () => initialValue?.sourceUrl ?? ""
@@ -80,15 +61,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   };
 
   const removeIngredient = (id: string) => {
-    setIngredients(prev => {
-      const next = prev.filter((ingredient) => ingredient.id !== id);
-
-      if (next.length === 0) {
-        return [createEmptyIngredient()];
-      }
-
-      return next;
-    });
+    setIngredients(prev => prev.filter((ingredient) => ingredient.id !== id));
   };
 
 
@@ -106,25 +79,25 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   };
 
   const removeStep = (id: string) => {
-    setSteps(prev => {
-      const next = prev.filter(step => step.id !== id);
-      if (next.length === 0) {
-        return [createEmptyStep()];
-      }
-      return next;
-    });
+    setSteps(prev => prev.filter(step => step.id !== id));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const normalizedIngredients = ingredients.filter((ingredient) =>
+      ingredient.name.trim() || ingredient.amount !== undefined || (ingredient.unit ?? "").trim()
+    );
+
+    const normalizedSteps = steps.filter((step) => step.text.trim());
 
     onSubmit({
       title: title.trim(),
       category,
       description: description.trim(),
       sourceUrl: sourceUrl.trim() || undefined,
-      ingredients,
-      steps
+      ingredients: normalizedIngredients,
+      steps: normalizedSteps
     });
   };
 
@@ -231,24 +204,13 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                       <span className="block text-[11px] font-medium text-muted-foreground sm:text-xs">
                         Unit
                       </span>
-                      <select
+                      <input
                         className="w-full rounded-lg border border-border/50 bg-background/75 px-3 py-2 text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:border-border/60 sm:bg-background/60 sm:text-sm"
                         value={ingredient.unit ?? ""}
                         onChange={(event) =>
                           updateIngredient(ingredient.id, { unit: event.target.value })
                         }
-                      >
-                        <option value="">Select unit</option>
-                        {INGREDIENT_UNITS.filter((unit) => unit !== "").map((unit) => (
-                          <option key={unit} value={unit}>
-                            {unit}
-                          </option>
-                        ))}
-                        {ingredient.unit &&
-                        !INGREDIENT_UNITS.includes(ingredient.unit as (typeof INGREDIENT_UNITS)[number]) ? (
-                          <option value={ingredient.unit}>{ingredient.unit}</option>
-                        ) : null}
-                      </select>
+                      />
                     </div>
                   </div>
                 </div>

@@ -1,11 +1,12 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
 import { BookOpen, ChevronLeft, ChevronRight, Heart, LogOut, Settings } from 'lucide-react';
 import logo from '@/src/assets/Logo.svg';
+import logoBlack from '@/src/assets/Logo_black.svg';
+import ThemeLogo from '@/src/components/ThemeLogo';
 
 type NavItem = { href: string; label: string; icon: LucideIcon };
 
@@ -43,8 +44,9 @@ export default function Sidebar({
         ].join(' ')}
       >
         {collapsed ? (
-          <Image
-            src={logo}
+          <ThemeLogo
+            lightSrc={logoBlack}
+            darkSrc={logo}
             alt="Keep & Cook logo"
             className="h-8 w-auto"
             priority

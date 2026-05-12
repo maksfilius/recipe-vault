@@ -132,13 +132,13 @@ export default function AuthForm({type}: AuthFormProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#111827] flex items-center justify-center px-4">
-      <div className="w-full max-w-md p-8 bg-[#1F2937] rounded-lg shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
+      <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
         <h2 className="text-3xl font-bold text-foreground mb-6 text-center">
           {formTitles[type]}
         </h2>
         {searchParams.get("reset") === "success" && type === "login" ? (
-          <div className="mb-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+          <div className="mb-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-100">
             Password updated. Sign in with your new password.
           </div>
         ) : null}
@@ -147,8 +147,8 @@ export default function AuthForm({type}: AuthFormProps) {
             className={[
               "mb-4 rounded-lg border px-4 py-3 text-sm",
               notice.type === "error"
-                ? "border-red-400/40 bg-red-500/10 text-red-100"
-                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+                ? "border-red-400/40 bg-red-500/10 text-red-700 dark:text-red-100"
+                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100",
             ].join(" ")}
             role="status"
             aria-live="polite"

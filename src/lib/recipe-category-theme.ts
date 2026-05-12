@@ -53,7 +53,9 @@ export function getRecipeCategoryStyles(category: RecipeCategory) {
   };
 
   const labelAccentStyles: CSSProperties = {
-    backgroundColor: `hsl(var(${tokens.label}))`,
+    backgroundImage: `linear-gradient(135deg, hsl(var(${tokens.gradientStart})), hsl(var(${tokens.gradientEnd})))`,
+    borderColor: `hsl(var(${tokens.label}) / 0.5)`,
+    boxShadow: `0 0 0 1px hsl(var(${tokens.label}) / 0.18), 0 4px 12px hsl(var(${tokens.gradientEnd}) / 0.28)`,
   };
 
   const metaDotStyles: CSSProperties = {

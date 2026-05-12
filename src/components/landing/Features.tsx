@@ -41,7 +41,8 @@ const Features = () => {
   const { ref, isVisible } = useScrollAnimation();
 
   return (
-    <section className="bg-background py-20">
+    <section className="relative overflow-hidden py-20">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_18%,hsl(var(--primary)_/_0.08),transparent_24%),radial-gradient(circle_at_88%_82%,hsl(var(--muted-foreground)_/_0.06),transparent_24%)]" />
       <div className="mx-auto max-w-7xl px-6">
         <div
           ref={ref}
@@ -61,14 +62,14 @@ const Features = () => {
           {features.map((feature, index) => (
             <Card
               key={index}
-              className={`group w-full border border-border/60 bg-card/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_25px_60px_hsl(var(--background)_/_0.7)] ${
+              className={`group isolate w-full border border-border/60 bg-card/72 shadow-[0_4px_14px_hsl(var(--foreground)_/_0.025)] transition-[transform,opacity] duration-500 hover:-translate-y-1 ${
                 isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
               }`}
               style={{ transitionDelay: `${index * 100}ms` }}
             >
               <CardContent className="p-7">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 transition-all duration-300 group-hover:bg-primary/25">
-                  <feature.icon className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110" />
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl border border-primary/12 bg-[linear-gradient(180deg,hsl(var(--card)),hsl(var(--primary)_/_0.08))] shadow-[0_4px_14px_hsl(var(--foreground)_/_0.035)] transition-colors duration-300 group-hover:border-primary/20 group-hover:bg-[linear-gradient(180deg,hsl(var(--card)),hsl(var(--primary)_/_0.12))]">
+                  <feature.icon className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="mb-3 text-xl font-semibold text-foreground">
                   {feature.title}

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen scroll-smooth bg-background">
+    <div className="min-h-screen scroll-smooth bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.16)_42%,hsl(var(--background)))]">
       <Header />
       <div id="hero">
         <Hero />

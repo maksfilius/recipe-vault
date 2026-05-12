@@ -2,6 +2,7 @@
 
 import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import ThemeToggle from '@/src/components/ThemeToggle';
 
 type TopbarProps = {
   onMenuClick: () => void;
@@ -53,6 +54,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
             </p>
           </div>
         </div>
+        <ThemeToggle />
       </div>
     </header>
   );

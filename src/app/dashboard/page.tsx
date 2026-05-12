@@ -289,10 +289,10 @@ export default function Dashboard() {
       {notice && (
         <div
           className={cn(
-            "fixed right-4 top-3 z-[80] max-w-[calc(100vw-2rem)] rounded-xl border px-4 py-3 text-sm font-medium shadow-lg sm:top-4",
+            "fixed left-4 right-4 top-20 z-[80] max-w-md rounded-xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm sm:left-auto sm:right-6 sm:top-20",
             notice.type === "error"
-              ? "border-red-400/60 bg-red-500/20 text-red-100"
-              : "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
+              ? "border-red-300/70 bg-red-50/92 text-red-700 dark:border-red-400/60 dark:bg-red-500/20 dark:text-red-100"
+              : "border-emerald-300/70 bg-emerald-50/92 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-100"
           )}
           role="status"
           aria-live="polite"
@@ -359,7 +359,7 @@ export default function Dashboard() {
       ) : (
         <>
           {loadError && (
-            <div className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mb-4 rounded-xl border border-red-300/70 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-[0_12px_32px_hsl(var(--foreground)_/_0.05)] dark:border-red-400/40 dark:bg-red-500/10 dark:text-red-200">
               {loadError}
             </div>
           )}
@@ -380,7 +380,7 @@ export default function Dashboard() {
                   placeholder="Search recipes by title"
                   value={searchTerm}
                   onChange={handleChange}
-                  className="h-10 bg-card pl-9"
+                  className="h-10 border-border/60 bg-card/88 pl-9 shadow-[0_10px_24px_hsl(var(--foreground)_/_0.04)]"
                 />
               </div>
             </div>
@@ -392,7 +392,7 @@ export default function Dashboard() {
                   size="xs"
                   className={cn(
                     "rounded-full px-[10px] capitalize",
-                    selectedCategories.length !== 0 && "border-border/60 bg-card/40"
+                    selectedCategories.length !== 0 && "border-border/60 bg-card/58"
                   )}
                   onClick={() => setSelectedCategories([])}
                 >
@@ -408,7 +408,7 @@ export default function Dashboard() {
                   size="xs"
                   className={cn(
                     "rounded-full px-[10px] capitalize",
-                    !selectedCategories.includes(value) && "border-border/60 bg-card/40"
+                    !selectedCategories.includes(value) && "border-border/60 bg-card/58"
                   )}
                 >
                   {value}
@@ -425,7 +425,7 @@ export default function Dashboard() {
                 <RecipeCardSkeleton key={`skeleton-${index}`} />
               ))
             ) : filteredRecipes.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-border/60 bg-card/50 px-5 py-8 text-center">
+              <div className="col-span-full rounded-2xl border border-border/60 bg-[linear-gradient(180deg,hsl(var(--card)_/_0.9),hsl(var(--muted)_/_0.45))] px-5 py-8 text-center shadow-[0_18px_48px_hsl(var(--foreground)_/_0.06)]">
                 <h2 className="text-base font-semibold text-foreground">
                   {allRecipes.length === 0 ? "No recipes yet" : "No recipes found"}
                 </h2>
