@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { env } from "@/src/lib/env";
+
 const Footer = () => {
   return (
     <footer className="relative overflow-hidden border-t border-border/30 bg-transparent py-12">
@@ -33,6 +35,13 @@ const Footer = () => {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/privacy" className="transition-colors hover:text-foreground">Privacy Policy</Link></li>
               <li><Link href="/terms" className="transition-colors hover:text-foreground">Terms of Service</Link></li>
+              {env.supportEmail ? (
+                <li>
+                  <a href={`mailto:${env.supportEmail}`} className="transition-colors hover:text-foreground">
+                    {env.supportEmail}
+                  </a>
+                </li>
+              ) : null}
             </ul>
           </div>
         </div>

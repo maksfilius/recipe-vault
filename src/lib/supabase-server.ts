@@ -1,19 +1,31 @@
 import { cookies } from "next/headers";
+import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-import { SUPABASE_AUTH_STORAGE_KEY } from "@/src/lib/auth";
 import { env } from "@/src/lib/env";
 
-type StoredServerSession = {
-  access_token?: string;
-};
+function getServerCookieOptions() {
+  return {
+    name: "recipe-vault-auth",
+    sameSite: "lax" as const,
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: false,
+  };
+}
 
-export function createServerSupabaseClient() {
-  return createClient(env.supabaseUrl, env.supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
+export async function createServerSupabaseClient() {
+  const cookieStore = await cookies();
+
+  return createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+    cookieOptions: getServerCookieOptions(),
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {
+        // Server components cannot write cookies. Middleware handles refresh persistence.
+      },
     },
   });
 }
@@ -33,33 +45,15 @@ export function createServiceRoleSupabaseClient() {
 }
 
 export async function getServerUser() {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(SUPABASE_AUTH_STORAGE_KEY)?.value;
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-  if (!sessionCookie) {
+  if (error || !user) {
     return null;
   }
 
-  let parsed: StoredServerSession | null = null;
-
-  try {
-    parsed = JSON.parse(decodeURIComponent(sessionCookie)) as StoredServerSession;
-  } catch {
-    parsed = null;
-  }
-
-  const accessToken = parsed?.access_token;
-
-  if (!accessToken) {
-    return null;
-  }
-
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.auth.getUser(accessToken);
-
-  if (error || !data.user) {
-    return null;
-  }
-
-  return data.user;
+  return user;
 }

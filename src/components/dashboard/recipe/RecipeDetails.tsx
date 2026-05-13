@@ -152,7 +152,7 @@ export function RecipeDetails({
               <a
                 href={recipe.sourceUrl}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="flex w-full min-w-0 flex-col items-start gap-2 rounded-xl border border-border/60 bg-background/60 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-border hover:bg-background sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="flex items-center gap-2">

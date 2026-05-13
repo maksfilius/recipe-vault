@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { env } from "@/src/lib/env";
+
 export const metadata: Metadata = {
   title: "Terms of Service",
   description: "Terms of Service for Keep & Cook.",
@@ -94,10 +96,19 @@ export default function TermsPage() {
 
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold">Contact</h2>
-          <p className="text-muted-foreground">
-            Questions about these terms should be sent through the support channel or contact
-            address you provide for the service before launch.
-          </p>
+          {env.supportEmail ? (
+            <p className="text-muted-foreground">
+              Questions about these terms should be sent to{" "}
+              <a href={`mailto:${env.supportEmail}`} className="font-medium text-primary hover:underline">
+                {env.supportEmail}
+              </a>
+              .
+            </p>
+          ) : (
+            <p className="text-muted-foreground">
+              Set <code>NEXT_PUBLIC_SUPPORT_EMAIL</code> before launch so users have a working legal contact address.
+            </p>
+          )}
         </section>
 
         <p className="border-t border-border/60 pt-6 text-sm text-muted-foreground">

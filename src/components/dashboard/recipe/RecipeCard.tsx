@@ -80,7 +80,7 @@ export function RecipeCard({
             <a
               href={recipe.sourceUrl}
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 rounded-md text-foreground/95 underline-offset-4 transition"
               onClick={(event) => event.stopPropagation()}
             >

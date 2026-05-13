@@ -25,6 +25,7 @@ import {
   fetchFavoriteRecipeIds,
   removeFavoriteRecipe,
 } from "@/src/lib/favorites";
+import { recipePayloadSchema } from "@/src/lib/recipe-validation";
 import { mapRowToRecipe } from "@/src/lib/recipes";
 import { supabase } from "@/src/lib/supabase-client";
 
@@ -182,6 +183,16 @@ export default function Dashboard() {
   };
 
   const handleFormSubmit = async (values: Omit<Recipe, "id">) => {
+    const parsedValues = recipePayloadSchema.safeParse(values);
+
+    if (!parsedValues.success) {
+      setNotice({
+        type: "error",
+        message: parsedValues.error.issues[0]?.message ?? "Recipe data is invalid.",
+      });
+      return;
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -197,12 +208,12 @@ export default function Dashboard() {
         .upsert({
           id: editingRecipe.id,
           user_id: user.id,
-          title: values.title,
-          description: values.description,
-          category: values.category,
-          ingredients: values.ingredients,
-          steps: values.steps,
-          source_url: values.sourceUrl ?? null,
+          title: parsedValues.data.title,
+          description: parsedValues.data.description,
+          category: parsedValues.data.category,
+          ingredients: parsedValues.data.ingredients,
+          steps: parsedValues.data.steps,
+          source_url: parsedValues.data.sourceUrl ?? null,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" })
         .select("*")
@@ -229,12 +240,12 @@ export default function Dashboard() {
         .from("recipes")
         .insert({
           user_id: user.id,
-          title: values.title,
-          description: values.description,
-          category: values.category,
-          ingredients: values.ingredients,
-          steps: values.steps,
-          source_url: values.sourceUrl ?? null,
+          title: parsedValues.data.title,
+          description: parsedValues.data.description,
+          category: parsedValues.data.category,
+          ingredients: parsedValues.data.ingredients,
+          steps: parsedValues.data.steps,
+          source_url: parsedValues.data.sourceUrl ?? null,
         })
         .select("*")
         .single();
