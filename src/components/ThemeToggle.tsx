@@ -1,7 +1,7 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useState, type MouseEvent } from "react";
+import { useSyncExternalStore } from "react";
 
 import { Button } from "@/src/components/ui/button";
 
@@ -14,52 +14,42 @@ function applyTheme(theme: Theme) {
   window.localStorage.setItem("theme", theme);
 }
 
+function getThemeSnapshot(): Theme {
+  if (typeof document === "undefined") {
+    return "dark";
+  }
+
+  return document.documentElement.classList.contains("dark") ? "dark" : "light";
+}
+
+function getServerThemeSnapshot(): Theme {
+  return "dark";
+}
+
+function subscribe(onStoreChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+  const handleThemeChange = () => onStoreChange();
+
+  window.addEventListener("theme-change", handleThemeChange);
+  mediaQuery.addEventListener("change", handleThemeChange);
+
+  return () => {
+    window.removeEventListener("theme-change", handleThemeChange);
+    mediaQuery.removeEventListener("change", handleThemeChange);
+  };
+}
+
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof document === "undefined") {
-      return "light";
-    }
+  const theme = useSyncExternalStore(subscribe, getThemeSnapshot, getServerThemeSnapshot);
 
-    return document.documentElement.classList.contains("dark") ? "dark" : "light";
-  });
-
-  const toggleTheme = async (event: MouseEvent<HTMLButtonElement>) => {
+  const toggleTheme = () => {
     const nextTheme = theme === "dark" ? "light" : "dark";
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const canAnimate = typeof document.startViewTransition === "function" && !prefersReducedMotion;
-
-    if (!canAnimate) {
-      setTheme(nextTheme);
-      applyTheme(nextTheme);
-      return;
-    }
-
-    const { top, left, width, height } = event.currentTarget.getBoundingClientRect();
-    const x = left + width / 2;
-    const y = top + height / 2;
-    const endRadius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y),
-    );
-
-    const transition = document.startViewTransition!(() => {
-      setTheme(nextTheme);
-      applyTheme(nextTheme);
-    });
-
-    await transition.ready;
-
-    document.documentElement.animate(
-      {
-        clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${endRadius}px at ${x}px ${y}px)`],
-        opacity: [0.72, 1],
-      },
-      {
-        duration: 950,
-        easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-        pseudoElement: "::view-transition-new(root)",
-      },
-    );
+    applyTheme(nextTheme);
+    window.dispatchEvent(new Event("theme-change"));
   };
 
   return (

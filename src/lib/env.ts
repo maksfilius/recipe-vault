@@ -41,7 +41,7 @@ export const env = {
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || null,
   productName: "Keep & Cook",
   productDescription:
-    "Keep & Cook keeps your recipes searchable, organized, and ready while you cook.",
+    "Keep & Cook is a personal recipe organizer that keeps your recipes searchable, structured, and ready when you cook.",
 };
 
 export function isAccountDeletionEnabled() {

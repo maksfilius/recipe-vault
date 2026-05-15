@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
 
+import ThemeInitializer from "@/src/components/ThemeInitializer";
 import { env } from "@/src/lib/env";
 
 import "./globals.css";
-
-const themeInitScript = `
-(() => {
-  const storageKey = "theme";
-  const root = document.documentElement;
-  const stored = localStorage.getItem(storageKey);
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = stored === "light" || stored === "dark" ? stored : (prefersDark ? "dark" : "light");
-  root.classList.toggle("dark", theme === "dark");
-  root.style.colorScheme = theme;
-})();
-`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
@@ -27,7 +16,12 @@ export const metadata: Metadata = {
   keywords: [
     "recipe manager",
     "recipe organizer",
-    "recipe vault",
+    "recipe storage app",
+    "personal recipe app",
+    "digital cookbook",
+    "recipe dashboard",
+    "meal planning recipes",
+    "save recipes online",
     "personal cookbook",
     "kitchen dashboard",
   ],
@@ -60,9 +54,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className="antialiased">
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <ThemeInitializer />
         {children}
       </body>
     </html>

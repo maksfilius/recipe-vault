@@ -71,7 +71,12 @@ const Hero = () => {
           <Button size="lg" variant="primary" className="px-7 text-base" asChild>
             <Link href="/register">Start free</Link>
           </Button>
-          <Button size="lg" variant="ghost" className="border border-border/60 px-7 text-base" asChild>
+          <Button
+            size="lg"
+            variant="ghost"
+            className="border border-border/75 bg-card/72 px-7 text-base shadow-[0_12px_32px_hsl(var(--foreground)_/_0.08)]"
+            asChild
+          >
             <Link href="/login">Open dashboard</Link>
           </Button>
         </div>
