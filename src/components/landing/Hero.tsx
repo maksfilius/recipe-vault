@@ -60,11 +60,11 @@ const Hero = () => {
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
         <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
-          Your personal recipe library, organized for real weeknight cooking.
+          Your personal recipe library for real weeknight cooking
         </h1>
 
         <p className="animate-fade-in-delayed mx-auto mt-5 max-w-3xl text-lg text-foreground/85 sm:text-xl">
-          Save ingredients, steps, source links, and favorites in one place so dinner ideas are easy to find when you need them.
+          Save ingredients, steps, source links, and favorites in one clean dashboard
         </p>
 
         <div className="animate-fade-in-more mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
@@ -74,7 +74,7 @@ const Hero = () => {
           <Button
             size="lg"
             variant="ghost"
-            className="border border-border/75 bg-card/72 px-7 text-base shadow-[0_12px_32px_hsl(var(--foreground)_/_0.08)]"
+            className="border border-border/75 bg-card px-7 text-base shadow-none"
             asChild
           >
             <Link href="/login">Open dashboard</Link>
