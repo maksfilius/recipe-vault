@@ -1,6 +1,7 @@
 "use client"
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { CheckCircle2, LogIn } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -53,9 +54,12 @@ const submitLabels = {
   register: "Create account",
 };
 
+const emailConfirmationMessage = "Check your email to confirm your address before signing in.";
+
 export default function AuthForm({type}: AuthFormProps) {
   const [isLoading, setLoading] = useState<boolean>(false);
   const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -97,16 +101,8 @@ export default function AuthForm({type}: AuthFormProps) {
         }
 
         if (!data.session) {
-          setNotice({
-            type: "success",
-            message: "Account created. Check your email to confirm your address before signing in.",
-          });
-          form.reset({
-            email: registerValues.email,
-            password: "",
-            username: registerValues.username,
-            repeatPassword: "",
-          });
+          setRegisteredEmail(registerValues.email);
+          form.reset();
           return;
         }
 
@@ -135,10 +131,30 @@ export default function AuthForm({type}: AuthFormProps) {
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
       <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
         <h2 className="text-3xl font-bold text-foreground mb-6 text-center">
-          {formTitles[type]}
+          {type === "register" && registeredEmail ? "Account created" : formTitles[type]}
         </h2>
+        {type === "register" && registeredEmail ? (
+          <div className="text-center" role="status" aria-live="polite">
+            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200">
+              <CheckCircle2 className="size-7" aria-hidden="true" />
+            </div>
+            <p className="mt-3 text-sm leading-6 text-foreground/80">
+              {emailConfirmationMessage}
+            </p>
+            <p className="mt-2 break-words text-sm font-semibold text-foreground">
+              {registeredEmail}
+            </p>
+            <Button asChild className="mt-7 w-full">
+              <Link href="/login">
+                <LogIn aria-hidden="true" />
+                Go to login
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <>
         {searchParams.get("reset") === "success" && type === "login" ? (
-          <div className="mb-4 rounded-lg border border-emerald-400/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-800 dark:text-emerald-100">
+          <div className="mb-4 rounded-lg border border-emerald-500/45 bg-emerald-500/15 px-4 py-3 text-sm font-medium text-emerald-900 dark:text-emerald-100">
             Password updated. Sign in with your new password.
           </div>
         ) : null}
@@ -148,7 +164,7 @@ export default function AuthForm({type}: AuthFormProps) {
               "mb-4 rounded-lg border px-4 py-3 text-sm",
               notice.type === "error"
                 ? "border-red-400/40 bg-red-500/10 text-red-700 dark:text-red-100"
-                : "border-emerald-400/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100",
+                : "border-emerald-500/45 bg-emerald-500/15 font-medium text-emerald-900 dark:text-emerald-100",
             ].join(" ")}
             role="status"
             aria-live="polite"
@@ -248,15 +264,17 @@ export default function AuthForm({type}: AuthFormProps) {
             </Button>
             {type === "register" ? (
               <p className="text-center text-xs leading-5 text-foreground/70">
-                By creating an account, you agree to our{" "}
-                <Link href="/terms" className="font-semibold text-primary hover:underline">
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="font-semibold text-primary hover:underline">
-                  Privacy Policy
-                </Link>
-                .
+                By creating an account, you agree to our
+                <span className="block">
+                  <Link href="/terms" className="font-semibold text-primary hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="font-semibold text-primary hover:underline">
+                    Privacy Policy
+                  </Link>
+                  .
+                </span>
               </p>
             ) : null}
           </form>
@@ -270,6 +288,8 @@ export default function AuthForm({type}: AuthFormProps) {
             </Link>
           </p>
       </Form>
+          </>
+        )}
     </div>
     </div>
   )
