@@ -2,8 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, Trash2 } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import { supabase } from "@/src/lib/supabase-client";
@@ -28,6 +39,7 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [isSigningOutOthers, setIsSigningOutOthers] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
@@ -132,6 +144,14 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
 
     setNotice({ type: "success", message: "Signed out from other sessions." });
     setIsSigningOutOthers(false);
+  };
+
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    setIsDeleteDialogOpen(open);
+
+    if (!open && !isDeletingAccount) {
+      setDeleteConfirmation("");
+    }
   };
 
   const handleDeleteAccount = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -294,10 +314,7 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
       </div>
 
       {accountDeletionEnabled ? (
-        <form
-          onSubmit={handleDeleteAccount}
-          className="space-y-4 rounded-2xl border border-red-400/30 bg-red-500/10 p-5"
-        >
+        <div className="space-y-4 rounded-2xl border border-red-400/30 bg-red-500/10 p-5">
           <div>
             <h2 className="text-lg font-semibold text-foreground">Delete account</h2>
             <p className="mt-1 text-sm text-red-100/80">
@@ -305,25 +322,60 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
             </p>
           </div>
 
-          <label className="block space-y-2">
-            <span className="text-sm font-medium text-foreground">Type DELETE to confirm</span>
-            <Input
-              value={deleteConfirmation}
-              onChange={(event) => setDeleteConfirmation(event.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-            />
-          </label>
+          <Dialog open={isDeleteDialogOpen} onOpenChange={handleDeleteDialogOpenChange}>
+            <DialogTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                className="border-red-400/50 text-red-100 hover:bg-red-500/20"
+                disabled={isDeletingAccount}
+              >
+                <Trash2 aria-hidden="true" />
+                Delete account
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="border-red-400/35 bg-card sm:max-w-md">
+              <form onSubmit={handleDeleteAccount} className="space-y-5">
+                <DialogHeader>
+                  <div className="mb-1 flex size-11 items-center justify-center rounded-full border border-red-400/40 bg-red-500/15 text-red-200">
+                    <AlertTriangle className="size-5" aria-hidden="true" />
+                  </div>
+                  <DialogTitle>Delete account?</DialogTitle>
+                  <DialogDescription className="leading-6">
+                    This action is permanent. Your account and all saved recipes will be deleted and cannot be restored.
+                  </DialogDescription>
+                </DialogHeader>
 
-          <Button
-            type="submit"
-            variant="ghost"
-            className="border-red-400/50 text-red-100 hover:bg-red-500/20"
-            disabled={isDeletingAccount}
-          >
-            {isDeletingAccount ? "Deleting..." : "Delete account"}
-          </Button>
-        </form>
+                <label className="block space-y-2">
+                  <span className="text-sm font-medium text-foreground">Type DELETE to confirm</span>
+                  <Input
+                    value={deleteConfirmation}
+                    onChange={(event) => setDeleteConfirmation(event.target.value)}
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={isDeletingAccount}
+                  />
+                </label>
+
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button type="button" variant="ghost" disabled={isDeletingAccount}>
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    className="border-red-400/50 text-red-100 hover:bg-red-500/20"
+                    disabled={isDeletingAccount}
+                  >
+                    {isDeletingAccount ? "Deleting..." : "Delete permanently"}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       ) : null}
     </section>
   );
