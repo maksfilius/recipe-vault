@@ -27,11 +27,24 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+RESEND_API_KEY=re_xxxxxxxxx
+RESEND_FROM_EMAIL=Keep & Cook <onboarding@resend.dev>
+RESEND_TEST_TO_EMAIL=you@example.com
+RESEND_TEST_TOKEN=replace-with-a-long-random-token
 ```
 
 `NEXT_PUBLIC_SITE_URL` should match the deployed app origin so email auth redirects land on the right host.
 `NEXT_PUBLIC_SUPPORT_EMAIL` is the contact address shown in legal pages and the footer.
 `SUPABASE_SERVICE_ROLE_KEY` is required if you want the in-app account deletion flow enabled.
+Replace `re_xxxxxxxxx` with your real Resend API key before sending email.
+`RESEND_FROM_EMAIL` should use a verified sender in production, such as `Keep & Cook <hello@your-domain.com>`.
+
+The sample Resend endpoint is available at `POST /api/email/test` and sends the "Hello World" email from the Resend quickstart. It is disabled unless `RESEND_TEST_TOKEN` is set and requires a bearer token:
+
+```bash
+curl -X POST http://localhost:3000/api/email/test \
+  -H "Authorization: Bearer replace-with-a-long-random-token"
+```
 
 ## Local development
 
