@@ -154,7 +154,11 @@ export default function AuthForm({type}: AuthFormProps) {
         ) : (
           <>
         {searchParams.get("reset") === "success" && type === "login" ? (
-          <div className="mb-4 rounded-lg border border-emerald-500/45 bg-emerald-500/15 px-4 py-3 text-sm font-medium text-emerald-900 dark:text-emerald-100">
+          <div
+            className="mb-4 rounded-lg border border-emerald-600/45 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 shadow-sm dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-50"
+            role="status"
+            aria-live="polite"
+          >
             Password updated. Sign in with your new password.
           </div>
         ) : null}
