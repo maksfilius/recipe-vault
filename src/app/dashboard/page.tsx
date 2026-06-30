@@ -25,6 +25,7 @@ import {
   fetchFavoriteRecipeIds,
   removeFavoriteRecipe,
 } from "@/src/lib/favorites";
+import { recipePayloadSchema } from "@/src/lib/recipe-validation";
 import { mapRowToRecipe } from "@/src/lib/recipes";
 import { supabase } from "@/src/lib/supabase-client";
 
@@ -219,6 +220,16 @@ export default function Dashboard() {
   };
 
   const handleFormSubmit = async (values: Omit<Recipe, "id">) => {
+    const parsedValues = recipePayloadSchema.safeParse(values);
+
+    if (!parsedValues.success) {
+      setNotice({
+        type: "error",
+        message: parsedValues.error.issues[0]?.message ?? "Recipe data is invalid.",
+      });
+      return;
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -234,12 +245,12 @@ export default function Dashboard() {
         .upsert({
           id: editingRecipe.id,
           user_id: user.id,
-          title: values.title,
-          description: values.description,
-          category: values.category,
-          ingredients: values.ingredients,
-          steps: values.steps,
-          source_url: values.sourceUrl ?? null,
+          title: parsedValues.data.title,
+          description: parsedValues.data.description,
+          category: parsedValues.data.category,
+          ingredients: parsedValues.data.ingredients,
+          steps: parsedValues.data.steps,
+          source_url: parsedValues.data.sourceUrl ?? null,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id" })
         .select("*")
@@ -266,12 +277,12 @@ export default function Dashboard() {
         .from("recipes")
         .insert({
           user_id: user.id,
-          title: values.title,
-          description: values.description,
-          category: values.category,
-          ingredients: values.ingredients,
-          steps: values.steps,
-          source_url: values.sourceUrl ?? null,
+          title: parsedValues.data.title,
+          description: parsedValues.data.description,
+          category: parsedValues.data.category,
+          ingredients: parsedValues.data.ingredients,
+          steps: parsedValues.data.steps,
+          source_url: parsedValues.data.sourceUrl ?? null,
         })
         .select("*")
         .single();
@@ -369,10 +380,10 @@ export default function Dashboard() {
       {notice && (
         <div
           className={cn(
-            "fixed right-4 top-3 z-[80] max-w-[calc(100vw-2rem)] rounded-xl border px-4 py-3 text-sm font-medium shadow-lg sm:top-4",
+            "fixed left-4 right-4 top-20 z-[80] max-w-md rounded-xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm sm:left-auto sm:right-6 sm:top-20",
             notice.type === "error"
-              ? "border-red-400/60 bg-red-500/20 text-red-100"
-              : "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
+              ? "border-red-300/70 bg-red-50/92 text-red-700 dark:border-red-400/60 dark:bg-red-500/20 dark:text-red-100"
+              : "border-emerald-300/70 bg-emerald-50/92 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-100"
           )}
           role="status"
           aria-live="polite"
@@ -386,7 +397,7 @@ export default function Dashboard() {
           <DialogHeader>
             <DialogTitle>
               {editingRecipe
-                ? addRecipeMode === "manual" && editingRecipe.id !== "draft-import"
+                ? addRecipeMode === "manual" && !isDraftImportedRecipe(editingRecipe)
                   ? "Edit recipe"
                   : "Review imported recipe"
                 : "Add recipe"}
@@ -493,24 +504,13 @@ export default function Dashboard() {
       ) : (
         <>
           {loadError && (
-            <div className="mb-4 rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="mb-4 rounded-xl border border-red-300/70 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-[0_12px_32px_hsl(var(--foreground)_/_0.05)] dark:border-red-400/40 dark:bg-red-500/10 dark:text-red-200">
               {loadError}
             </div>
           )}
 
           <div className="mt-4 sm:mt-6">
-            <div className="flex justify-center sm:hidden">
-              <Button
-                variant="primary"
-                size="sm"
-                className="inline-flex h-10 rounded-full border border-primary/40 bg-primary/90 px-4 text-sm font-semibold"
-                onClick={handleAddRecipe}
-              >
-                <Plus className="h-4 w-4" />
-                Add new recipe
-              </Button>
-            </div>
-            <div className="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <label htmlFor="recipe-search" className="sr-only">
                 Search recipes
               </label>
@@ -525,18 +525,9 @@ export default function Dashboard() {
                   placeholder="Search recipes by title"
                   value={searchTerm}
                   onChange={handleChange}
-                  className="h-10 bg-card pl-9"
+                  className="h-10 border-border/60 bg-card/88 pl-9 shadow-[0_10px_24px_hsl(var(--foreground)_/_0.04)]"
                 />
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                className="hidden h-10 rounded-full border border-primary/40 bg-primary/90 px-5 text-sm font-semibold transition hover:-translate-y-0.5 hover:bg-primary sm:inline-flex"
-                onClick={handleAddRecipe}
-              >
-                <Plus className="h-4 w-4" />
-                Add recipe
-              </Button>
             </div>
             <div className="relative max-w-xl">
               <div className="mt-3 flex flex-wrap gap-2">
@@ -546,7 +537,7 @@ export default function Dashboard() {
                   size="xs"
                   className={cn(
                     "rounded-full px-[10px] capitalize",
-                    selectedCategories.length !== 0 && "border-border/60 bg-card/40"
+                    selectedCategories.length !== 0 && "border-border/60 bg-card/58"
                   )}
                   onClick={() => setSelectedCategories([])}
                 >
@@ -562,7 +553,7 @@ export default function Dashboard() {
                   size="xs"
                   className={cn(
                     "rounded-full px-[10px] capitalize",
-                    !selectedCategories.includes(value) && "border-border/60 bg-card/40"
+                    !selectedCategories.includes(value) && "border-border/60 bg-card/58"
                   )}
                 >
                   {value}
@@ -572,13 +563,14 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="mt-8 pb-24 sm:pb-28">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {isLoading ? (
               Array.from({ length: 8 }).map((_, index) => (
                 <RecipeCardSkeleton key={`skeleton-${index}`} />
               ))
             ) : filteredRecipes.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-border/60 bg-card/50 px-5 py-8 text-center">
+              <div className="col-span-full rounded-2xl border border-border/60 bg-[linear-gradient(180deg,hsl(var(--card)_/_0.9),hsl(var(--muted)_/_0.45))] px-5 py-8 text-center shadow-[0_18px_48px_hsl(var(--foreground)_/_0.06)]">
                 <h2 className="text-base font-semibold text-foreground">
                   {allRecipes.length === 0 ? "No recipes yet" : "No recipes found"}
                 </h2>
@@ -623,7 +615,18 @@ export default function Dashboard() {
                 />
               ))
             )}
+            </div>
           </div>
+
+          <Button
+            type="button"
+            variant="primary"
+            className="fixed bottom-5 right-4 z-20 h-12 rounded-full border border-primary/40 bg-primary/95 px-4 text-sm font-semibold shadow-[0_14px_40px_hsl(var(--foreground)_/_0.18)] transition hover:-translate-y-0.5 hover:bg-primary sm:bottom-6 sm:right-6 sm:h-11"
+            onClick={handleAddRecipe}
+          >
+            <Plus className="h-4 w-4" />
+            Add recipe
+          </Button>
         </>
       )}
     </>

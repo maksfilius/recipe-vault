@@ -56,7 +56,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   );
 
   const [steps, setSteps] = useState<Step[]>(() =>
-    initialValue?.steps ?? [createEmptyStep()]
+    initialValue?.steps ?? []
   );
   const [sourceUrl, setSourceUrl] = useState(
     () => initialValue?.sourceUrl ?? ""
@@ -134,25 +134,25 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   };
 
   const removeStep = (id: string) => {
-    setSteps(prev => {
-      const next = prev.filter(step => step.id !== id);
-      if (next.length === 0) {
-        return [createEmptyStep()];
-      }
-      return next;
-    });
+    setSteps(prev => prev.filter(step => step.id !== id));
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const normalizedIngredients = ingredients.filter((ingredient) =>
+      ingredient.name.trim() || ingredient.amount !== undefined || (ingredient.unit ?? "").trim()
+    );
+
+    const normalizedSteps = steps.filter((step) => step.text.trim());
 
     onSubmit({
       title: title.trim(),
       category,
       description: description.trim(),
       sourceUrl: sourceUrl.trim() || undefined,
-      ingredients,
-      steps
+      ingredients: normalizedIngredients,
+      steps: normalizedSteps
     });
   };
 
@@ -332,8 +332,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
             </span>
             <input
               className="w-full rounded-xl border border-border/70 bg-background/50 px-4 py-3 text-base text-foreground shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:text-sm"
+              type="url"
               value={sourceUrl}
               onChange={event => setSourceUrl(event.target.value)}
+              inputMode="url"
+              placeholder="https://example.com/recipe"
             />
             <p className="text-xs text-muted-foreground">
               Optional — link to the original source or blog post.

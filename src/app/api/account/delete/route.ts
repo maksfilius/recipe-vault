@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Missing access token." }, { status: 401 });
   }
 
-  const userClient = createServerSupabaseClient();
+  const userClient = await createServerSupabaseClient();
   const {
     data: { user },
     error: userError,
@@ -65,4 +65,3 @@ export async function POST(request: Request) {
 
   return NextResponse.json({ success: true });
 }
-

@@ -41,7 +41,7 @@ const Hero = () => {
         className="absolute inset-0 z-0 transition-transform duration-75 ease-out will-change-transform md:hidden"
         style={{
           backgroundImage:
-            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
+            `linear-gradient(180deg, hsl(var(--background) / 0.82) 0%, hsl(var(--background) / 0.48) 16%, hsl(var(--background) / 0.42) 54%, hsl(var(--background) / 0.8) 82%, hsl(var(--background)) 100%), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "right center",
         }}
@@ -51,27 +51,32 @@ const Hero = () => {
         className="absolute inset-0 z-0 hidden transition-transform duration-75 ease-out will-change-transform md:block"
         style={{
           backgroundImage:
-            `linear-gradient(180deg, hsl(var(--background) / 0.48), hsl(var(--background) / 0.82)), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
+            `linear-gradient(180deg, hsl(var(--background) / 0.82) 0%, hsl(var(--background) / 0.48) 16%, hsl(var(--background) / 0.42) 54%, hsl(var(--background) / 0.8) 82%, hsl(var(--background)) 100%), radial-gradient(1200px 500px at 25% 0%, color-mix(in hsl, var(--color-primary) 55%, transparent), transparent), radial-gradient(1000px 500px at 80% 100%, color-mix(in hsl, var(--color-muted) 65%, transparent), transparent), url(${heroBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "56% center",
         }}
       />
-      <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,hsl(var(--background)_/_0.28),transparent_42%,hsl(var(--background)_/_0.42))]" />
+      <div className="absolute inset-0 z-0 bg-[linear-gradient(120deg,hsl(var(--background)_/_0.2),transparent_38%,hsl(var(--background)_/_0.3))]" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl px-6 py-20 text-center">
         <h1 className="animate-fade-in text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
-          Your personal recipe library, organized for real weeknight cooking.
+          Your personal recipe library for real weeknight cooking
         </h1>
 
         <p className="animate-fade-in-delayed mx-auto mt-5 max-w-3xl text-lg text-foreground/85 sm:text-xl">
-          Save ingredients, steps, source links, and favorites in one place so dinner ideas are easy to find when you need them.
+          Save ingredients, steps, source links, and favorites in one clean dashboard
         </p>
 
         <div className="animate-fade-in-more mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:items-center">
           <Button size="lg" variant="primary" className="px-7 text-base" asChild>
             <Link href="/register">Start free</Link>
           </Button>
-          <Button size="lg" variant="ghost" className="border border-border/60 px-7 text-base" asChild>
+          <Button
+            size="lg"
+            variant="ghost"
+            className="border border-border/75 bg-card px-7 text-base shadow-none"
+            asChild
+          >
             <Link href="/login">Open dashboard</Link>
           </Button>
         </div>

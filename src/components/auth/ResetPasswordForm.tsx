@@ -78,8 +78,8 @@ export default function ResetPasswordForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#111827] px-4">
-      <div className="w-full max-w-md rounded-lg bg-[#1F2937] p-8 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
+      <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
         <h1 className="mb-3 text-center text-3xl font-bold text-foreground">Choose a new password</h1>
         <p className="mb-6 text-center text-sm text-foreground/75">
           Use a strong password you haven&apos;t used before.
@@ -87,7 +87,7 @@ export default function ResetPasswordForm() {
 
         {!isRecoveryReady ? (
           <div className="space-y-4">
-            <div className="rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <div className="rounded-lg border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-100">
               This reset link is missing or expired. Request a new password reset email to continue.
             </div>
             <Button asChild className="w-full">
@@ -101,8 +101,8 @@ export default function ResetPasswordForm() {
                 className={[
                   "mb-4 rounded-lg border px-4 py-3 text-sm",
                   notice.type === "error"
-                    ? "border-red-400/40 bg-red-500/10 text-red-100"
-                    : "border-emerald-400/40 bg-emerald-500/10 text-emerald-100",
+                    ? "border-red-400/40 bg-red-500/10 text-red-700 dark:text-red-100"
+                    : "border-emerald-400/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-100",
                 ].join(" ")}
               >
                 {notice.message}
@@ -134,7 +134,7 @@ export default function ResetPasswordForm() {
                 />
               </label>
 
-              {passwordError ? <p className="text-sm text-red-200">{passwordError}</p> : null}
+              {passwordError ? <p className="text-sm text-red-700 dark:text-red-200">{passwordError}</p> : null}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Updating..." : "Update password"}

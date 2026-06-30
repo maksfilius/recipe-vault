@@ -1,16 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+"use client";
 
-import {
-  browserUserStorage,
-  cookieSessionStorage,
-  SUPABASE_AUTH_STORAGE_KEY,
-} from "@/src/lib/auth";
+import { createBrowserClient } from "@supabase/ssr";
+
 import { env } from "@/src/lib/env";
 
-export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
-  auth: {
-    storageKey: SUPABASE_AUTH_STORAGE_KEY,
-    storage: cookieSessionStorage,
-    userStorage: browserUserStorage,
+export const supabase = createBrowserClient(env.supabaseUrl, env.supabaseAnonKey, {
+  cookieOptions: {
+    name: "recipe-vault-auth",
+    sameSite: "lax",
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
   },
 });

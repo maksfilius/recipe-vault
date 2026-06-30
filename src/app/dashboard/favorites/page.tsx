@@ -112,10 +112,10 @@ export default function Favorites() {
       {notice ? (
         <div
           className={[
-            "fixed right-4 top-3 z-[80] max-w-[calc(100vw-2rem)] rounded-xl border px-4 py-3 text-sm font-medium shadow-lg sm:top-4",
+            "fixed left-4 right-4 top-20 z-[80] max-w-md rounded-xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm sm:left-auto sm:right-6 sm:top-20",
             notice.type === "error"
-              ? "border-red-400/60 bg-red-500/20 text-red-100"
-              : "border-emerald-400/60 bg-emerald-500/20 text-emerald-100",
+              ? "border-red-300/70 bg-red-50/92 text-red-700 dark:border-red-400/60 dark:bg-red-500/20 dark:text-red-100"
+              : "border-emerald-300/70 bg-emerald-50/92 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-100",
           ].join(" ")}
           role="status"
           aria-live="polite"
@@ -134,7 +134,7 @@ export default function Favorites() {
         <section className="mx-auto max-w-6xl space-y-5">
 
           {loadError ? (
-            <div className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="rounded-xl border border-red-300/70 bg-red-50/90 px-4 py-3 text-sm text-red-700 shadow-[0_12px_32px_hsl(var(--foreground)_/_0.05)] dark:border-red-400/40 dark:bg-red-500/10 dark:text-red-200">
               {loadError}
             </div>
           ) : null}
@@ -145,7 +145,7 @@ export default function Favorites() {
                 <RecipeCardSkeleton key={`favorites-skeleton-${index}`} />
               ))
             ) : favoriteRecipes.length === 0 ? (
-              <div className="col-span-full rounded-2xl border border-border/60 bg-card/50 px-5 py-8 text-center">
+              <div className="col-span-full rounded-2xl border border-border/60 bg-[linear-gradient(180deg,hsl(var(--card)_/_0.9),hsl(var(--muted)_/_0.45))] px-5 py-8 text-center shadow-[0_18px_48px_hsl(var(--foreground)_/_0.06)]">
                 <h2 className="text-base font-semibold text-foreground">No favorite recipes yet</h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Add recipes to favorites from the main list and they will appear here.

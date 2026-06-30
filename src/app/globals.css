@@ -18,36 +18,36 @@
 }
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   --font-sans: "Segoe UI", "SF Pro Display", "Helvetica Neue", Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
-  --background: 265 55% 6%;
-  --foreground: 0 0% 96%;
-  --card: 266 40% 11%;
+  --background: 34 42% 94%;
+  --foreground: 20 24% 16%;
+  --card: 36 38% 98%;
   --primary: 34 86% 55%;
-  --primary-foreground: 24 80% 11%;
-  --muted: 258 32% 20%;
-  --muted-foreground: 265 20% 78%;
-  --border: 258 25% 30%;
-  --destructive: 3 76% 57%;
+  --primary-foreground: 30 100% 98%;
+  --muted: 34 30% 88%;
+  --muted-foreground: 24 12% 38%;
+  --border: 30 24% 78%;
+  --destructive: 3 72% 52%;
   --ring: var(--primary);
 
-  --cat-breakfast-label: 43 92% 82%;
-  --cat-breakfast-grad-start: 34 84% 44%;
-  --cat-breakfast-grad-end: 22 72% 32%;
+  --cat-breakfast-label: 27 70% 25%;
+  --cat-breakfast-grad-start: 39 94% 73%;
+  --cat-breakfast-grad-end: 30 86% 61%;
 
-  --cat-lunch-label: 176 62% 78%;
-  --cat-lunch-grad-start: 174 58% 36%;
-  --cat-lunch-grad-end: 192 52% 27%;
+  --cat-lunch-label: 182 52% 25%;
+  --cat-lunch-grad-start: 176 58% 76%;
+  --cat-lunch-grad-end: 190 52% 66%;
 
-  --cat-dinner-label: 8 86% 76%;
-  --cat-dinner-grad-start: 6 70% 36%;
-  --cat-dinner-grad-end: 2 58% 24%;
+  --cat-dinner-label: 8 56% 29%;
+  --cat-dinner-grad-start: 12 90% 80%;
+  --cat-dinner-grad-end: 4 78% 69%;
 
-  --cat-snack-label: 236 86% 84%;
-  --cat-snack-grad-start: 234 72% 46%;
-  --cat-snack-grad-end: 254 64% 34%;
+  --cat-snack-label: 246 34% 31%;
+  --cat-snack-grad-start: 238 74% 84%;
+  --cat-snack-grad-end: 254 62% 75%;
 }
 
 .dark {
@@ -86,6 +86,12 @@
   html { font-family: var(--font-sans); }
   body { @apply bg-background text-foreground; font-family: var(--font-sans); }
   code, pre, kbd, samp { font-family: var(--font-mono); }
+  html, body { transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
 }
 
 @layer utilities {

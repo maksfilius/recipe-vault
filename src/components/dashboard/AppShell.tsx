@@ -52,21 +52,22 @@ export default function AppShell({ children }: AppShellProps) {
   };
 
   return (
-    <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_25%_20%,hsl(var(--primary)_/_0.3),transparent_55%)] before:opacity-60 before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-background/70 after:content-['']">
+    <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_18%_16%,hsl(var(--primary)_/_0.22),transparent_34%),radial-gradient(circle_at_82%_12%,hsl(var(--accent)_/_0.12),transparent_28%)] before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.42))] after:content-['']">
       <div
-        className="relative mx-auto flex h-[100dvh] w-full flex-col border-x border-border/60 bg-background/20 shadow-[0_35px_120px_hsl(var(--background)_/_0.65)] md:grid"
+        className="relative mx-auto flex h-[100dvh] w-full flex-col border-x border-border/50 bg-background/35 shadow-[0_35px_120px_hsl(var(--foreground)_/_0.08)] md:grid"
         style={{
           gridTemplateColumns: `${collapsed ? '4rem' : '12rem'} 1fr`,
-          backgroundImage: `linear-gradient(120deg, hsl(var(--background)), hsl(var(--primary) / 0.2))`,
+          backgroundImage:
+            'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.5) 48%, hsl(var(--primary) / 0.14) 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       >
-        <aside className="relative z-10 hidden h-full border-r border-border/60 bg-card/60 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.7)] backdrop-blur-2xl md:block">
+        <aside className="relative z-10 hidden h-full border-r border-border/55 bg-card/72 text-foreground shadow-[0_24px_80px_hsl(var(--foreground)_/_0.08)] backdrop-blur-2xl md:block">
           <Sidebar collapsed={collapsed} onToggle={handleToggle} onSignOut={handleSignOut} />
         </aside>
 
-        <div className="relative z-10 flex min-w-0 flex-col flex-col border-l border-border/40 bg-card/90 text-foreground shadow-[0_25px_80px_hsl(var(--background)_/_0.75)] backdrop-blur-2xl overflow-hidden">
+        <div className="relative z-10 flex min-w-0 flex-col overflow-hidden border-l border-border/35 bg-card/88 text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl">
           <Topbar onMenuClick={openMobileSidebar} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
@@ -74,7 +75,7 @@ export default function AppShell({ children }: AppShellProps) {
 
       <div
         className={[
-          'fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity duration-300 md:hidden',
+          'fixed inset-0 z-40 bg-background/72 backdrop-blur-sm transition-opacity duration-300 md:hidden',
           isMobileSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
         ].join(' ')}
         aria-hidden
@@ -83,7 +84,7 @@ export default function AppShell({ children }: AppShellProps) {
 
       <div
         className={[
-          'fixed inset-y-0 left-0 z-50 w-64 max-w-[80%] border-r border-border/60 bg-card/95 text-foreground shadow-2xl backdrop-blur md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-64 max-w-[80%] border-r border-border/55 bg-card/94 text-foreground shadow-2xl backdrop-blur md:hidden',
           'transition-transform duration-300 ease-out',
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         ].join(' ')}

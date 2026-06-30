@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import ThemeInitializer from "@/src/components/ThemeInitializer";
 import { env } from "@/src/lib/env";
 
 import "./globals.css";
@@ -15,7 +16,12 @@ export const metadata: Metadata = {
   keywords: [
     "recipe manager",
     "recipe organizer",
-    "recipe vault",
+    "recipe storage app",
+    "personal recipe app",
+    "digital cookbook",
+    "recipe dashboard",
+    "meal planning recipes",
+    "save recipes online",
     "personal cookbook",
     "kitchen dashboard",
   ],
@@ -48,8 +54,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="antialiased">{children}</body>
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className="antialiased">
+        <ThemeInitializer />
+        {children}
+      </body>
     </html>
   );
 }

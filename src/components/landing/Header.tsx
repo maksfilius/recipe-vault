@@ -4,6 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Menu, X } from "lucide-react";
+import logo from "@/src/assets/Logo.svg";
+import logoBlack from "@/src/assets/Logo_black.svg";
+import ThemeToggle from "@/src/components/ThemeToggle";
+import ThemeLogo from "@/src/components/ThemeLogo";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,13 +21,20 @@ const Header = () => {
   };
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/75 backdrop-blur-xl">
+    <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/90 supports-[backdrop-filter]:bg-background/78 supports-[backdrop-filter]:backdrop-blur-md">
       <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
         <button
           onClick={() => scrollToSection("hero")}
-          className="flex items-center gap-2 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
+          className="flex items-center gap-3 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
         >
-          <span>RecipeVault</span>
+          <ThemeLogo
+            lightSrc={logoBlack}
+            darkSrc={logo}
+            alt="Keep & Cook logo"
+            className="h-9 w-auto"
+            priority
+          />
+          <span>Keep &amp; Cook</span>
         </button>
 
         <div className="hidden items-center gap-8 md:flex">
@@ -33,6 +44,7 @@ const Header = () => {
           <button onClick={() => scrollToSection("cta")} className="text-foreground/80 transition-colors hover:text-foreground">
             Get Started
           </button>
+          <ThemeToggle />
           <Button size="sm" variant="ghost" asChild>
             <Link href="/login">Sign In</Link>
           </Button>
@@ -64,6 +76,9 @@ const Header = () => {
             >
               Get Started
             </button>
+            <div className="pt-1">
+              <ThemeToggle />
+            </div>
             <Button size="sm" className="w-full" variant="ghost" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
