@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, ExternalLink, Pencil, Trash } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil, Trash, Utensils } from "lucide-react";
 
 import { Recipe } from "../../../types/recipe";
 import { Button } from "../../ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../ui/card";
 import { formatRelativeTime } from "@/src/lib/format-relative-time";
 import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
 import { formatSourceUrl } from "@/src/lib/utils";
@@ -14,7 +12,7 @@ type RecipeDetailsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   showActions?: boolean;
-}
+};
 
 export function RecipeDetails({
   recipe,
@@ -24,102 +22,54 @@ export function RecipeDetails({
   showActions = true,
 }: RecipeDetailsProps) {
   const formattedSourceUrl = recipe.sourceUrl ? formatSourceUrl(recipe.sourceUrl) : null;
-  const { tokens, heroBackground, labelStyles, labelAccentStyles, metaDotStyles } =
+  const { tokens, heroBackground, labelStyles, labelAccentStyles } =
     getRecipeCategoryStyles(recipe.category);
 
   const hasIngredients = recipe.ingredients && recipe.ingredients.length > 0;
   const hasSteps = recipe.steps && recipe.steps.length > 0;
 
-  const [isPinned, setIsPinned] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsPinned(!entry.isIntersecting);
-      },
-      {
-        threshold: 0,
-        rootMargin: "-4px 0px 0px 0px",
-      }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
-
   return (
-    <section className="mx-auto flex w-full flex-col gap-6">
-      <div ref={sentinelRef} aria-hidden="true" className="h-0" />
-
-      <div
-        className={[
-          "sticky top-0 z-20 flex flex-wrap items-center gap-3 transition-all duration-300",
-          isPinned
-            ? "justify-between bg-background/70 px-4 py-2 backdrop-blur shadow-lg"
-            : "justify-between"
-        ].join(" ")}
-      >
+    <section className="mx-auto w-full max-w-5xl">
+      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="ghost"
-          size={isPinned ? "icon" : "sm"}
-          className={[
-            "gap-2 transition-all duration-200",
-            isPinned ? "rounded-full bg-background/80 shadow-md" : "px-3"
-          ].join(" ")}
+          className="w-fit gap-2 rounded-lg border border-border/60 bg-card/80 px-3 text-foreground transition hover:bg-card"
           onClick={onBack}
         >
           <ArrowLeft className="h-4 w-4" />
-          {!isPinned && <span>Back to recipes</span>}
+          Back to recipes
         </Button>
 
         {showActions ? (
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="ghost"
-            size={isPinned ? "icon" : "sm"}
-            className={[
-              "gap-2 transition-all duration-200",
-              isPinned ? "rounded-full bg-background/80 shadow-md" : "px-3"
-            ].join(" ")}
-            onClick={onEdit}
-          >
-            <Pencil className="h-4 w-4" />
-            {!isPinned && <span>Edit</span>}
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="ghost"
+              className="gap-2 rounded-lg border border-border/60 bg-card/80 px-3 text-foreground transition hover:bg-card"
+              onClick={onEdit}
+            >
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
 
-          <Button
-            variant="ghost"
-            size={isPinned ? "icon" : "sm"}
-            className={[
-              "gap-2 border border-red-400/40 text-red-300 transition-all duration-200 hover:border-red-400 hover:text-red-200",
-              isPinned
-                ? "rounded-full bg-background/80 shadow-md"
-                : "px-3"
-            ].join(" ")}
-            onClick={onDelete}
-          >
-            <Trash className="h-4 w-4" />
-            {!isPinned && <span>Delete</span>}
-          </Button>
-        </div>
+            <Button
+              variant="ghost"
+              className="gap-2 rounded-lg border border-red-400/40 bg-card/80 px-3 text-red-400 transition hover:border-red-400 hover:bg-card hover:text-red-300"
+              onClick={onDelete}
+            >
+              <Trash className="h-4 w-4" />
+              Delete
+            </Button>
+          </div>
         ) : null}
       </div>
 
-      <Card
-        variant="subtle"
-        padding="none"
-        className="overflow-hidden border-0 bg-transparent sm:border sm:border-border/70 sm:bg-background/60"
-      >
+      <article className="overflow-hidden rounded-2xl border border-border/70 bg-card/78 text-foreground shadow-[0_28px_72px_hsl(var(--foreground)_/_0.1)]">
         <div
-          className="relative h-16 w-full overflow-hidden"
+          className="relative grid min-h-56 place-items-center overflow-hidden px-6 py-10 text-center"
           style={heroBackground}
         >
-          <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/35 to-background/75" />
-          <div className="absolute left-6 top-1/2 flex -translate-y-1/2 items-center gap-2">
+          <div className="absolute inset-0 bg-gradient-to-b from-background/5 via-background/20 to-background/42 dark:via-background/35 dark:to-background/70" />
+          <div className="absolute left-5 top-5">
             <span
               className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold"
               style={labelStyles}
@@ -128,133 +78,121 @@ export function RecipeDetails({
               {tokens.name}
             </span>
           </div>
+          <Utensils className="relative z-10 mb-5 h-12 w-12 text-foreground/36" />
+          <h1 className="relative z-10 max-w-3xl text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
+            {recipe.title}
+          </h1>
+          <p className="relative z-10 mt-3 text-sm text-muted-foreground">
+            Updated {formatRelativeTime(recipe.updatedAt ?? recipe.createdAt)}
+          </p>
         </div>
 
-        <CardHeader className="gap-3 px-0 sm:px-6">
-          <CardTitle className="text-[24px] font-semibold leading-tight text-foreground sm:text-4xl">
-            {recipe.title}
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="grid gap-6 px-0 pb-8 pt-0 sm:px-6 md:grid-cols-[1fr_0.55fr] md:gap-10">
-          <div className="space-y-4 text-sm leading-relaxed text-muted-foreground">
-            <div className="rounded-2xl border border-border/60 bg-foreground/[0.03] p-5 shadow-inner shadow-background/20">
-              <div className="flex items-center gap-2 text-foreground">
-                <span className="h-2 w-2 rounded-full" style={metaDotStyles} />
-                <span className="text-sm font-semibold">Description</span>
-              </div>
-              <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                {recipe.description || "Add a description to tell people how to enjoy this dish."}
-              </p>
-            </div>
+        <div className="grid gap-6 p-5 lg:grid-cols-[1fr_0.85fr] lg:p-7">
+          <section className="rounded-2xl border border-border/60 bg-background/45 p-5 shadow-inner shadow-background/20">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+              Description
+            </h2>
+            <p className="mt-3 text-base leading-7 text-muted-foreground">
+              {recipe.description || "No description added yet."}
+            </p>
 
             {recipe.sourceUrl ? (
               <a
                 href={recipe.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full min-w-0 flex-col items-start gap-2 rounded-xl border border-border/60 bg-background/60 px-4 py-3 text-sm font-semibold text-foreground transition hover:border-border hover:bg-background sm:flex-row sm:items-center sm:justify-between"
+                className="mt-5 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/78 px-3 py-2 text-sm font-semibold text-foreground transition hover:border-border hover:bg-card"
               >
-                <div className="flex items-center gap-2">
+                <span className="flex items-center gap-2">
                   <ExternalLink className="h-4 w-4" />
-                  <span>View source</span>
-                </div>
-                <span className="w-full text-xs text-muted-foreground break-all sm:w-auto sm:max-w-[55%] sm:truncate sm:break-normal">
+                  View source
+                </span>
+                <span className="truncate text-xs font-medium text-muted-foreground">
                   {formattedSourceUrl}
                 </span>
               </a>
             ) : (
-              <div className="flex items-center justify-between rounded-xl border-0 bg-transparent px-0 py-0 text-sm text-muted-foreground sm:border sm:border-dashed sm:border-border/60 sm:bg-foreground/[0.02] sm:px-4 sm:py-3">
-                <span>No source link added</span>
+              <div className="mt-5 rounded-lg border border-dashed border-border/60 bg-card/60 px-3 py-2 text-sm text-muted-foreground">
+                No source link added
               </div>
             )}
+          </section>
 
-            <div className="rounded-2xl border border-border/60 bg-foreground/[0.02] p-5 shadow-inner shadow-background/15">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold text-foreground">Ingredients</span>
-                {hasIngredients && (
-                  <span className="text-xs text-muted-foreground">
-                    {recipe.ingredients.length} item{recipe.ingredients.length > 1 ? "s" : ""}
-                  </span>
-                )}
-              </div>
-
+          <section className="rounded-2xl border border-border/60 bg-background/45 p-5 shadow-inner shadow-background/20">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+                Ingredients
+              </h2>
               {hasIngredients ? (
-                <ul className="mt-3 space-y-2 text-sm">
-                  {recipe.ingredients.map((ingredient) => (
-                    <li
-                      key={ingredient.id}
-                      className="flex items-baseline gap-2"
-                    >
-                      <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-muted-foreground/80" />
-                      <span className="text-foreground">
-                        {ingredient.amount !== undefined && ingredient.amount !== null && (
-                          <span className="font-medium">
-                            {ingredient.amount}{" "}
-                          </span>
-                        )}
-                        {ingredient.unit && (
-                          <span className="font-medium">
-                            {ingredient.unit}{" "}
-                          </span>
-                        )}
-                        <span className="break-words">{ingredient.name}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-3 text-xs text-muted-foreground">
-                  No ingredients added yet.
-                </p>
-              )}
+                <span
+                  className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium"
+                  style={labelStyles}
+                >
+                  {recipe.ingredients.length} item{recipe.ingredients.length > 1 ? "s" : ""}
+                </span>
+              ) : null}
             </div>
 
-          </div>
+            {hasIngredients ? (
+              <ul className="mt-4 space-y-2">
+                {recipe.ingredients.map((ingredient) => (
+                  <li
+                    key={ingredient.id}
+                    className="rounded-lg border border-border/50 bg-card/78 px-3 py-2 text-sm text-muted-foreground"
+                  >
+                    {ingredient.amount !== undefined && ingredient.amount !== null ? (
+                      <span className="font-semibold text-foreground">{ingredient.amount} </span>
+                    ) : null}
+                    {ingredient.unit ? (
+                      <span className="font-semibold text-foreground">{ingredient.unit} </span>
+                    ) : null}
+                    {ingredient.name}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mt-4 text-sm text-muted-foreground">No ingredients added yet.</p>
+            )}
+          </section>
 
-          <div className="rounded-2xl border-0 bg-transparent p-0 text-sm text-muted-foreground shadow-none sm:border sm:border-border/60 sm:bg-foreground/[0.03] sm:p-5 sm:shadow-inner sm:shadow-background/25">
-            <h3 className="text-sm font-semibold text-foreground">Quick facts</h3>
-            <div className="mt-4 grid grid-cols-1 gap-3">
-              <div className="rounded-xl border border-border/60 bg-background/50 p-3">
-                <p className="text-[11px] uppercase tracking-wide text-foreground/70">Last updated</p>
-                <p className="mt-1 text-sm font-medium text-foreground">
-                  {formatRelativeTime(recipe.updatedAt ?? recipe.createdAt)}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-border/60 bg-foreground/[0.02] p-5 shadow-inner shadow-background/15 md:col-span-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-foreground">Steps</span>
-              {hasSteps && (
-                <span className="text-xs text-muted-foreground">
+          <section className="rounded-2xl border border-border/60 bg-background/45 p-5 shadow-inner shadow-background/20 lg:col-span-2">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground">
+                Steps
+              </h2>
+              {hasSteps ? (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-xs font-medium"
+                  style={labelStyles}
+                >
                   {recipe.steps.length} step{recipe.steps.length > 1 ? "s" : ""}
                 </span>
-              )}
+              ) : null}
             </div>
 
             {hasSteps ? (
-              <ol className="mt-3 space-y-3">
+              <ol className="mt-4 grid gap-3">
                 {recipe.steps.map((step, index) => (
-                  <li key={step.id} className="space-y-2">
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground/10 px-1 text-[11px] font-semibold text-foreground">
+                  <li
+                    key={step.id}
+                    className="flex gap-3 rounded-lg border border-border/50 bg-card/78 p-3"
+                  >
+                    <span
+                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full border text-sm font-semibold"
+                      style={labelStyles}
+                    >
                       {index + 1}
                     </span>
-                    <p className="break-words text-sm leading-relaxed text-muted-foreground">
-                      {step.text}
-                    </p>
+                    <p className="pt-1 text-sm leading-6 text-muted-foreground">{step.text}</p>
                   </li>
                 ))}
               </ol>
             ) : (
-              <p className="mt-3 text-xs text-muted-foreground">
-                No steps added yet.
-              </p>
+              <p className="mt-4 text-sm text-muted-foreground">No steps added yet.</p>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </section>
+        </div>
+      </article>
     </section>
   );
 }
