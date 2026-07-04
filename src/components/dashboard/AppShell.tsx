@@ -54,7 +54,7 @@ export default function AppShell({ children }: AppShellProps) {
   return (
     <div className="relative h-[100dvh] overflow-hidden bg-background text-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-10 before:bg-[radial-gradient(circle_at_18%_16%,hsl(var(--primary)_/_0.22),transparent_34%),radial-gradient(circle_at_82%_12%,hsl(var(--accent)_/_0.12),transparent_28%)] before:content-[''] after:pointer-events-none after:absolute after:inset-0 after:-z-10 after:bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.42))] after:content-['']">
       <div
-        className="relative mx-auto flex h-[100dvh] w-full flex-col border-x border-border/50 bg-background/35 shadow-[0_35px_120px_hsl(var(--foreground)_/_0.08)] md:grid"
+        className="relative mx-auto flex h-[100dvh] w-full flex-col bg-background/35 shadow-[0_35px_120px_hsl(var(--foreground)_/_0.08)] md:grid md:border-x md:border-border/50"
         style={{
           gridTemplateColumns: `${collapsed ? '4rem' : '12rem'} 1fr`,
           backgroundImage:
@@ -67,7 +67,7 @@ export default function AppShell({ children }: AppShellProps) {
           <Sidebar collapsed={collapsed} onToggle={handleToggle} onSignOut={handleSignOut} />
         </aside>
 
-        <div className="relative z-10 flex min-w-0 flex-col overflow-hidden border-l border-border/35 bg-card/88 text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl">
+        <div className="relative z-10 flex min-w-0 flex-col overflow-hidden bg-card/88 text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
           <Topbar onMenuClick={openMobileSidebar} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>

@@ -618,15 +618,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <Button
-            type="button"
-            variant="primary"
-            className="fixed bottom-5 right-4 z-20 h-12 rounded-full border border-primary/40 bg-primary/95 px-4 text-sm font-semibold shadow-[0_14px_40px_hsl(var(--foreground)_/_0.18)] transition hover:-translate-y-0.5 hover:bg-primary sm:bottom-6 sm:right-6 sm:h-11"
-            onClick={handleAddRecipe}
-          >
-            <Plus className="h-4 w-4" />
-            Add recipe
-          </Button>
+          {allRecipes.length > 0 ? (
+            <Button
+              type="button"
+              variant="primary"
+              className="fixed bottom-5 right-4 z-20 h-12 rounded-full border border-primary/40 bg-primary/95 px-4 text-sm font-semibold shadow-[0_14px_40px_hsl(var(--foreground)_/_0.18)] transition hover:-translate-y-0.5 hover:bg-primary sm:bottom-6 sm:right-6 sm:h-11"
+              onClick={handleAddRecipe}
+            >
+              <Plus className="h-4 w-4" />
+              Add recipe
+            </Button>
+          ) : null}
         </>
       )}
     </>

@@ -1,5 +1,5 @@
 import type { Recipe } from "../../../types/recipe";
-import { Bookmark, ExternalLink, MoreHorizontal, Utensils } from "lucide-react";
+import { Bookmark, ExternalLink, Utensils } from "lucide-react";
 import { Card } from "../../ui/card";
 import { formatRelativeTime } from "@/src/lib/format-relative-time";
 import { getRecipeCategoryStyles } from "../../../lib/recipe-category-theme";
@@ -40,15 +40,6 @@ export function RecipeCard({
         >
           <div className="absolute inset-0 bg-gradient-to-br from-background/8 via-transparent to-background/20 dark:to-background/25" />
           <Utensils className="relative z-10 h-11 w-11 text-foreground/35" />
-          <div className="absolute left-3 top-3 flex items-center gap-2">
-            <span
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
-              style={labelStyles}
-            >
-              <span className="h-2.5 w-2.5 rounded-full border border-background/30" style={labelAccentStyles} />
-              {tokens.name}
-            </span>
-          </div>
           <button
             type="button"
             className={[
@@ -69,32 +60,22 @@ export function RecipeCard({
         </div>
 
         <div className="flex flex-1 flex-col p-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <h3 className="line-clamp-2 font-semibold leading-snug text-foreground">{recipe.title}</h3>
-              {recipe.sourceUrl ? (
-                <a
-                  href={recipe.sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground"
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  <span className="truncate">from {formattedSourceUrl}</span>
-                  <ExternalLink className="h-3.5 w-3.5 shrink-0" />
-                </a>
-              ) : (
-                <p className="mt-1 text-sm text-muted-foreground/80">from manual</p>
-              )}
-            </div>
-            <button
-              type="button"
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-card hover:text-foreground"
-              aria-label="Recipe actions"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
+          <div className="min-w-0">
+            <h3 className="line-clamp-2 font-semibold leading-snug text-foreground">{recipe.title}</h3>
+            {recipe.sourceUrl ? (
+              <a
+                href={recipe.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md text-sm text-muted-foreground underline-offset-4 transition hover:text-foreground"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <span className="truncate">from {formattedSourceUrl}</span>
+                <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+              </a>
+            ) : (
+              <p className="mt-1 text-sm text-muted-foreground/80">from manual</p>
+            )}
           </div>
 
           {recipe.description ? (
