@@ -157,10 +157,10 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
   };
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto px-1">
+    <div className="max-h-[80vh] overflow-y-auto">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-3xl space-y-4 pb-1 sm:space-y-6 sm:rounded-2xl sm:border sm:border-border/70 sm:bg-card/80 sm:p-6 sm:shadow-[0_15px_45px_hsl(var(--foreground)_/_0.08)] sm:backdrop-blur"
+        className="w-full max-w-3xl space-y-4 pb-1 sm:space-y-6"
       >
         <div className="grid grid-cols-1 gap-4">
           <label className="space-y-2">
@@ -205,9 +205,9 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
         <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Ingredients</span>
-            <div className="space-y-3 sm:rounded-2xl sm:border sm:border-border/60 sm:bg-background/40 sm:p-4 sm:shadow-inner sm:shadow-foreground/5">
+            <div className="space-y-3 rounded-xl border border-border/70 bg-card/88 p-3 shadow-[0_10px_28px_hsl(var(--foreground)_/_0.06)]">
               {ingredients.map((ingredient, index) => (
-                <div key={ingredient.id} className="space-y-2.5 rounded-lg border border-border/45 bg-card/40 p-2.5 sm:space-y-3 sm:rounded-xl sm:border-transparent sm:bg-card/60 sm:p-3 sm:shadow-sm sm:ring-1 sm:ring-border/60">
+                <div key={ingredient.id} className="space-y-2 border-t border-border/60 pt-3 first:border-t-0 first:pt-0">
                   <div className="flex items-center justify-end text-xs text-muted-foreground sm:justify-between">
                     <span className="hidden font-semibold text-foreground/80 sm:inline">
                       Ingredient {index + 1}
@@ -271,7 +271,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border sm:bg-background/60"
+                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border"
                 onClick={addIngredient}
               >
                 + Add ingredient
@@ -281,11 +281,11 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
 
           <section className="space-y-2">
             <span className="block text-sm font-semibold text-foreground">Steps</span>
-            <div className="space-y-3 sm:rounded-2xl sm:border sm:border-border/60 sm:bg-background/40 sm:p-4 sm:shadow-inner sm:shadow-foreground/5">
+            <div className="space-y-3 rounded-xl border border-border/70 bg-card/88 p-3 shadow-[0_10px_28px_hsl(var(--foreground)_/_0.06)]">
               {steps.map((step, index) => (
                 <div
                   key={step.id}
-                  className="space-y-2 rounded-lg border border-border/45 bg-card/40 p-2.5 sm:rounded-xl sm:border-transparent sm:bg-card/60 sm:p-3 sm:shadow-sm sm:ring-1 sm:ring-border/60"
+                  className="space-y-2 border-t border-border/60 pt-3 first:border-t-0 first:pt-0"
                 >
                   <div className="flex items-center justify-end text-xs text-muted-foreground sm:justify-between">
                     <span className="hidden font-semibold text-foreground/80 sm:inline">
@@ -316,7 +316,7 @@ export default function RecipeForm({ mode, initialValue, onSubmit }: RecipeFormP
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border sm:bg-background/60"
+                className="w-full justify-center border border-dashed border-border/60 bg-transparent text-sm font-semibold text-foreground transition hover:-translate-y-0.5 hover:border-border"
                 onClick={addStep}
               >
                 + Add step
