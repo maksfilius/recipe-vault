@@ -2,6 +2,27 @@ import { NextResponse } from "next/server";
 
 import { createServiceRoleSupabaseClient, createServerSupabaseClient } from "@/src/lib/supabase-server";
 import { env } from "@/src/lib/env";
+import { RECIPE_IMAGE_BUCKET } from "@/src/lib/recipe-image";
+
+async function deleteRecipeImages(userId: string) {
+  const adminClient = createServiceRoleSupabaseClient();
+
+  while (true) {
+    const { data, error } = await adminClient.storage
+      .from(RECIPE_IMAGE_BUCKET)
+      .list(userId, { limit: 100 });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return;
+
+    const { error: removeError } = await adminClient.storage
+      .from(RECIPE_IMAGE_BUCKET)
+      .remove(data.map((file) => `${userId}/${file.name}`));
+
+    if (removeError) throw removeError;
+    if (data.length < 100) return;
+  }
+}
 
 function getBearerToken(request: Request) {
   const authorization = request.headers.get("authorization");
@@ -38,6 +59,12 @@ export async function POST(request: Request) {
   }
 
   const adminClient = createServiceRoleSupabaseClient();
+
+  try {
+    await deleteRecipeImages(user.id);
+  } catch {
+    return NextResponse.json({ error: "Failed to delete recipe images." }, { status: 500 });
+  }
 
   const { error: deleteFavoritesError } = await adminClient
     .from("favorite_recipes")

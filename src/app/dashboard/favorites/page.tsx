@@ -9,7 +9,11 @@ import {
   fetchFavoriteRecipeIds,
   removeFavoriteRecipe,
 } from "@/src/lib/favorites";
-import { mapRowToRecipe } from "@/src/lib/recipes";
+import { mapRowToRecipe, type RecipeRow } from "@/src/lib/recipes";
+import {
+  getOfflineRecipeSnapshot,
+  saveOfflineRecipeSnapshot,
+} from "@/src/lib/offline-recipes";
 import { supabase } from "@/src/lib/supabase-client";
 import type { Recipe } from "@/src/types/recipe";
 
@@ -22,6 +26,8 @@ export default function Favorites() {
   const router = useRouter();
 
   const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
+  const [userId, setUserId] = useState("");
+  const [isOfflineMode, setIsOfflineMode] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -35,27 +41,34 @@ export default function Favorites() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      const {
+        data: { session },
+      } = user ? { data: { session: null } } : await supabase.auth.getSession();
+      const currentUser = user ?? session?.user ?? null;
 
-      if (!user) {
+      if (!currentUser) {
         setFavoriteRecipes([]);
         setIsLoading(false);
         router.replace("/login");
         return;
       }
 
+      setUserId(currentUser.id);
+
       try {
-        const favoriteIds = await fetchFavoriteRecipeIds(user.id);
+        const favoriteIds = await fetchFavoriteRecipeIds(currentUser.id);
 
         if (favoriteIds.size === 0) {
           setFavoriteRecipes([]);
+          setIsOfflineMode(false);
           setIsLoading(false);
           return;
         }
 
         const { data, error } = await supabase
           .from("recipes")
-          .select("*")
-          .eq("user_id", user.id)
+          .select("*, recipe_collections(collection:collections(id,user_id,name,position,created_at))")
+          .eq("user_id", currentUser.id)
           .in("id", Array.from(favoriteIds))
           .order("created_at", { ascending: false });
 
@@ -65,9 +78,19 @@ export default function Favorites() {
           return;
         }
 
-        setFavoriteRecipes((data ?? []).map(mapRowToRecipe));
+        setFavoriteRecipes((data ?? []).map((row) => mapRowToRecipe(row as RecipeRow)));
+        setIsOfflineMode(false);
       } catch {
-        setLoadError("Failed to load favorites. Please try again.");
+        try {
+          const snapshot = await getOfflineRecipeSnapshot(currentUser.id);
+          if (!snapshot) throw new Error("No offline snapshot.");
+
+          const favoriteIds = new Set(snapshot.favoriteRecipeIds);
+          setFavoriteRecipes(snapshot.recipes.filter((recipe) => favoriteIds.has(recipe.id)));
+          setIsOfflineMode(true);
+        } catch {
+          setLoadError("Failed to load favorites. Connect to the internet and try again.");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -87,6 +110,11 @@ export default function Favorites() {
   }, [notice]);
 
   const handleToggleFavorite = async (recipeId: string) => {
+    if (isOfflineMode) {
+      setNotice({ type: "error", message: "Reconnect before changing favorites." });
+      return;
+    }
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -101,6 +129,15 @@ export default function Favorites() {
       await removeFavoriteRecipe(user.id, recipeId);
       setFavoriteRecipes((prev) => prev.filter((recipe) => recipe.id !== recipeId));
       setSelectedRecipe((prev) => (prev?.id === recipeId ? null : prev));
+      const snapshot = await getOfflineRecipeSnapshot(userId).catch(() => null);
+      if (snapshot) {
+        await saveOfflineRecipeSnapshot({
+          userId,
+          recipes: snapshot.recipes,
+          collections: snapshot.collections,
+          favoriteRecipeIds: snapshot.favoriteRecipeIds.filter((id) => id !== recipeId),
+        }).catch(() => undefined);
+      }
       setNotice({ type: "success", message: "Removed from favorites." });
     } catch {
       setNotice({ type: "error", message: "Failed to update favorites." });
@@ -121,6 +158,12 @@ export default function Favorites() {
           aria-live="polite"
         >
           {notice.message}
+        </div>
+      ) : null}
+
+      {isOfflineMode ? (
+        <div className="mb-4 rounded-xl border border-amber-400/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100" role="status">
+          Offline copy — favorite recipes are available to read.
         </div>
       ) : null}
 

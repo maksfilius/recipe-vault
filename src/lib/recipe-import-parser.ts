@@ -1,18 +1,11 @@
 import * as cheerio from "cheerio";
 import type { AnyNode } from "domhandler";
 
-import { RECIPE_CATEGORIES, type Ingredient, type RecipeCategory, type Step } from "../types/recipe.ts";
+import type { ImportedRecipe, Ingredient, Step } from "../types/recipe.ts";
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-export type ImportedRecipePayload = {
-  title: string;
-  description: string;
-  category: RecipeCategory;
-  ingredients: Ingredient[];
-  steps: Step[];
-  sourceUrl: string;
-};
+export type ImportedRecipePayload = ImportedRecipe;
 
 type TextBlock = {
   lines: string[];
@@ -25,7 +18,161 @@ type ScoredBlock = {
 };
 
 const AMOUNT_PATTERN =
-  String.raw`(?:\d+(?:[.,]\d+)?(?:\s+\d+\s*\/\s*\d+)?|\d+\s*[¼½¾⅐-⅟↉]|\d+\s*\/\s*\d+|[¼½¾⅐-⅟↉])(?:\s*[-–]\s*(?:\d+(?:[.,]\d+)?(?:\s+\d+\s*\/\s*\d+)?|\d+\s*[¼½¾⅐-⅟↉]|\d+\s*\/\s*\d+|[¼½¾⅐-⅟↉]))?`;
+  String.raw`(?:\d+(?:[.,]\d+)?(?:\s+\d+\s*\/\s*\d+)?|[.,]\d+|\d+\s*[¼½¾⅐-⅟↉]|\d+\s*\/\s*\d+|[¼½¾⅐-⅟↉])(?:\s*[-–]\s*(?:\d+(?:[.,]\d+)?(?:\s+\d+\s*\/\s*\d+)?|[.,]\d+|\d+\s*[¼½¾⅐-⅟↉]|\d+\s*\/\s*\d+|[¼½¾⅐-⅟↉]))?`;
+
+const MAX_TITLE_LENGTH = 160;
+const MAX_DESCRIPTION_LENGTH = 5_000;
+const MAX_INGREDIENTS = 100;
+const MAX_STEPS = 100;
+
+const UNIT_NAMES = [
+  "fluid ounces",
+  "tablespoons",
+  "tablespoon",
+  "teaspoons",
+  "teaspoon",
+  "milliliters",
+  "millilitres",
+  "centiliters",
+  "centilitres",
+  "deciliters",
+  "decilitres",
+  "kilograms",
+  "milligrams",
+  "kilogram",
+  "milligram",
+  "packages",
+  "package",
+  "packets",
+  "packet",
+  "pounds",
+  "pound",
+  "ounces",
+  "ounce",
+  "pinches",
+  "pinch",
+  "cloves",
+  "clove",
+  "pieces",
+  "piece",
+  "handfuls",
+  "handful",
+  "heads",
+  "head",
+  "slices",
+  "slice",
+  "sprigs",
+  "sprig",
+  "sticks",
+  "stick",
+  "bunches",
+  "bunch",
+  "cups",
+  "cup",
+  "cans",
+  "can",
+  "dashes",
+  "dash",
+  "esslöffel",
+  "teelöffel",
+  "päckchen",
+  "packungen",
+  "packung",
+  "scheiben",
+  "scheibe",
+  "stück",
+  "becher",
+  "glas",
+  "bund",
+  "prise",
+  "prisen",
+  "zehen",
+  "zehe",
+  "dosen",
+  "dose",
+  "столовые ложки",
+  "столовая ложка",
+  "чайные ложки",
+  "чайная ложка",
+  "стаканов",
+  "стакана",
+  "стакан",
+  "щепотки",
+  "щепотка",
+  "зубчиков",
+  "зубчика",
+  "зубчик",
+  "штук",
+  "штуки",
+  "штука",
+  "ломтиков",
+  "ломтика",
+  "ломтик",
+  "пучков",
+  "пучка",
+  "пучок",
+  "банки",
+  "банка",
+  "tbsp.",
+  "tbsp",
+  "tbs.",
+  "tbs",
+  "tsp.",
+  "tsp",
+  "fl oz",
+  "oz.",
+  "oz",
+  "lbs.",
+  "lbs",
+  "lb.",
+  "lb",
+  "pcs.",
+  "pcs",
+  "pkg.",
+  "pkg",
+  "stk.",
+  "stk",
+  "pr.",
+  "pr",
+  "c.",
+  "c",
+  "el",
+  "tl",
+  "kg",
+  "mg",
+  "ml",
+  "cl",
+  "dl",
+  "qt",
+  "pt",
+  "g",
+  "l",
+  "граммов",
+  "грамма",
+  "грамм",
+  "килограммов",
+  "килограмма",
+  "килограмм",
+  "миллилитров",
+  "миллилитра",
+  "миллилитр",
+  "литров",
+  "литра",
+  "литр",
+  "ст. л.",
+  "ст.л.",
+  "ч. л.",
+  "ч.л.",
+  "кг",
+  "мг",
+  "мл",
+  "гр.",
+  "гр",
+  "шт.",
+  "шт",
+  "г",
+  "л",
+].sort((a, b) => b.length - a.length);
 
 function createId() {
   return globalThis.crypto.randomUUID();
@@ -77,18 +224,25 @@ function extractCharsetFromHtmlHead(bytes: Uint8Array) {
 
 function normalizeText(value: string) {
   return value
+    .replace(/\u00a0/g, " ")
     .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function uniqueStrings(values: string[]) {
-  return [...new Set(values.map((value) => normalizeText(value)).filter(Boolean))];
-}
+  const seen = new Set<string>();
 
-function toArray<T>(value: T | T[] | undefined | null): T[] {
-  if (!value) return [];
-  return Array.isArray(value) ? value : [value];
+  return values.reduce<string[]>((result, value) => {
+    const normalized = normalizeText(value);
+    const key = normalized.toLocaleLowerCase();
+
+    if (!normalized || seen.has(key)) return result;
+
+    seen.add(key);
+    result.push(normalized);
+    return result;
+  }, []);
 }
 
 function asRecord(value: JsonValue): Record<string, JsonValue> | null {
@@ -96,30 +250,127 @@ function asRecord(value: JsonValue): Record<string, JsonValue> | null {
   return value as Record<string, JsonValue>;
 }
 
-function firstString(...values: JsonValue[]) {
+function firstString(...values: JsonValue[]): string {
   for (const value of values) {
     if (typeof value === "string") {
       const normalized = normalizeText(value);
       if (normalized) return normalized;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const nested = firstString(item);
+        if (nested) return nested;
+      }
+    }
+
+    const record = asRecord(value);
+    if (record) {
+      const nested: string = firstString(record.text ?? null, record.name ?? null, record.value ?? null);
+      if (nested) return nested;
     }
   }
 
   return "";
 }
 
-function parseJsonLdCandidates($: cheerio.CheerioAPI) {
-  return $('script[type="application/ld+json"]')
-    .toArray()
-    .flatMap((element) => {
-      const raw = $(element).contents().text().trim();
-      if (!raw) return [];
+function collectStrings(value: JsonValue): string[] {
+  if (typeof value === "string") {
+    const normalized = normalizeText(value);
+    return normalized ? [normalized] : [];
+  }
 
+  if (typeof value === "number") return [String(value)];
+  if (Array.isArray(value)) return value.flatMap(collectStrings);
+
+  const record = asRecord(value);
+  if (!record) return [];
+
+  return collectStrings(
+    record.text ?? record.name ?? record.value ?? record["@value"] ?? record.item ?? null,
+  );
+}
+
+function cleanJsonLd(raw: string) {
+  return raw
+    .replace(/^\uFEFF/, "")
+    .replace(/^\s*<!--/, "")
+    .replace(/-->\s*$/, "")
+    .replace(/^\s*\/\/<!\[CDATA\[/, "")
+    .replace(/\/\/\]\]>\s*$/, "")
+    .trim();
+}
+
+function splitTopLevelJsonValues(raw: string) {
+  const chunks: string[] = [];
+  let start = -1;
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = 0; index < raw.length; index += 1) {
+    const character = raw[index];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+      } else if (character === "\\") {
+        isEscaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (character === '"') {
+      inString = true;
+      continue;
+    }
+
+    if (character === "{" || character === "[") {
+      if (depth === 0) start = index;
+      depth += 1;
+      continue;
+    }
+
+    if (character === "}" || character === "]") {
+      depth -= 1;
+      if (depth === 0 && start >= 0) {
+        chunks.push(raw.slice(start, index + 1));
+        start = -1;
+      }
+    }
+  }
+
+  return chunks;
+}
+
+function parseJsonLdText(rawValue: string): JsonValue[] {
+  const raw = cleanJsonLd(rawValue).replace(/;\s*$/, "");
+  if (!raw) return [];
+
+  try {
+    return [JSON.parse(raw) as JsonValue];
+  } catch {
+    return splitTopLevelJsonValues(raw).flatMap((candidate) => {
       try {
-        return [JSON.parse(raw) as JsonValue];
+        return [JSON.parse(candidate) as JsonValue];
       } catch {
         return [];
       }
     });
+  }
+}
+
+function parseJsonLdCandidates($: cheerio.CheerioAPI) {
+  return $('script[type*="ld+json" i]')
+    .toArray()
+    .flatMap((element) => parseJsonLdText($(element).contents().text()));
+}
+
+function isRecipeType(value: string) {
+  const normalized = value.toLowerCase().split(/[\/#]/).pop();
+  return normalized === "recipe";
 }
 
 function flattenJsonLdRecipes(node: JsonValue): Record<string, JsonValue>[] {
@@ -136,7 +387,7 @@ function flattenJsonLdRecipes(node: JsonValue): Record<string, JsonValue>[] {
   const types = Array.isArray(typeField) ? typeField : [typeField];
   const hasRecipeType = types
     .filter((value): value is string => typeof value === "string")
-    .some((value) => value.toLowerCase() === "recipe");
+    .some(isRecipeType);
 
   if (hasRecipeType) {
     return [objectNode];
@@ -144,19 +395,32 @@ function flattenJsonLdRecipes(node: JsonValue): Record<string, JsonValue>[] {
 
   return [
     ...flattenJsonLdRecipes(objectNode["@graph"] ?? null),
+    ...flattenJsonLdRecipes(objectNode.item ?? null),
     ...flattenJsonLdRecipes(objectNode.mainEntity ?? null),
     ...flattenJsonLdRecipes(objectNode.itemListElement ?? null),
   ];
+}
+
+function splitInstructionString(value: string) {
+  const withLineBreaks = value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:div|li|ol|p|section)>/gi, "\n");
+  const lines = withLineBreaks
+    .split(/\r?\n+/)
+    .flatMap((line) => line.split(/\s+(?=(?:step\s+)?\d{1,2}[.)]\s+)/i))
+    .map((line) =>
+      normalizeText(line).replace(/^(?:(?:step|schritt|шаг)\s*)?\d{1,2}[.):.-]\s*/iu, ""),
+    )
+    .filter(Boolean);
+
+  return uniqueStrings(lines);
 }
 
 function parseInstructionText(value: JsonValue): string[] {
   if (!value) return [];
 
   if (typeof value === "string") {
-    return value
-      .split(/\r?\n/)
-      .map((item) => normalizeText(item))
-      .filter(Boolean);
+    return splitInstructionString(value);
   }
 
   if (Array.isArray(value)) {
@@ -166,10 +430,14 @@ function parseInstructionText(value: JsonValue): string[] {
   const record = asRecord(value);
   if (!record) return [];
 
-  return [
+  const nested = [
     ...parseInstructionText(record.itemListElement ?? null),
-    ...parseInstructionText(record.text ?? record.name ?? null),
+    ...parseInstructionText(record.item ?? null),
   ];
+
+  if (nested.length > 0) return nested;
+
+  return parseInstructionText(record.text ?? record.name ?? null);
 }
 
 function looksLikeAmount(value: string) {
@@ -203,27 +471,47 @@ function scoreIngredientLine(value: string) {
   return looksLikeAmount(normalized) ? 0.75 : 0;
 }
 
+function isIngredientHeading(value: string) {
+  const normalized = normalizeText(value).toLocaleLowerCase();
+
+  return (
+    /^(?:ingredients?|zutaten|ingrédients?|ingredientes?|ингредиенты|состав)\s*:?$/u.test(normalized) ||
+    /(?:ingredient|product|продукт|ингредиент).*(?:amount|quantity|menge|количеств)/u.test(normalized)
+  );
+}
+
+function isPlausibleIngredientLine(value: string) {
+  const normalized = normalizeText(value);
+  if (!normalized || normalized.length > 220 || isIngredientHeading(normalized)) return false;
+  if (normalized.split(/\s+/).length > 24) return false;
+  if (scoreIngredientLine(normalized) > 0) return true;
+
+  return normalized.length <= 100 && !/[.!?]$/.test(normalized);
+}
+
+function startsWithUnit(value: string, unit: string) {
+  const normalizedValue = value.toLocaleLowerCase();
+  const normalizedUnit = unit.toLocaleLowerCase();
+
+  return (
+    normalizedValue === normalizedUnit ||
+    (normalizedValue.startsWith(normalizedUnit) &&
+      /[\s,]/.test(normalizedValue.charAt(normalizedUnit.length)))
+  );
+}
+
 function splitUnitAndName(value: string) {
   const normalized = normalizeText(value);
-  const parts = normalized.split(/\s+/);
+  const matchedUnit = UNIT_NAMES.find((unit) => startsWithUnit(normalized, unit));
 
-  if (parts.length < 2) {
-    return { unit: "", name: normalized };
-  }
+  if (!matchedUnit) return { unit: "", name: normalized };
 
-  const [candidateUnit, ...rest] = parts;
-  const isCompactUnit =
-    candidateUnit.length <= 4 ||
-    /[./]/.test(candidateUnit) ||
-    candidateUnit === candidateUnit.toUpperCase();
-
-  if (!isCompactUnit) {
-    return { unit: "", name: normalized };
-  }
+  const unit = normalized.slice(0, matchedUnit.length);
+  const name = normalizeText(normalized.slice(matchedUnit.length).replace(/^,/, ""));
 
   return {
-    unit: candidateUnit,
-    name: normalizeText(rest.join(" ")),
+    unit,
+    name,
   };
 }
 
@@ -248,7 +536,9 @@ function parseLeadingAmount(value: string) {
 }
 
 export function parseIngredientLine(value: string): Ingredient {
-  const normalized = normalizeText(value);
+  const normalized = normalizeText(value)
+    .replace(/^(?:[•·▪◦]\s*|[-–—]\s+)/, "")
+    .trim();
   const dashedParts = normalized.split(/\s+[-–]\s+/);
 
   if (dashedParts.length >= 2) {
@@ -295,22 +585,72 @@ export function parseIngredientLine(value: string): Ingredient {
 }
 
 function parseIngredients(value: JsonValue): Ingredient[] {
-  return toArray(value)
-    .flatMap((item) => (typeof item === "string" ? [item] : []))
-    .map((item) => normalizeText(item))
-    .filter(Boolean)
-    .map(parseIngredientLine);
+  return createIngredients(parseIngredientText(value));
+}
+
+function parseIngredientText(value: JsonValue): string[] {
+  if (!value) return [];
+
+  if (typeof value === "string") {
+    return [value];
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(parseIngredientText);
+  }
+
+  const record = asRecord(value);
+  if (!record) return [];
+
+  const ingredientName = firstString(
+    record.ingredient ?? null,
+    record.food ?? null,
+    record.name ?? null,
+  );
+  const amount = collectStrings(record.amount ?? record.quantity ?? null).at(0) ?? "";
+  const unit = firstString(record.unitText ?? record.unit ?? null);
+
+  if (ingredientName && (amount || unit)) {
+    return [normalizeText([amount, unit, ingredientName].filter(Boolean).join(" "))];
+  }
+
+  const direct = firstString(record.text ?? null, record.name ?? null, record.value ?? null);
+  return direct
+    ? [direct]
+    : parseIngredientText(
+        record.item ?? record.itemListElement ?? record["@list"] ?? null,
+      );
 }
 
 function parseSteps(value: JsonValue): Step[] {
-  return parseInstructionText(value).map((text) => ({
-    id: createId(),
-    text,
-  }));
+  return createSteps(parseInstructionText(value));
+}
+
+function createIngredients(lines: string[]) {
+  return uniqueStrings(lines)
+    .slice(0, MAX_INGREDIENTS)
+    .map(parseIngredientLine)
+    .map((ingredient) => ({
+      ...ingredient,
+      name: truncateText(ingredient.name, 200),
+      amount: ingredient.amount ? truncateText(ingredient.amount, 50) : undefined,
+      unit: ingredient.unit ? truncateText(ingredient.unit, 50) : "",
+    }))
+    .filter((ingredient) => ingredient.name);
+}
+
+function createSteps(lines: string[]) {
+  return uniqueStrings(lines.flatMap(splitInstructionString))
+    .filter((text) => /[\p{L}\p{N}]/u.test(text))
+    .slice(0, MAX_STEPS)
+    .map((text) => ({
+      id: createId(),
+      text: truncateText(text, 5_000),
+    }));
 }
 
 function extractMetaContent($: cheerio.CheerioAPI, attr: string, value: string) {
-  const content = $(`meta[${attr}="${value}"]`).first().attr("content");
+  const content = $(`meta[${attr}="${value}" i]`).first().attr("content");
   return normalizeText(content ?? "");
 }
 
@@ -326,38 +666,204 @@ function extractItempropTexts($: cheerio.CheerioAPI, selector: string) {
   );
 }
 
+const RECIPE_SCOPE_SELECTOR = [
+  '[itemscope][itemtype*="schema.org/Recipe" i]',
+  '[typeof~="Recipe" i]',
+].join(", ");
+
+function selectRecipePropertyNodes($: cheerio.CheerioAPI, selector: string) {
+  const scopes = $(RECIPE_SCOPE_SELECTOR).toArray();
+  if (scopes.length === 0) return $(selector).toArray();
+
+  return scopes.flatMap((scope) => [
+    ...($(scope).is(selector) ? [scope] : []),
+    ...$(scope).find(selector).toArray(),
+  ]);
+}
+
+function extractRecipePropertyTexts($: cheerio.CheerioAPI, selector: string) {
+  return uniqueStrings(
+    selectRecipePropertyNodes($, selector).map((element) => extractTextOrContent($, element)),
+  );
+}
+
 function extractTitleFallback($: cheerio.CheerioAPI) {
   return (
     extractMetaContent($, "property", "og:title") ||
-    extractItempropTexts($, '[itemprop~="name"]').at(0) ||
+    extractRecipePropertyTexts($, '[itemprop~="name"], [property~="name"]').at(0) ||
     normalizeText($("h1").first().text()) ||
+    extractItempropTexts($, '[itemprop~="name"], [property~="name"]').at(0) ||
     normalizeText($("title").first().text())
   );
 }
 
 function extractDescriptionFallback($: cheerio.CheerioAPI) {
   return (
+    extractRecipePropertyTexts(
+      $,
+      '[itemprop~="description"], [property~="description"]',
+    ).at(0) ||
     extractMetaContent($, "property", "og:description") ||
     extractMetaContent($, "name", "description") ||
-    extractItempropTexts($, '[itemprop~="description"]').at(0) ||
     normalizeText($("article p, main p").first().text())
   );
 }
 
+function truncateText(value: string, maxLength: number) {
+  const normalized = normalizeText(value);
+  if (normalized.length <= maxLength) return normalized;
+
+  const truncated = normalized.slice(0, maxLength - 1);
+  const lastSpace = truncated.lastIndexOf(" ");
+  const safeEnd = lastSpace > maxLength * 0.75 ? lastSpace : truncated.length;
+
+  return `${truncated.slice(0, safeEnd).trimEnd()}…`;
+}
+
+function findImageValue(value: JsonValue): string {
+  if (typeof value === "string") return normalizeText(value);
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const candidate = findImageValue(item);
+      if (candidate) return candidate;
+    }
+    return "";
+  }
+
+  const record = asRecord(value);
+  if (!record) return "";
+
+  return firstString(
+    record.url ?? null,
+    record.contentUrl ?? null,
+    record.thumbnailUrl ?? null,
+  );
+}
+
+function resolveHttpUrl(value: string, sourceUrl: string) {
+  if (!value) return "";
+
+  try {
+    const resolved = new URL(value, sourceUrl);
+    if (!["http:", "https:"].includes(resolved.protocol)) return "";
+    if (resolved.username || resolved.password) return "";
+    return resolved.toString();
+  } catch {
+    return "";
+  }
+}
+
+function extractImageUrl(
+  $: cheerio.CheerioAPI,
+  recipe: Record<string, JsonValue> | undefined,
+  sourceUrl: string,
+) {
+  const microdataImage = selectRecipePropertyNodes($, '[itemprop~="image"], [property~="image"]')
+    .map((element) =>
+      $(element).attr("content") ??
+      $(element).attr("src") ??
+      $(element).attr("href") ??
+      $(element).find("img").first().attr("src") ??
+      "",
+    )
+    .find(Boolean) ?? "";
+  const candidates = [
+    findImageValue(recipe?.image ?? null),
+    extractMetaContent($, "property", "og:image"),
+    extractMetaContent($, "name", "twitter:image"),
+    microdataImage,
+    $('article img, main img').first().attr("src") ?? "",
+  ];
+
+  for (const candidate of candidates) {
+    const resolved = resolveHttpUrl(candidate, sourceUrl);
+    if (resolved && resolved.length <= 2_048) return resolved;
+  }
+
+  return undefined;
+}
+
+function parseIsoDurationMinutes(raw: string) {
+  const isoMatch = raw.match(
+    /^P(?:(\d+(?:[.,]\d+)?)D)?(?:T(?:(\d+(?:[.,]\d+)?)H)?(?:(\d+(?:[.,]\d+)?)M)?)?$/i,
+  );
+
+  if (!isoMatch) return null;
+
+  const days = Number((isoMatch[1] ?? "0").replace(",", "."));
+  const hours = Number((isoMatch[2] ?? "0").replace(",", "."));
+  const minutes = Number((isoMatch[3] ?? "0").replace(",", "."));
+
+  return days * 24 * 60 + hours * 60 + minutes;
+}
+
+function formatDurationMinutes(value: number) {
+  const totalMinutes = Math.round(value * 100) / 100;
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const remainingAfterDays = totalMinutes - days * 24 * 60;
+  const hours = Math.floor(remainingAfterDays / 60);
+  const minutes = Math.round((remainingAfterDays - hours * 60) * 100) / 100;
+  const parts = [
+    days ? `${days} d` : "",
+    hours ? `${hours} hr` : "",
+    minutes ? `${minutes} min` : "",
+  ].filter(Boolean);
+
+  return parts.join(" ") || undefined;
+}
+
+function formatDuration(value: JsonValue) {
+  const raw = collectStrings(value).at(0) ?? "";
+  if (!raw) return undefined;
+
+  const minutes = parseIsoDurationMinutes(raw);
+  return minutes === null ? truncateText(raw, 40) : formatDurationMinutes(minutes);
+}
+
+function combineDurations(...values: JsonValue[]) {
+  const rawDurations = values
+    .map((value) => collectStrings(value).at(0) ?? "")
+    .filter(Boolean);
+  if (rawDurations.length === 0) return undefined;
+
+  const durations = rawDurations.map(parseIsoDurationMinutes);
+  const validDurations = durations.filter(
+    (duration): duration is number => duration !== null,
+  );
+  if (validDurations.length !== durations.length) return undefined;
+
+  return formatDurationMinutes(
+    validDurations.reduce((total, duration) => total + duration, 0),
+  );
+}
+
+function formatServings(value: JsonValue) {
+  const raw = collectStrings(value).at(0) ?? "";
+  if (!raw) return undefined;
+
+  return /^\d+(?:[.,]\d+)?$/.test(raw) ? `${raw} servings` : truncateText(raw, 40);
+}
+
 function extractIngredientsFromMicrodata($: cheerio.CheerioAPI) {
-  return extractItempropTexts(
-    $,
-    [
-      '[itemprop~="recipeIngredient"]',
-      '[itemprop~="ingredients"]',
-      '[property~="recipeIngredient"]',
-      '[property~="ingredients"]',
-    ].join(", "),
-  ).map(parseIngredientLine);
+  return createIngredients(
+    extractRecipePropertyTexts(
+      $,
+      [
+        '[itemprop~="recipeIngredient"]',
+        '[itemprop~="ingredients"]',
+        '[property~="recipeIngredient"]',
+        '[property~="ingredients"]',
+      ].join(", "),
+    ),
+  );
 }
 
 function extractStepsFromMicrodata($: cheerio.CheerioAPI) {
-  const instructionNodes = $('[itemprop~="recipeInstructions"], [property~="recipeInstructions"]').toArray();
+  const instructionNodes = selectRecipePropertyNodes(
+    $,
+    '[itemprop~="recipeInstructions"], [property~="recipeInstructions"]',
+  );
   const nested = uniqueStrings(
     instructionNodes.flatMap((element) => {
       const childTexts = $(element)
@@ -369,7 +875,7 @@ function extractStepsFromMicrodata($: cheerio.CheerioAPI) {
     }),
   );
 
-  return nested.map((text) => ({ id: createId(), text }));
+  return createSteps(nested);
 }
 
 function extractListBlocks($: cheerio.CheerioAPI): TextBlock[] {
@@ -401,14 +907,19 @@ function extractListBlocks($: cheerio.CheerioAPI): TextBlock[] {
 }
 
 function extractIngredientsFallback($: cheerio.CheerioAPI): Ingredient[] {
+  const pairedLines = extractPairedIngredientLines($);
+  if (pairedLines.length >= 2) {
+    return createIngredients(pairedLines);
+  }
+
   const tableBlock = extractIngredientTableBlock($);
   if (tableBlock) {
-    return tableBlock.lines.map(parseIngredientLine);
+    return createIngredients(tableBlock.lines);
   }
 
   const hintedBlock = extractHintedIngredientBlock($);
   if (hintedBlock) {
-    return hintedBlock.lines.map(parseIngredientLine);
+    return createIngredients(hintedBlock.lines);
   }
 
   const bestBlock = extractListBlocks($)
@@ -421,7 +932,7 @@ function extractIngredientsFallback($: cheerio.CheerioAPI): Ingredient[] {
     .sort((a, b) => b.score - a.score || b.block.lines.length - a.block.lines.length)
     .at(0)?.block;
 
-  return bestBlock ? bestBlock.lines.map(parseIngredientLine) : [];
+  return bestBlock ? createIngredients(bestBlock.lines) : [];
 }
 
 function getElementHints($: cheerio.CheerioAPI, element: AnyNode) {
@@ -441,10 +952,97 @@ function hasAnyHint(haystack: string, hints: string[]) {
   return hints.some((hint) => haystack.includes(hint));
 }
 
+const INGREDIENT_ELEMENT_HINTS = [
+  "ingredient",
+  "zutat",
+  "ingrédient",
+  "ingrediente",
+  "ингредиент",
+  "состав",
+];
+const INGREDIENT_QUANTITY_HINTS = ["quantity", "amount", "measure", "menge", "qty"];
+const INGREDIENT_NAME_HINTS = [
+  "ingredient-name",
+  "ingredient__name",
+  "ingredient-title",
+  "ingredient__title",
+  "food-name",
+  "item-name",
+  "title",
+  "name",
+];
+
+function elementsWithHintsWithin(
+  $: cheerio.CheerioAPI,
+  element: AnyNode,
+  hints: string[],
+) {
+  return $(element)
+    .find("*")
+    .toArray()
+    .filter((child) => hasAnyHint(getElementHints($, child), hints));
+}
+
+function extractPairedIngredientLines($: cheerio.CheerioAPI) {
+  const pairedItems = new Set<AnyNode>();
+  const lines: string[] = [];
+  const quantityElements = $("article *, main *, [role='main'] *, body *")
+    .toArray()
+    .filter((element) =>
+      hasAnyHint(getElementHints($, element), INGREDIENT_QUANTITY_HINTS),
+    );
+
+  for (const quantityElement of quantityElements) {
+    const isInIngredientContext = [
+      quantityElement,
+      ...$(quantityElement).parents().toArray(),
+    ].some((element) =>
+      hasAnyHint(getElementHints($, element), INGREDIENT_ELEMENT_HINTS),
+    );
+
+    if (!isInIngredientContext) continue;
+
+    let candidate = $(quantityElement).parent().get(0);
+
+    for (let depth = 0; candidate && depth < 6; depth += 1) {
+      const quantityFields = elementsWithHintsWithin(
+        $,
+        candidate,
+        INGREDIENT_QUANTITY_HINTS,
+      );
+      const nameFields = elementsWithHintsWithin($, candidate, INGREDIENT_NAME_HINTS)
+        .filter(
+          (element) =>
+            !hasAnyHint(getElementHints($, element), INGREDIENT_QUANTITY_HINTS),
+        )
+        .filter((element) => normalizeText($(element).text()));
+
+      if (quantityFields.length === 1 && nameFields.length > 0) {
+        if (pairedItems.has(candidate)) break;
+
+        const quantity = normalizeText($(quantityFields[0]).text());
+        const name = normalizeText($(nameFields[0]).text());
+
+        if (quantity && name && isPlausibleIngredientLine(`${quantity} ${name}`)) {
+          pairedItems.add(candidate);
+          lines.push(`${quantity} ${name}`);
+        }
+        break;
+      }
+
+      candidate = $(candidate).parent().get(0);
+    }
+  }
+
+  return uniqueStrings(lines);
+}
+
 function extractHintedIngredientBlock($: cheerio.CheerioAPI) {
   return $("article *, main *, [role='main'] *, body *")
     .toArray()
-    .filter((element) => hasAnyHint(getElementHints($, element), ["ingredient", "zutaten"]))
+    .filter((element) =>
+      hasAnyHint(getElementHints($, element), INGREDIENT_ELEMENT_HINTS),
+    )
     .map((element): ScoredBlock => {
       const childLines = uniqueStrings(
         $(element)
@@ -453,15 +1051,16 @@ function extractHintedIngredientBlock($: cheerio.CheerioAPI) {
           .map((child) => $(child).text()),
       );
       const lines = childLines.length > 0 ? childLines : [$(element).text()];
-      const ingredientLines = lines.filter(
-        (line) => line.length <= 220 && scoreIngredientLine(line) > 0,
-      );
+      const ingredientLines = lines.filter(isPlausibleIngredientLine);
 
       return {
         lines: ingredientLines,
         score:
           lines.length > 0
-            ? ingredientLines.reduce((total, line) => total + scoreIngredientLine(line), 0) / lines.length
+            ? ingredientLines.reduce(
+                (total, line) => total + Math.max(scoreIngredientLine(line), 0.4),
+                0,
+              ) / lines.length
             : 0,
       };
     })
@@ -478,10 +1077,18 @@ function extractIngredientTableBlock($: cheerio.CheerioAPI) {
         $(table)
           .find("tr")
           .toArray()
-          .map((row) => $(row).text()),
+          .map((row) => {
+            const cells = $(row)
+              .children("th, td")
+              .toArray()
+              .map((cell) => normalizeText($(cell).text()))
+              .filter(Boolean);
+
+            return cells.length >= 2 ? cells.join(" - ") : $(row).text();
+          }),
       );
       const ingredientLines = lines.filter(
-        (line) => line.length <= 220 && scoreIngredientLine(line) > 0,
+        (line) => !isIngredientHeading(line) && line.length <= 220 && scoreIngredientLine(line) > 0,
       );
 
       return {
@@ -500,12 +1107,12 @@ function extractIngredientTableBlock($: cheerio.CheerioAPI) {
 function extractStepsFallback($: cheerio.CheerioAPI): Step[] {
   const hintedBlock = extractHintedStepBlock($);
   if (hintedBlock) {
-    return hintedBlock.lines.map((text) => ({ id: createId(), text }));
+    return createSteps(hintedBlock.lines);
   }
 
   const repeatedBlock = extractRepeatedTextBlock($);
   if (repeatedBlock) {
-    return repeatedBlock.lines.map((text) => ({ id: createId(), text }));
+    return createSteps(repeatedBlock.lines);
   }
 
   const bestBlock = extractListBlocks($)
@@ -519,7 +1126,13 @@ function extractStepsFallback($: cheerio.CheerioAPI): Step[] {
     .sort((a, b) => b.score - a.score || b.block.lines.length - a.block.lines.length)
     .at(0)?.block;
 
-  return bestBlock ? bestBlock.lines.map((text) => ({ id: createId(), text })) : [];
+  return bestBlock ? createSteps(bestBlock.lines) : [];
+}
+
+function isStepHeading(value: string) {
+  return /^(?:instructions?|directions?|method|preparation|steps?|zubereitung|anleitung|приготовление|инструкции|шаги)\s*:?$/iu.test(
+    normalizeText(value),
+  );
 }
 
 function extractHintedStepBlock($: cheerio.CheerioAPI) {
@@ -534,6 +1147,13 @@ function extractHintedStepBlock($: cheerio.CheerioAPI) {
         "step",
         "zubereitung",
         "anleitung",
+        "préparation",
+        "preparacion",
+        "preparación",
+        "procedimiento",
+        "приготов",
+        "инструк",
+        "шаг",
       ]),
     )
     .map((element): ScoredBlock => {
@@ -544,7 +1164,10 @@ function extractHintedStepBlock($: cheerio.CheerioAPI) {
           .map((child) => $(child).text()),
       );
       const lines = childLines.length > 0 ? childLines : [$(element).text()];
-      const stepLines = lines.filter((line) => normalizeText(line).length >= 16);
+      const stepLines = lines.filter((line) => {
+        const normalized = normalizeText(line);
+        return normalized.length >= 8 && !isStepHeading(normalized);
+      });
 
       return {
         lines: stepLines,
@@ -608,45 +1231,185 @@ function isNoisyDescription(description: string, title: string) {
   return normalized.length > 140 && punctuationCount >= 8 && Boolean(mentionsTitle);
 }
 
-function parseCategory(value: JsonValue): RecipeCategory | null {
-  const category = firstString(...toArray(value));
-  if (!category) return null;
+const COLLECTION_SUGGESTIONS = [
+  {
+    name: "Breakfast",
+    hints: ["breakfast", "brunch", "frühstück", "petit déjeuner", "завтрак"],
+  },
+  {
+    name: "Lunch",
+    hints: ["lunch", "mittagessen", "déjeuner", "almuerzo", "обед"],
+  },
+  {
+    name: "Dinner",
+    hints: [
+      "dinner",
+      "supper",
+      "main course",
+      "main dish",
+      "abendessen",
+      "hauptgericht",
+      "ужин",
+      "основное блюдо",
+    ],
+  },
+  {
+    name: "Snacks",
+    hints: [
+      "snack",
+      "dessert",
+      "cake",
+      "kuchen",
+      "torte",
+      "pastry",
+      "appetizer",
+      "appetiser",
+      "starter",
+      "vorspeise",
+      "закуска",
+      "десерт",
+      "выпечка",
+    ],
+  },
+] as const;
 
-  const normalized = category.toLowerCase();
-  return RECIPE_CATEGORIES.find((item) => item === normalized) ?? null;
+const COLLECTION_HINT_TAGS = new Set<string>(
+  COLLECTION_SUGGESTIONS.flatMap((suggestion) => suggestion.hints),
+);
+
+function parseSuggestedCollection(...values: JsonValue[]) {
+  for (const value of values) {
+    for (const categoryText of collectStrings(value)) {
+      const normalized = categoryText.toLocaleLowerCase();
+      for (const suggestion of COLLECTION_SUGGESTIONS) {
+        if (suggestion.hints.some((hint) => normalized.includes(hint))) {
+          return suggestion.name;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseTags(value: JsonValue) {
+  const candidates = collectStrings(value).flatMap((entry) => entry.split(/[,;|]/));
+  const seen = new Set<string>();
+
+  return candidates
+    .map(normalizeText)
+    .filter((tag) => tag.length > 0 && tag.length <= 60)
+    .filter((tag) => !COLLECTION_HINT_TAGS.has(tag.toLocaleLowerCase()))
+    .filter((tag) => {
+      const normalized = tag.toLocaleLowerCase();
+      if (seen.has(normalized)) return false;
+      seen.add(normalized);
+      return true;
+    })
+    .slice(0, 20);
+}
+
+function scoreJsonLdRecipe(recipe: Record<string, JsonValue>) {
+  const ingredients = parseIngredients(recipe.recipeIngredient ?? null);
+  const steps = parseSteps(recipe.recipeInstructions ?? null);
+  const title = firstString(recipe.name ?? null);
+  const description = firstString(recipe.description ?? null);
+
+  return (
+    ingredients.length * 3 +
+    steps.length * 3 +
+    (title ? 4 : 0) +
+    (description ? 1 : 0)
+  );
+}
+
+function selectBestJsonLdRecipe($: cheerio.CheerioAPI) {
+  return parseJsonLdCandidates($)
+    .flatMap(flattenJsonLdRecipes)
+    .sort((a, b) => scoreJsonLdRecipe(b) - scoreJsonLdRecipe(a))
+    .at(0);
 }
 
 export function buildImportedRecipe(html: string, sourceUrl: string): ImportedRecipePayload | null {
   const $ = cheerio.load(html);
-  const recipe = parseJsonLdCandidates($).flatMap(flattenJsonLdRecipes)[0];
+  const recipe = selectBestJsonLdRecipe($);
+  const imageUrl = extractImageUrl($, recipe, sourceUrl);
+  const explicitTotalTime =
+    recipe?.totalTime ??
+    extractRecipePropertyTexts(
+      $,
+      '[itemprop~="totalTime"], [property~="totalTime"]',
+    ).at(0) ??
+    null;
+  const prepTime =
+    recipe?.prepTime ??
+    extractRecipePropertyTexts(
+      $,
+      '[itemprop~="prepTime"], [property~="prepTime"]',
+    ).at(0) ??
+    null;
+  const cookTime =
+    recipe?.cookTime ??
+    extractRecipePropertyTexts(
+      $,
+      '[itemprop~="cookTime"], [property~="cookTime"]',
+    ).at(0) ??
+    null;
+  const totalTime =
+    formatDuration(explicitTotalTime) ??
+    combineDurations(prepTime, cookTime) ??
+    formatDuration(cookTime ?? prepTime);
+  const servings = formatServings(
+    recipe?.recipeYield ??
+      extractRecipePropertyTexts(
+        $,
+        '[itemprop~="recipeYield"], [property~="recipeYield"]',
+      ).at(0) ??
+      null,
+  );
 
-  const title = firstString(recipe?.name ?? null) || extractTitleFallback($);
+  $("script, style, noscript, svg").remove();
+
+  const title = truncateText(
+    firstString(recipe?.name ?? null) || extractTitleFallback($),
+    MAX_TITLE_LENGTH,
+  );
   const recipeDescription = firstString(recipe?.description ?? null);
   const fallbackDescription = extractDescriptionFallback($);
-  const description =
+  const description = truncateText(
     recipeDescription && !isNoisyDescription(recipeDescription, title)
       ? recipeDescription
       : fallbackDescription && !isNoisyDescription(fallbackDescription, title)
         ? fallbackDescription
-        : title;
+        : title,
+    MAX_DESCRIPTION_LENGTH,
+  );
   const ingredients = parseIngredients(recipe?.recipeIngredient ?? null);
   const steps = parseSteps(recipe?.recipeInstructions ?? null);
 
   const fallbackIngredients =
     ingredients.length > 0 ? ingredients : extractIngredientsFromMicrodata($);
   const fallbackSteps = steps.length > 0 ? steps : extractStepsFromMicrodata($);
+  const finalIngredients =
+    fallbackIngredients.length > 0 ? fallbackIngredients : extractIngredientsFallback($);
+  const finalSteps = fallbackSteps.length > 0 ? fallbackSteps : extractStepsFallback($);
 
-  if (!title) {
+  if (!title || (finalIngredients.length === 0 && finalSteps.length === 0)) {
     return null;
   }
 
   return {
     title,
     description,
-    category: parseCategory(recipe?.recipeCategory ?? null) ?? "dinner",
-    ingredients:
-      fallbackIngredients.length > 0 ? fallbackIngredients : extractIngredientsFallback($),
-    steps: fallbackSteps.length > 0 ? fallbackSteps : extractStepsFallback($),
+    suggestedCollection:
+      parseSuggestedCollection(recipe?.recipeCategory ?? null, recipe?.keywords ?? null) ??
+      undefined,
+    ingredients: finalIngredients,
+    steps: finalSteps,
+    tags: parseTags(recipe?.keywords ?? null),
     sourceUrl,
+    imageUrl,
+    totalTime,
+    servings,
   };
 }

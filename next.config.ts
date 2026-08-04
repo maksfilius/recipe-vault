@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV !== "production";
+const supabaseImageOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").origin;
+  } catch {
+    return "";
+  }
+})();
 
 const nextConfig: NextConfig = {
   devIndicators: false,
@@ -20,7 +27,7 @@ const nextConfig: NextConfig = {
               "base-uri 'self'",
               "frame-ancestors 'none'",
               "form-action 'self'",
-              "img-src 'self' data: blob:",
+              ["img-src 'self' data: blob:", supabaseImageOrigin].filter(Boolean).join(" "),
               "font-src 'self' data:",
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",

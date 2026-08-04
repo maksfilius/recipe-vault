@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Sidebar from './SideBar';
 import Topbar from './TopBar';
 import { supabase } from '@/src/lib/supabase-client';
+import { clearOfflineRecipeData } from '@/src/lib/offline-recipes';
 
 type AppShellProps = {
   children: ReactNode;
@@ -48,6 +49,7 @@ export default function AppShell({ children }: AppShellProps) {
       return;
     }
 
+    await clearOfflineRecipeData();
     router.replace('/login');
   };
 

@@ -17,6 +17,7 @@ import {
 } from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
+import { clearOfflineRecipeData } from "@/src/lib/offline-recipes";
 import { supabase } from "@/src/lib/supabase-client";
 
 type Notice = {
@@ -194,6 +195,7 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
     }
 
     await supabase.auth.signOut({ scope: "local" });
+    await clearOfflineRecipeData();
     router.replace("/");
   };
 

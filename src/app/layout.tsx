@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
+import PwaRegistration from "@/src/components/PwaRegistration";
 import ThemeInitializer from "@/src/components/ThemeInitializer";
 import { env } from "@/src/lib/env";
 
@@ -13,6 +14,15 @@ export const metadata: Metadata = {
   },
   description: env.productDescription,
   applicationName: env.productName,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: env.productName,
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
   keywords: [
     "recipe manager",
     "recipe organizer",
@@ -48,6 +58,16 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fff7ed" },
+    { media: "(prefers-color-scheme: dark)", color: "#120915" },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -57,6 +77,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="antialiased">
         <ThemeInitializer />
+        <PwaRegistration />
         {children}
       </body>
     </html>

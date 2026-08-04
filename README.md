@@ -6,6 +6,8 @@ Keep & Cook is a Next.js + Supabase app for saving personal recipes in a searcha
 
 - Email/password authentication with signup, login, forgot password, and reset password flows
 - Private dashboard for creating, editing, favoriting, and browsing recipes
+- User-owned collections, faceted tags, imported metadata, and first-party recipe images
+- Installable PWA with a versioned, read-only offline recipe snapshot
 - Account settings for profile name, password changes, and signing out other sessions
 - Marketing landing page with metadata, Open Graph image, robots, and sitemap
 
@@ -15,7 +17,7 @@ Keep & Cook is a Next.js + Supabase app for saving personal recipes in a searcha
 - React 19
 - TypeScript
 - Tailwind CSS
-- Supabase Auth and Postgres
+- Supabase Auth, Postgres, and Storage
 
 ## Environment
 
@@ -82,7 +84,10 @@ npm run predeploy
 
 ## Database schema and migrations
 
-This repo now tracks the database schema in `supabase/migrations/20260418_initial_schema.sql`.
+This repo tracks the complete database schema in `supabase/migrations/`. The
+`20260804_recipe_model_v2.sql` migration replaces the fixed category enum with
+many-to-many collections, adds tags and import metadata, creates an atomic
+`save_recipe` function, and configures the `recipe-images` Storage bucket.
 
 Why this matters:
 
@@ -105,6 +110,35 @@ npx supabase migration new add_some_change
 npx supabase db diff -f describe_dashboard_changes
 npx supabase db push
 ```
+
+Before pushing the model-v2 migration to a database that already has recipes,
+check for duplicate source links. The new uniqueness rule intentionally fails
+instead of silently deleting user data:
+
+```sql
+select user_id, source_url, count(*)
+from public.recipes
+where source_url is not null
+group by user_id, source_url
+having count(*) > 1;
+```
+
+Resolve any returned rows, then run `npx supabase db push`. No bucket or RLS
+policy needs to be created manually; the migration does that work.
+
+The migration also rejects legacy external `image_url` values. The previous app
+did not persist imported preview images, so this is normally empty. If your
+database contains manually populated external image URLs, clear or migrate
+those rows before `db push`; all newly imported images are copied to the
+`recipe-images` bucket automatically.
+
+## PWA and offline behavior
+
+PWA v1 is intentionally read-only offline. A successful dashboard load stores
+a versioned per-user snapshot in IndexedDB, while the service worker caches the
+visited shell and recipe images. All mutations still require a confirmed
+Supabase response. See `docs/pwa-v1.md` for cache-versioning and cooking-timer
+rules.
 
 `db reset` is the key confidence check: it rebuilds the local database from migrations, so you know the schema is reproducible.
 
