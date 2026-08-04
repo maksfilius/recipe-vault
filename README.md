@@ -88,6 +88,9 @@ This repo tracks the complete database schema in `supabase/migrations/`. The
 `20260804_recipe_model_v2.sql` migration replaces the fixed category enum with
 many-to-many collections, adds tags and import metadata, creates an atomic
 `save_recipe` function, and configures the `recipe-images` Storage bucket.
+`20260805_converge_legacy_recipe_schema.sql` safely brings older production
+installations to the same model while preserving their legacy compatibility
+columns and favorites table shape.
 
 Why this matters:
 
