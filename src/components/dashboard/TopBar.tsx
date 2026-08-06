@@ -33,7 +33,7 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   })();
 
   return (
-    <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 shadow-[0_10px_35px_hsl(var(--background)_/_0.6)] backdrop-blur-md">
+    <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 pt-[env(safe-area-inset-top)] shadow-[0_10px_35px_hsl(var(--background)_/_0.6)] backdrop-blur-md">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:h-18 sm:px-6">
         <button
           type="button"

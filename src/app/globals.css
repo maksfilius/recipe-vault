@@ -98,7 +98,10 @@
 
 @layer base {
   * { @apply border-border; }
-  html { font-family: var(--font-sans); }
+  /* The installed app runs with viewport-fit=cover, so iOS paints the area around
+     the safe insets with the root canvas. Without a background here that strip
+     showed up dark under the home indicator. */
+  html { font-family: var(--font-sans); background-color: hsl(var(--background)); }
   body { @apply bg-background text-foreground; font-family: var(--font-sans); }
   code, pre, kbd, samp { font-family: var(--font-mono); }
   html, body { transition: background-color .25s ease, color .25s ease, border-color .25s ease; }

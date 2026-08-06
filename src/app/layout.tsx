@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    // Not "black-translucent": that draws the status bar text in white over the
+    // page, which is unreadable on the light theme's cream background, and it
+    // puts the header underneath the clock. "default" keeps the bar opaque and
+    // its text dark, and the web view starts below it.
+    statusBarStyle: "default",
     title: env.productName,
   },
   icons: {
