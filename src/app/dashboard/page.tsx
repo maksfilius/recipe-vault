@@ -9,6 +9,7 @@ import RecipeForm, {
   type RecipeFormValues,
 } from "../../components/dashboard/recipe/RecipeForm";
 import { RecipeCard, RecipeCardSkeleton } from "../../components/dashboard/recipe/RecipeCard";
+import { RecipeDeck } from "../../components/dashboard/recipe/RecipeDeck";
 import { RecipeDetails } from "@/src/components/dashboard/recipe/RecipeDetails";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -541,6 +542,14 @@ export default function Dashboard() {
     );
   };
 
+  // "All" lives in the same rail as the collection and tag chips, so it clears
+  // those selections. It deliberately leaves the typed search term alone.
+  const hasFacetFilters = selectedCollectionIds.length > 0 || selectedTags.length > 0;
+  const clearFacetFilters = () => {
+    setSelectedCollectionIds([]);
+    setSelectedTags([]);
+  };
+
   return (
     <>
       {notice ? (
@@ -591,7 +600,7 @@ export default function Dashboard() {
                     {isImportingRecipe ? "Importing..." : "Import recipe"}
                   </Button>
                 </div>
-                {importError ? <p className="mt-3 text-sm text-red-300">{importError}</p> : null}
+                {importError ? <p className="mt-3 text-sm text-destructive">{importError}</p> : null}
               </div>
             </div>
           ) : addRecipeMode === "manual" ? (
@@ -620,7 +629,7 @@ export default function Dashboard() {
             <Input value={newCollectionName} onChange={(event) => { setNewCollectionName(event.target.value); setCollectionError(""); }} placeholder="New collection" maxLength={80} />
             <Button type="button" onClick={() => void handleManagerCreateCollection()} disabled={!newCollectionName.trim()}><Plus />Create</Button>
           </div>
-          {collectionError ? <p className="text-sm text-red-400">{collectionError}</p> : null}
+          {collectionError ? <p className="text-sm text-destructive">{collectionError}</p> : null}
           <div className="max-h-72 space-y-2 overflow-y-auto">
             {collections.map((collection) => (
               <div key={collection.id} className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/55 px-3 py-2">
@@ -649,56 +658,92 @@ export default function Dashboard() {
       {selectedRecipe ? (
         <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} onDelete={() => setRecipeToDelete(selectedRecipe)} showActions={!isOfflineMode} />
       ) : (
-        <>
+        // Below sm this column owns the visible height so the recipe pager can be
+        // the only scroller. From sm up it goes back to a normal block and the page
+        // scrolls as before.
+        <div className="flex h-full min-h-0 flex-col sm:block sm:h-auto">
           {loadError ? <div className="mb-4 rounded-xl border border-red-300/70 bg-red-50/90 px-4 py-3 text-sm text-red-700 dark:bg-red-500/10 dark:text-red-200">{loadError}</div> : null}
 
-          <div className="mt-4 space-y-3 sm:mt-6">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <div className="relative w-full max-w-xl">
+          <div className="mt-4 shrink-0 space-y-2 sm:mt-6 sm:space-y-3">
+            <div className="flex items-center gap-2">
+              <div className="relative min-w-0 flex-1 sm:max-w-xl">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input type="search" placeholder="Search recipes, collections, or tags" value={searchTerm} onChange={(event: ChangeEvent<HTMLInputElement>) => setSearchTerm(event.target.value)} className="h-10 bg-card/88 pl-9" />
               </div>
-              <Button type="button" variant="ghost" className="w-fit border border-border/60" disabled={isOfflineMode} onClick={() => setIsCollectionDialogOpen(true)}><FolderCog />Manage collections</Button>
+              <Button type="button" variant="ghost" aria-label="Manage collections" className="h-10 shrink-0 border border-border/60" disabled={isOfflineMode} onClick={() => setIsCollectionDialogOpen(true)}>
+                <FolderCog />
+                <span className="hidden sm:inline">Manage collections</span>
+              </Button>
             </div>
 
-            <div className="flex max-w-4xl flex-wrap items-center gap-2">
-              <span className="mr-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><FolderCog className="h-3.5 w-3.5" />Collections</span>
-              <Button type="button" variant={selectedCollectionIds.length === 0 ? "primary" : "ghost"} size="xs" className="rounded-full" onClick={() => setSelectedCollectionIds([])}>All</Button>
-              {collections.map((collection) => (
-                <Button key={collection.id} type="button" variant={selectedCollectionIds.includes(collection.id) ? "primary" : "ghost"} size="xs" className="rounded-full border-border/60" onClick={() => toggleItem(collection.id, setSelectedCollectionIds)}>{collection.name}</Button>
-              ))}
-            </div>
-
-            {availableTags.length > 0 ? (
-              <div className="flex max-w-4xl flex-wrap items-center gap-2">
-                <span className="mr-1 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground"><Tag className="h-3.5 w-3.5" />Tags</span>
+            {/* One filter rail instead of a labelled row per facet: it scrolls
+                sideways on a phone and wraps on wide screens. */}
+            <div
+              role="group"
+              aria-label="Filter by collection or tag"
+              className="-mx-5 overflow-x-auto px-5 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:mx-0 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+            >
+              <div className="flex w-max items-center gap-2 sm:w-auto sm:max-w-5xl sm:flex-wrap">
+                <Button type="button" variant={hasFacetFilters ? "ghost" : "primary"} size="xs" className="shrink-0 rounded-full border-border/60" onClick={clearFacetFilters}>All</Button>
+                {collections.map((collection) => (
+                  <Button key={collection.id} type="button" variant={selectedCollectionIds.includes(collection.id) ? "primary" : "ghost"} size="xs" className="shrink-0 rounded-full border-border/60" onClick={() => toggleItem(collection.id, setSelectedCollectionIds)}>{collection.name}</Button>
+                ))}
+                {availableTags.length > 0 ? (
+                  <span className="mx-1 h-5 w-px shrink-0 bg-border/70" aria-hidden />
+                ) : null}
                 {availableTags.map((tagName) => (
-                  <Button key={tagName} type="button" variant={selectedTags.includes(tagName) ? "primary" : "ghost"} size="xs" className="rounded-full border-border/60" onClick={() => toggleItem(tagName, setSelectedTags)}>#{tagName}</Button>
+                  <Button key={tagName} type="button" variant={selectedTags.includes(tagName) ? "primary" : "ghost"} size="xs" className="shrink-0 rounded-full border-border/60" onClick={() => toggleItem(tagName, setSelectedTags)}>
+                    <Tag className="h-3 w-3 opacity-70" />
+                    {tagName}
+                  </Button>
                 ))}
               </div>
-            ) : null}
-          </div>
-
-          <div className="mt-8 pb-24 sm:pb-28">
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, index) => <RecipeCardSkeleton key={`skeleton-${index}`} />)
-              ) : filteredRecipes.length === 0 ? (
-                <div className="col-span-full rounded-2xl border border-border/60 bg-card/70 px-5 py-8 text-center">
-                  <h2 className="font-semibold">{allRecipes.length === 0 ? "No recipes yet" : "No recipes found"}</h2>
-                  <p className="mt-2 text-sm text-muted-foreground">{allRecipes.length === 0 ? "Create your first recipe to get started." : "Try another search or reset filters."}</p>
-                  <Button type="button" size="sm" className="mt-4" disabled={isOfflineMode && allRecipes.length === 0} onClick={allRecipes.length === 0 ? handleAddRecipe : () => { setSearchTerm(""); setSelectedCollectionIds([]); setSelectedTags([]); }}>
-                    {allRecipes.length === 0 ? <><Plus />Add recipe</> : "Reset filters"}
-                  </Button>
-                </div>
-              ) : filteredRecipes.map((recipe) => (
-                <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} isFavorite={favoriteRecipeIds.includes(recipe.id)} onToggleFavorite={(id) => void handleToggleFavorite(id)} />
-              ))}
             </div>
           </div>
 
+          {isLoading || filteredRecipes.length === 0 ? (
+            <div className="mt-4 min-h-0 flex-1 sm:mt-8 sm:flex-none sm:pb-28">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {isLoading ? (
+                  Array.from({ length: 8 }).map((_, index) => <RecipeCardSkeleton key={`skeleton-${index}`} />)
+                ) : (
+                  <div className="col-span-full rounded-2xl border border-border/60 bg-card/70 px-5 py-8 text-center">
+                    <h2 className="font-semibold">{allRecipes.length === 0 ? "No recipes yet" : "No recipes found"}</h2>
+                    <p className="mt-2 text-sm text-muted-foreground">{allRecipes.length === 0 ? "Create your first recipe to get started." : "Try another search or reset filters."}</p>
+                    <Button type="button" size="sm" className="mt-4" disabled={isOfflineMode && allRecipes.length === 0} onClick={allRecipes.length === 0 ? handleAddRecipe : () => { setSearchTerm(""); setSelectedCollectionIds([]); setSelectedTags([]); }}>
+                      {allRecipes.length === 0 ? <><Plus />Add recipe</> : "Reset filters"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Phones get a card deck: the recipes sit one behind another and a
+                  swipe up sends the front one away. Only a few cards are mounted, so
+                  rendering it alongside the desktop grid stays cheap, and CSS decides
+                  which one is live — no media-query state, no hydration mismatch. */}
+              <div className="mt-4 min-h-0 flex-1 sm:hidden">
+                <RecipeDeck
+                  recipes={filteredRecipes}
+                  favoriteRecipeIds={favoriteRecipeIds}
+                  onOpen={setSelectedRecipe}
+                  onToggleFavorite={(id) => void handleToggleFavorite(id)}
+                />
+              </div>
+
+              <div className="hidden sm:mt-8 sm:block sm:pb-28">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {filteredRecipes.map((recipe) => (
+                    <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} isFavorite={favoriteRecipeIds.includes(recipe.id)} onToggleFavorite={(id) => void handleToggleFavorite(id)} />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {allRecipes.length > 0 && !isOfflineMode ? <Button type="button" className="fixed bottom-5 right-4 z-20 h-12 rounded-full px-4 shadow-xl sm:bottom-6 sm:right-6" onClick={handleAddRecipe}><Plus />Add recipe</Button> : null}
-        </>
+        </div>
       )}
     </>
   );

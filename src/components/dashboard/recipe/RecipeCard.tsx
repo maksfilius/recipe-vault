@@ -26,10 +26,12 @@ export function RecipeCard({
       variant="subtle"
       interactive
       padding="none"
-      className="animate-card-in relative h-full cursor-pointer overflow-hidden border-border/55 bg-card/82 text-foreground shadow-[0_28px_72px_hsl(var(--foreground)_/_0.1)]"
+      className="animate-card-in relative flex h-full cursor-pointer flex-col overflow-hidden border-border/55 bg-card/82 text-foreground shadow-[0_28px_72px_hsl(var(--foreground)_/_0.1)]"
       onClick={onClick}
     >
-      <div className="relative grid h-40 w-full place-items-center overflow-hidden bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.18),hsl(var(--muted)_/_0.72))]">
+      {/* The mobile pager gives the card the whole viewport, so the image takes a
+          share of that height; in the desktop grid it stays a fixed 10rem band. */}
+      <div className="relative grid h-[46%] min-h-40 w-full shrink-0 place-items-center overflow-hidden bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.18),hsl(var(--muted)_/_0.72))] sm:h-40 sm:min-h-0">
         {recipe.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={recipe.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
@@ -56,7 +58,7 @@ export function RecipeCard({
         </button>
       </div>
 
-      <div className="flex h-[calc(100%-10rem)] flex-col p-4">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
         <div className="min-w-0">
           <h3 className="line-clamp-2 font-semibold leading-snug text-foreground">{recipe.title}</h3>
           {recipe.sourceUrl ? (
@@ -76,7 +78,7 @@ export function RecipeCard({
         </div>
 
         {recipe.description ? (
-          <p className="mt-3 line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">
+          <p className="mt-3 line-clamp-4 min-h-10 text-sm leading-5 text-muted-foreground sm:line-clamp-2">
             {recipe.description}
           </p>
         ) : null}

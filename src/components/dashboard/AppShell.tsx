@@ -69,7 +69,11 @@ export default function AppShell({ children }: AppShellProps) {
           <Sidebar collapsed={collapsed} onToggle={handleToggle} onSignOut={handleSignOut} />
         </aside>
 
-        <div className="relative z-10 flex min-w-0 flex-col overflow-hidden bg-card/88 text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
+        {/* flex-1 + min-h-0 are what make `main` fill the viewport on mobile. Without
+            them this column is sized by its content, so any child that wants to fill
+            the visible height (the recipe deck) collapses instead. On md+ the parent
+            is a grid and stretch already handles it. */}
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card/88 text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
           <Topbar onMenuClick={openMobileSidebar} />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
         </div>
