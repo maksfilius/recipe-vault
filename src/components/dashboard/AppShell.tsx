@@ -72,7 +72,10 @@ export default function AppShell({ children }: AppShellProps) {
             is a grid and stretch already handles it. */}
         <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card/88 text-foreground md:pb-[env(safe-area-inset-bottom)] shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
           <Topbar />
-          <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
+          {/* overflow-x must be stated: with only overflow-y set, CSS computes the other
+              axis to auto, and Swiper's cards effect runs with overflow:visible, so the
+              stacked cards made this pannable sideways. */}
+          <main className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-5 sm:p-6 lg:p-10">{children}</main>
           <BottomNav />
         </div>
       </div>
