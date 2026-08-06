@@ -67,7 +67,7 @@ export function RecipeCard({
               href={recipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 hidden max-w-full items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground sm:inline-flex"
+              className="mt-1 inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
               onClick={(event) => event.stopPropagation()}
             >
               <span className="truncate">from {formattedSourceUrl}</span>
@@ -84,7 +84,7 @@ export function RecipeCard({
           </p>
         ) : null}
 
-        <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
+        <div className="mt-3 flex flex-wrap gap-2 sm:mt-4">
           {visibleCollections.map((collection) => (
             <span key={collection.id} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-foreground">
               {collection.name}

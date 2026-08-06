@@ -30,22 +30,24 @@ export function RecipeDeck({
   const position = Math.min(activeIndex, recipes.length - 1);
 
   return (
-    // Capped and centred: on a tall screen the card would otherwise grow and
-    // stretch the photo. The bottom padding keeps the card clear of the floating
-    // add button, which overlaps the lower part of this area.
-    <div className="flex h-full min-h-0 flex-col justify-center pb-[4.5rem] md:pb-0">
-      {/* The cards effect runs its container with overflow:visible so the stack is
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Centred in whatever is left above the counter, and capped so a tall screen
+          does not stretch the photo. h-full rather than flex-1: items-center stops
+          the slide stretching, and Swiper needs a definite height or it collapses.
+
+          The cards effect runs its container with overflow:visible so the stack is
           visible outside it, which is why main has to state overflow-x itself —
           otherwise the overflowing cards make the dashboard pan sideways. */}
-      <Swiper
-        modules={[EffectCards, Keyboard, A11y]}
-        effect="cards"
-        grabCursor
-        keyboard={{ enabled: true }}
-        cardsEffect={{ slideShadows: false, perSlideOffset: 9, perSlideRotate: 2 }}
-        className="min-h-0 w-full flex-1 max-h-[34rem]"
-        onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-      >
+      <div className="flex min-h-0 flex-1 items-center">
+        <Swiper
+          modules={[EffectCards, Keyboard, A11y]}
+          effect="cards"
+          grabCursor
+          keyboard={{ enabled: true }}
+          cardsEffect={{ slideShadows: false, perSlideOffset: 9, perSlideRotate: 2 }}
+          className="h-full max-h-[34rem] w-full"
+          onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
+        >
         {recipes.map((recipe) => (
           // Cards are stacked, so each slide needs an opaque backing: the card
           // itself is translucent and would otherwise reveal the one behind it.
@@ -58,10 +60,16 @@ export function RecipeDeck({
             />
           </SwiperSlide>
         ))}
-      </Swiper>
+        </Swiper>
+      </div>
 
-      {/* Left aligned so the floating add button never covers it. */}
-      <p className="shrink-0 pt-2 pr-20 text-left text-xs text-muted-foreground" aria-live="polite">
+      {/* A 3rem band at the bottom of the content area, which is exactly the strip
+          the floating add button occupies, so the two share a baseline. Left
+          aligned and padded on the right so the button never covers the text. */}
+      <p
+        className="flex h-12 shrink-0 items-center pr-20 text-left text-xs text-muted-foreground"
+        aria-live="polite"
+      >
         {position + 1} / {recipes.length}
         {position < recipes.length - 1 ? " · swipe for the next recipe" : " · end of the list"}
       </p>
