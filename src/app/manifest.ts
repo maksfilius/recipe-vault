@@ -25,7 +25,9 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
       {
-        src: "/icons/icon-512.png",
+        // Its own file: a maskable icon has to survive a circular crop, so the
+        // logo sits smaller inside the square than in the plain icons.
+        src: "/icons/icon-maskable-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "maskable",
