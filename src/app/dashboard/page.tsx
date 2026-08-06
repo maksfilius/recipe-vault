@@ -742,7 +742,7 @@ export default function Dashboard() {
             </>
           )}
 
-          {allRecipes.length > 0 && !isOfflineMode ? <Button type="button" className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] right-4 z-20 h-12 rounded-full px-4 shadow-xl sm:bottom-6 sm:right-6" onClick={handleAddRecipe}><Plus />Add recipe</Button> : null}
+          {allRecipes.length > 0 && !isOfflineMode ? <Button type="button" className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom))] right-4 z-20 h-12 rounded-full px-4 shadow-xl md:bottom-6 md:right-6" onClick={handleAddRecipe}><Plus />Add recipe</Button> : null}
         </div>
       )}
     </>

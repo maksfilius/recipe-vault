@@ -1,14 +1,9 @@
 'use client';
 
-import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import ThemeToggle from '@/src/components/ThemeToggle';
 
-type TopbarProps = {
-  onMenuClick: () => void;
-};
-
-export default function Topbar({ onMenuClick }: TopbarProps) {
+export default function Topbar() {
   const pathname = usePathname();
 
   const section = (() => {
@@ -35,15 +30,6 @@ export default function Topbar({ onMenuClick }: TopbarProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border/60 bg-card/80 pt-[env(safe-area-inset-top)] shadow-[0_10px_35px_hsl(var(--background)_/_0.6)] backdrop-blur-md">
       <div className="flex h-16 items-center justify-between gap-4 px-4 sm:h-18 sm:px-6">
-        <button
-          type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/60 text-foreground shadow-sm transition hover:bg-foreground/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:hidden"
-          onClick={onMenuClick}
-          aria-label="Open navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-
         <div className="min-w-0 flex-1 md:flex-none">
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-foreground sm:text-base">

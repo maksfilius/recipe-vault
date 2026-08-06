@@ -40,6 +40,7 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [isSigningOutOthers, setIsSigningOutOthers] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -129,6 +130,20 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
     setRepeatPassword("");
     setNotice({ type: "success", message: "Password updated." });
     setIsSavingPassword(false);
+  };
+
+  const handleSignOut = async () => {
+    setIsSigningOut(true);
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      setIsSigningOut(false);
+      setNotice({ type: "error", message: getFriendlyAuthErrorMessage(error.message) });
+      return;
+    }
+
+    await clearOfflineRecipeData();
+    router.replace("/login");
   };
 
   const handleSignOutOtherSessions = async () => {
@@ -305,14 +320,21 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={handleSignOutOtherSessions}
-          disabled={isSigningOutOthers}
-        >
-          {isSigningOutOthers ? "Signing out..." : "Sign out other sessions"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {/* On a phone this is the only way out: the tab bar replaced the drawer
+              that used to hold sign out, and an installed app keeps it here. */}
+          <Button type="button" onClick={() => void handleSignOut()} disabled={isSigningOut}>
+            {isSigningOut ? "Signing out..." : "Sign out"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={handleSignOutOtherSessions}
+            disabled={isSigningOutOthers}
+          >
+            {isSigningOutOthers ? "Signing out..." : "Sign out other sessions"}
+          </Button>
+        </div>
       </div>
 
       {accountDeletionEnabled ? (

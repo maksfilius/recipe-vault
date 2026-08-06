@@ -2,6 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import BottomNav from './BottomNav';
 import Sidebar from './SideBar';
 import Topbar from './TopBar';
 import { supabase } from '@/src/lib/supabase-client';
@@ -14,7 +15,6 @@ type AppShellProps = {
 export default function AppShell({ children }: AppShellProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -38,11 +38,8 @@ export default function AppShell({ children }: AppShellProps) {
     setCollapsed(prev => !prev);
   };
 
-  const openMobileSidebar = () => setIsMobileSidebarOpen(true);
-  const closeMobileSidebar = () => setIsMobileSidebarOpen(false);
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
-    closeMobileSidebar();
 
     if (error) {
       console.error('Failed to sign out', error);
@@ -73,39 +70,13 @@ export default function AppShell({ children }: AppShellProps) {
             them this column is sized by its content, so any child that wants to fill
             the visible height (the recipe deck) collapses instead. On md+ the parent
             is a grid and stretch already handles it. */}
-        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card/88 pb-[env(safe-area-inset-bottom)] text-foreground shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
-          <Topbar onMenuClick={openMobileSidebar} />
+        <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-card/88 text-foreground md:pb-[env(safe-area-inset-bottom)] shadow-[0_25px_80px_hsl(var(--foreground)_/_0.1)] backdrop-blur-2xl md:border-l md:border-border/35">
+          <Topbar />
           <main className="flex-1 overflow-y-auto p-5 sm:p-6 lg:p-10 min-h-0 ">{children}</main>
+          <BottomNav />
         </div>
       </div>
 
-      <div
-        className={[
-          'fixed inset-0 z-40 bg-background/72 backdrop-blur-sm transition-opacity duration-300 md:hidden',
-          isMobileSidebarOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'
-        ].join(' ')}
-        aria-hidden
-        onClick={closeMobileSidebar}
-      />
-
-      <div
-        className={[
-          'fixed inset-y-0 left-0 z-50 w-64 max-w-[80%] border-r border-border/55 bg-card/94 text-foreground shadow-2xl backdrop-blur md:hidden',
-          'transition-transform duration-300 ease-out',
-          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        ].join(' ')}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Mobile navigation"
-      >
-        <Sidebar
-          collapsed={false}
-          onToggle={() => {}}
-          showCollapseToggle={false}
-          onNavigate={closeMobileSidebar}
-          onSignOut={handleSignOut}
-        />
-      </div>
     </div>
   );
 }
