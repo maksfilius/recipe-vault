@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { Button } from "../../components/ui/button";
 import { useScrollAnimation } from "../../hooks/use-scroll-animation";
 import ctaBackground from "@/src/assets/CTA.png";
@@ -11,20 +12,20 @@ const CTA = () => {
   return (
     <section className="relative overflow-hidden py-20">
       <div
-        className="absolute inset-0 md:hidden"
+        className="media-veil-cta absolute inset-0 md:hidden"
         style={{
-          backgroundImage: `linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.76) 12%, hsl(var(--background) / 0.34) 38%, hsl(var(--background) / 0.34) 62%, hsl(var(--background) / 0.78) 84%, hsl(var(--background)) 100%), url(${ctaBackground.src})`,
+          "--media": `url(${ctaBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "right center",
-        }}
+        } as CSSProperties}
       />
       <div
-        className="absolute inset-0 hidden md:block"
+        className="media-veil-cta absolute inset-0 hidden md:block"
         style={{
-          backgroundImage: `linear-gradient(180deg, hsl(var(--background)) 0%, hsl(var(--background) / 0.76) 12%, hsl(var(--background) / 0.34) 38%, hsl(var(--background) / 0.34) 62%, hsl(var(--background) / 0.78) 84%, hsl(var(--background)) 100%), url(${ctaBackground.src})`,
+          "--media": `url(${ctaBackground.src})`,
           backgroundSize: "cover",
           backgroundPosition: "center center",
-        }}
+        } as CSSProperties}
       />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.28),transparent_42%),linear-gradient(180deg,hsl(var(--background)_/_0.08),transparent_34%,hsl(var(--background)_/_0.3))]" />
       <div className="mx-auto max-w-7xl px-6">

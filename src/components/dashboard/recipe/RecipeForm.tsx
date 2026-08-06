@@ -285,7 +285,7 @@ export default function RecipeForm({
               {isCreatingCollection ? "Creating..." : "Create"}
             </Button>
           </div>
-          {collectionError ? <p className="text-xs text-red-400">{collectionError}</p> : null}
+          {collectionError ? <p className="text-xs text-destructive">{collectionError}</p> : null}
         </section>
 
         <label className="space-y-2">
@@ -342,7 +342,7 @@ export default function RecipeForm({
                   <span className="text-xs font-semibold text-foreground/80">Ingredient {index + 1}</span>
                   <button
                     type="button"
-                    className="rounded text-muted-foreground hover:text-red-400"
+                    className="rounded text-muted-foreground hover:text-destructive"
                     aria-label={`Remove ingredient ${index + 1}`}
                     onClick={() => removeIngredient(ingredient.id)}
                   >
@@ -392,7 +392,7 @@ export default function RecipeForm({
                   <span className="text-xs font-semibold text-foreground/80">Step {index + 1}</span>
                   <button
                     type="button"
-                    className="rounded text-muted-foreground hover:text-red-400"
+                    className="rounded text-muted-foreground hover:text-destructive"
                     aria-label={`Remove step ${index + 1}`}
                     onClick={() => removeStep(step.id)}
                   >

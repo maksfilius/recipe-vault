@@ -22,16 +22,26 @@
   --font-sans: "Segoe UI", "SF Pro Display", "Helvetica Neue", Helvetica, sans-serif;
   --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
-  --background: 34 42% 94%;
-  --foreground: 20 24% 16%;
-  --card: 36 38% 98%;
-  --primary: 34 86% 55%;
+  /* Light mirrors the dark theme's warm/cool dialogue instead of being warm all
+     through: warm paper surfaces, plum ink and plum-tinted lines, terracotta
+     accent. Card sits 7 lightness points above the page (was 4) so surfaces read
+     as layers rather than one flat sheet. */
+  --background: 30 40% 92%;
+  --foreground: 268 30% 13%;
+  --card: 36 70% 99%;
+  /* Amber at 55% lightness gave white-on-primary a contrast of 2.18:1. This is
+     4.79:1, and 4.89:1 as a label on a card. */
+  --primary: 18 80% 42%;
   --primary-foreground: 30 100% 98%;
-  --muted: 34 30% 88%;
-  --muted-foreground: 24 12% 38%;
-  --border: 30 24% 78%;
-  --destructive: 3 72% 52%;
+  --accent: 286 46% 62%;
+  --muted: 28 32% 87%;
+  --muted-foreground: 266 12% 38%;
+  --border: 285 12% 74%;
+  --destructive: 358 68% 46%;
   --ring: var(--primary);
+  /* Colour used to veil the landing photographs. Slightly warmer and more
+     saturated than the page so the wash reads as sunlit paper, not fog. */
+  --veil: 30 46% 94%;
 
   --cat-breakfast-label: 27 70% 25%;
   --cat-breakfast-grad-start: 39 94% 73%;
@@ -58,11 +68,16 @@
   --card: 267 44% 9%;
   --primary: 34 86% 55%;
   --primary-foreground: 24 80% 11%;
+  --accent: 280 70% 60%;
   --muted: 257 35% 18%;
   --muted-foreground: 260 18% 82%;
   --border: 260 28% 24%;
-  --destructive: 3 78% 55%;
+  /* Lightened so `text-destructive` keeps the pale-red look the hardcoded
+     text-red-300 had on dark surfaces (8.0:1 on a card) while the light theme
+     gets a red that is actually readable on near-white. */
+  --destructive: 4 88% 74%;
   --ring: var(--primary);
+  --veil: 265 63% 4%;
 
   --cat-breakfast-label: 43 92% 82%;
   --cat-breakfast-grad-start: 34 84% 44%;
@@ -95,6 +110,102 @@
 }
 
 @layer utilities {
+  /* Landing photographs are veiled so text stays readable. A single set of stops
+     cannot serve both themes: over a near-black page the veil reads as a natural
+     scrim, but the identical alphas over a cream page wash the photo out and the
+     few widely spaced stops show up as visible bands. So each theme gets its own
+     ramp — light uses more stops and keeps a clear middle band, dark keeps the
+     original cinematic falloff. The photo itself comes in through --media. */
+  .media-veil-hero-sm {
+    background-image:
+      linear-gradient(
+        180deg,
+        hsl(var(--veil) / 0.95) 0%,
+        hsl(var(--veil) / 0.88) 18%,
+        hsl(var(--veil) / 0.74) 38%,
+        hsl(var(--veil) / 0.7) 54%,
+        hsl(var(--veil) / 0.84) 74%,
+        hsl(var(--veil) / 0.96) 90%,
+        hsl(var(--veil)) 100%
+      ),
+      var(--media);
+  }
+
+  .media-veil-hero-lg {
+    background-image:
+      linear-gradient(
+        90deg,
+        hsl(var(--veil) / 0.97) 0%,
+        hsl(var(--veil) / 0.93) 26%,
+        hsl(var(--veil) / 0.8) 46%,
+        hsl(var(--veil) / 0.66) 64%,
+        hsl(var(--veil) / 0.7) 82%,
+        hsl(var(--veil) / 0.78) 100%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(var(--veil) / 0.3) 0%,
+        hsl(var(--veil) / 0.42) 46%,
+        hsl(var(--veil) / 0.72) 78%,
+        hsl(var(--veil)) 100%
+      ),
+      var(--media);
+  }
+
+  .media-veil-cta {
+    background-image:
+      linear-gradient(
+        180deg,
+        hsl(var(--veil)) 0%,
+        hsl(var(--veil) / 0.9) 10%,
+        hsl(var(--veil) / 0.78) 26%,
+        hsl(var(--veil) / 0.7) 44%,
+        hsl(var(--veil) / 0.7) 58%,
+        hsl(var(--veil) / 0.82) 76%,
+        hsl(var(--veil) / 0.94) 90%,
+        hsl(var(--veil)) 100%
+      ),
+      var(--media);
+  }
+
+  .dark .media-veil-hero-sm {
+    background-image:
+      linear-gradient(
+        180deg,
+        hsl(var(--veil) / 0.91),
+        hsl(var(--veil) / 0.7) 48%,
+        hsl(var(--veil)) 100%
+      ),
+      var(--media);
+  }
+
+  .dark .media-veil-hero-lg {
+    background-image:
+      linear-gradient(
+        90deg,
+        hsl(var(--veil) / 0.95) 0%,
+        hsl(var(--veil) / 0.78) 42%,
+        hsl(var(--veil) / 0.53) 72%,
+        hsl(var(--veil) / 0.76) 100%
+      ),
+      linear-gradient(180deg, hsl(var(--veil) / 0.3), hsl(var(--veil)) 100%),
+      var(--media);
+  }
+
+  .dark .media-veil-cta {
+    background-image:
+      linear-gradient(
+        180deg,
+        hsl(var(--veil)) 0%,
+        hsl(var(--veil) / 0.76) 12%,
+        hsl(var(--veil) / 0.34) 38%,
+        hsl(var(--veil) / 0.34) 62%,
+        hsl(var(--veil) / 0.78) 84%,
+        hsl(var(--veil)) 100%
+      ),
+      var(--media);
+  }
+
   @keyframes fade-in { from { opacity: 0; transform: translateY(6px)} to { opacity: 1; transform: translateY(0)} }
   @keyframes card-in {
     0% {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Link2, LoaderCircle, Sparkles, Utensils } from "lucide-react";
 
 import heroBackground from "@/src/assets/Hero.png";
@@ -105,14 +105,24 @@ const Hero = () => {
   const stashRecipeForDashboard = () => {
     if (!importedRecipe) return;
 
-    try {
-      window.sessionStorage.setItem(
-        PENDING_RECIPE_IMPORT_STORAGE_KEY,
-        JSON.stringify(importedRecipe),
-      );
-    } catch {
-      // The dashboard remains available even when browser storage is disabled.
+    // The preview image is an inline data URL, so it is the one field that can
+    // exhaust the session storage quota. Retry without it rather than losing the
+    // whole recipe on the way to the dashboard.
+    const candidates = [importedRecipe, { ...importedRecipe, imageUrl: undefined }];
+
+    for (const candidate of candidates) {
+      try {
+        window.sessionStorage.setItem(
+          PENDING_RECIPE_IMPORT_STORAGE_KEY,
+          JSON.stringify(candidate),
+        );
+        return;
+      } catch {
+        continue;
+      }
     }
+
+    // The dashboard remains available even when browser storage is disabled.
   };
 
   useEffect(() => {
@@ -160,21 +170,21 @@ const Hero = () => {
   return (
     <section className="relative isolate flex min-h-[92svh] items-center overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-32">
       <div
-        className="absolute inset-0 -z-30 md:hidden"
+        className="media-veil-hero-sm absolute inset-0 -z-30 md:hidden"
         style={{
-          backgroundImage: `linear-gradient(180deg,hsl(var(--background)/.91),hsl(var(--background)/.7) 48%,hsl(var(--background)) 100%),url(${heroBackground.src})`,
+          "--media": `url(${heroBackground.src})`,
           backgroundPosition: "64% center",
           backgroundSize: "cover",
-        }}
+        } as CSSProperties}
       />
       <div
         ref={bgRef}
-        className="absolute inset-0 -z-30 hidden scale-[1.02] will-change-transform md:block"
+        className="media-veil-hero-lg absolute inset-0 -z-30 hidden scale-[1.02] will-change-transform md:block"
         style={{
-          backgroundImage: `linear-gradient(90deg,hsl(var(--background)/.95) 0%,hsl(var(--background)/.78) 42%,hsl(var(--background)/.53) 72%,hsl(var(--background)/.76) 100%),linear-gradient(180deg,hsl(var(--background)/.3),hsl(var(--background)) 100%),url(${heroBackground.src})`,
+          "--media": `url(${heroBackground.src})`,
           backgroundPosition: "center",
           backgroundSize: "cover",
-        }}
+        } as CSSProperties}
       />
       <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_18%,hsl(var(--primary)_/_0.14),transparent_28%)]" />
 
