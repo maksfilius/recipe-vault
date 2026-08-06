@@ -29,9 +29,10 @@ export function RecipeCard({
       className="animate-card-in relative flex h-full cursor-pointer flex-col overflow-hidden border-border/55 bg-card/82 text-foreground shadow-[0_28px_72px_hsl(var(--foreground)_/_0.1)]"
       onClick={onClick}
     >
-      {/* The mobile pager gives the card the whole viewport, so the image takes a
-          share of that height; in the desktop grid it stays a fixed 10rem band. */}
-      <div className="relative grid h-[46%] min-h-40 w-full shrink-0 place-items-center overflow-hidden bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.18),hsl(var(--muted)_/_0.72))] sm:h-40 sm:min-h-0">
+      {/* On the full-height deck card the photo takes whatever the title and meta
+          line leave over, so the body never has a void under it. In the desktop
+          grid it goes back to a fixed 10rem band above a growing body. */}
+      <div className="relative grid min-h-40 w-full flex-1 place-items-center overflow-hidden sm:h-40 sm:min-h-0 sm:flex-none bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.18),hsl(var(--muted)_/_0.72))] sm:h-40 sm:min-h-0">
         {recipe.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={recipe.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
@@ -58,7 +59,7 @@ export function RecipeCard({
         </button>
       </div>
 
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4">
+      <div className="flex min-w-0 shrink-0 flex-col p-4 sm:min-h-0 sm:flex-1">
         <div className="min-w-0">
           <h3 className="line-clamp-2 font-semibold leading-snug text-foreground">{recipe.title}</h3>
           {recipe.sourceUrl ? (
@@ -66,24 +67,24 @@ export function RecipeCard({
               href={recipe.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-flex max-w-full items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground"
+              className="mt-1 hidden max-w-full items-center gap-1 text-sm text-muted-foreground transition hover:text-foreground sm:inline-flex"
               onClick={(event) => event.stopPropagation()}
             >
               <span className="truncate">from {formattedSourceUrl}</span>
               <ExternalLink className="h-3.5 w-3.5 shrink-0" />
             </a>
           ) : (
-            <p className="mt-1 text-sm text-muted-foreground/80">manual recipe</p>
+            <p className="mt-1 hidden text-sm text-muted-foreground/80 sm:block">manual recipe</p>
           )}
         </div>
 
         {recipe.description ? (
-          <p className="mt-3 line-clamp-4 min-h-10 text-sm leading-5 text-muted-foreground sm:line-clamp-2">
+          <p className="mt-3 hidden min-h-10 text-sm leading-5 text-muted-foreground sm:line-clamp-2 sm:block">
             {recipe.description}
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
           {visibleCollections.map((collection) => (
             <span key={collection.id} className="rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-foreground">
               {collection.name}
@@ -107,7 +108,7 @@ export function RecipeCard({
           {recipe.ingredients.length > 0 ? <span>{recipe.ingredients.length} ingredients</span> : null}
         </div>
 
-        <div className="mt-auto pt-4 text-xs text-muted-foreground">
+        <div className="mt-auto hidden pt-4 text-xs text-muted-foreground sm:block">
           Updated {formatRelativeTime(recipe.updatedAt ?? recipe.createdAt)}
         </div>
       </div>
