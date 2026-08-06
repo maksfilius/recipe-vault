@@ -13,6 +13,7 @@ import { RecipeDeck } from "../../components/dashboard/recipe/RecipeDeck";
 import { RecipeDetails } from "@/src/components/dashboard/recipe/RecipeDetails";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
+import { NoticeToast } from "@/src/components/ui/notice-toast";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +27,6 @@ import {
   deleteRecipeCollection,
   fetchRecipeCollections,
 } from "@/src/lib/collections";
-import { cn } from "@/src/lib/utils";
 import {
   getOfflineRecipeSnapshot,
   saveOfflineRecipeSnapshot,
@@ -553,18 +553,7 @@ export default function Dashboard() {
   return (
     <>
       {notice ? (
-        <div
-          className={cn(
-            "fixed left-4 right-4 top-20 z-[80] max-w-md rounded-xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm sm:left-auto sm:right-6",
-            notice.type === "error"
-              ? "border-red-300/70 bg-red-50/92 text-red-700 dark:bg-red-500/20 dark:text-red-100"
-              : "border-emerald-300/70 bg-emerald-50/92 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-100",
-          )}
-          role="status"
-          aria-live="polite"
-        >
-          {notice.message}
-        </div>
+        <NoticeToast type={notice.type} message={notice.message} onDismiss={() => setNotice(null)} />
       ) : null}
 
       {isOfflineMode ? (

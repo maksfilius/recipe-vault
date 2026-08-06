@@ -235,6 +235,14 @@
     20% { opacity: 0.35; }
     100% { transform: translateX(140%); opacity: 0; }
   }
+  /* Toasts rise from the thumb on a phone and drop in from the top on wide
+     screens, matching where each one is anchored. */
+  @keyframes notice-in { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
+  @keyframes notice-in-top { from { opacity: 0; transform: translateY(-12px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
+  .animate-notice-in { animation: notice-in .28s cubic-bezier(.22,1,.36,1) both; }
+  @media (min-width: 640px) { .animate-notice-in { animation-name: notice-in-top; } }
+  @media (prefers-reduced-motion: reduce) { .animate-notice-in { animation: none; } }
+
   .animate-fade-in { animation: fade-in .8s ease-out both; }
   .animate-fade-in-delayed { animation: fade-in .8s ease-out .2s both; }
   .animate-fade-in-more { animation: fade-in .8s ease-out .4s both; }

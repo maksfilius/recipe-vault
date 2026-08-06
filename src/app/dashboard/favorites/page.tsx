@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { NoticeToast } from "@/src/components/ui/notice-toast";
 import { useRouter } from "next/navigation";
 
 import { RecipeCard, RecipeCardSkeleton } from "@/src/components/dashboard/recipe/RecipeCard";
@@ -147,18 +148,7 @@ export default function Favorites() {
   return (
     <>
       {notice ? (
-        <div
-          className={[
-            "fixed left-4 right-4 top-20 z-[80] max-w-md rounded-xl border px-4 py-3 text-sm font-medium shadow-lg backdrop-blur-sm sm:left-auto sm:right-6 sm:top-20",
-            notice.type === "error"
-              ? "border-red-300/70 bg-red-50/92 text-red-700 dark:border-red-400/60 dark:bg-red-500/20 dark:text-red-100"
-              : "border-emerald-300/70 bg-emerald-50/92 text-emerald-700 dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-100",
-          ].join(" ")}
-          role="status"
-          aria-live="polite"
-        >
-          {notice.message}
-        </div>
+        <NoticeToast type={notice.type} message={notice.message} onDismiss={() => setNotice(null)} />
       ) : null}
 
       {isOfflineMode ? (
