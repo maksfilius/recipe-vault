@@ -38,7 +38,9 @@ export function RecipeDeck({
           The cards effect runs its container with overflow:visible so the stack is
           visible outside it, which is why main has to state overflow-x itself —
           otherwise the overflowing cards make the dashboard pan sideways. */}
-      <div className="flex min-h-0 flex-1 items-center">
+      {/* pb-3 rather than a taller counter band: the band has to stay 3rem so its
+          text keeps the add button's baseline, so the gap goes above it. */}
+      <div className="flex min-h-0 flex-1 items-center pb-3">
         <Swiper
           modules={[EffectCards, Keyboard, A11y]}
           effect="cards"
