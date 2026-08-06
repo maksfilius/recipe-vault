@@ -145,6 +145,35 @@ rules.
 
 `db reset` is the key confidence check: it rebuilds the local database from migrations, so you know the schema is reproducible.
 
+## Import abuse limits
+
+`POST /api/recipes/import` is reachable without an account because the landing
+page demo depends on it, so it is rate limited in `src/lib/rate-limit.ts`:
+
+- anonymous callers: 8 imports per 10 minutes, keyed by client address
+- signed-in callers: 30 imports per 10 minutes, keyed by user id
+- `POST /api/recipes/images`: 40 images per 10 minutes per user
+
+Anonymous imports also use the cheaper `preview` image preset: a smaller input
+cap and a single encode pass, so an unauthenticated request cannot spend much
+CPU or memory. Signed-in imports use the `stored` preset and upload to Supabase
+Storage.
+
+Two known limits of this approach:
+
+- the counters live in process memory, so each serverless instance limits
+  independently. A shared store (Vercel KV or Upstash) is required before the
+  demo carries real traffic.
+- address keying is blunt: visitors behind one carrier-grade NAT address share a
+  budget. Raise `ANONYMOUS_IMPORT_LIMIT` if legitimate visitors report 429s.
+- the address comes from `x-forwarded-for`, which Vercel overwrites with the real
+  client chain. Behind a proxy that does not normalize that header, or in local
+  development, a caller can spoof it and bypass the limit.
+
+In development only, an import response also carries `imageDropReason` when a
+picture was found but could not be processed, so a missing image can be
+diagnosed without reading server logs.
+
 ## Launch notes
 
 - `npm run build` now uses webpack as the default production build path because it is stable in this project.

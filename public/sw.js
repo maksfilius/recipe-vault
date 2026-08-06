@@ -12,10 +12,20 @@ const SHELL_URLS = [
   "/icons/apple-touch-icon.png",
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_URLS)).then(() => self.skipWaiting()),
+// Precache each shell URL independently: addAll is atomic, so a single missing
+// asset would abort installation and leave the app with no service worker.
+async function precacheShell() {
+  const cache = await caches.open(SHELL_CACHE);
+
+  await Promise.all(
+    SHELL_URLS.map((url) =>
+      cache.add(new Request(url, { cache: "reload" })).catch(() => undefined),
+    ),
   );
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(precacheShell().then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", (event) => {

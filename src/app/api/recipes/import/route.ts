@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { consumeRateLimit, getClientAddress } from "@/src/lib/rate-limit";
 import { buildImportedRecipe, decodeRecipeHtml } from "@/src/lib/recipe-import-parser";
 import {
   prepareRecipeImage,
@@ -18,6 +19,11 @@ const MAX_HTML_BYTES = 3 * 1024 * 1024;
 const MAX_REDIRECTS = 5;
 const REQUEST_TIMEOUT_MS = 12_000;
 const IMAGE_TIMEOUT_MS = 8_000;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
+// Anonymous imports are keyed by address, so the limit has to leave room for
+// several visitors sharing one carrier-grade NAT address.
+const ANONYMOUS_IMPORT_LIMIT = 8;
+const AUTHENTICATED_IMPORT_LIMIT = 30;
 
 class RecipeImportError extends Error {
   constructor(
@@ -28,10 +34,10 @@ class RecipeImportError extends Error {
   }
 }
 
-function jsonError(message: string, status: number) {
+function jsonError(message: string, status: number, headers: HeadersInit = {}) {
   return NextResponse.json(
     { error: message },
-    { status, headers: { "cache-control": "no-store" } },
+    { status, headers: { "cache-control": "no-store", ...headers } },
   );
 }
 
@@ -118,6 +124,19 @@ async function fetchRecipePage(initialUrl: URL, signal: AbortSignal) {
   throw new RecipeImportError("The recipe page redirected too many times.", 400);
 }
 
+async function getRequestUser() {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    return { supabase, user };
+  } catch {
+    return { supabase: null, user: null };
+  }
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as { url?: string } | null;
   const rawUrl = body?.url?.trim();
@@ -132,6 +151,25 @@ export async function POST(request: Request) {
     parsedUrl = normalizeRecipeImportUrl(rawUrl);
   } catch {
     return jsonError("Enter a valid recipe URL.", 400);
+  }
+
+  const { supabase, user } = await getRequestUser();
+  const rateLimit = consumeRateLimit(
+    user ? `import:user:${user.id}` : `import:ip:${getClientAddress(request)}`,
+    {
+      limit: user ? AUTHENTICATED_IMPORT_LIMIT : ANONYMOUS_IMPORT_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    },
+  );
+
+  if (!rateLimit.allowed) {
+    return jsonError(
+      user
+        ? "Too many imports right now. Please try again shortly."
+        : "Too many imports from this network. Sign in or try again shortly.",
+      429,
+      { "retry-after": String(rateLimit.retryAfterSeconds) },
+    );
   }
 
   try {
@@ -156,6 +194,7 @@ export async function POST(request: Request) {
       return jsonError("This URL did not return a recipe page.", 400);
     }
 
+    let imageDropReason: string | undefined;
     const htmlBytes = await readLimitedResponse(response);
     const importedRecipe = buildImportedRecipe(
       decodeRecipeHtml(htmlBytes, contentType),
@@ -174,13 +213,10 @@ export async function POST(request: Request) {
         const imageBytes = await prepareRecipeImage(
           imageUrl.toString(),
           AbortSignal.timeout(IMAGE_TIMEOUT_MS),
+          user ? "stored" : "preview",
         );
-        const supabase = await createServerSupabaseClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
 
-        if (user) {
+        if (user && supabase) {
           try {
             importedRecipe.imageUrl = await storePreparedRecipeImage(
               supabase,
@@ -193,12 +229,24 @@ export async function POST(request: Request) {
         } else {
           importedRecipe.imageUrl = recipeImageToDataUrl(imageBytes);
         }
-      } catch {
+      } catch (imageError) {
+        // A recipe is still worth importing without its picture, but the reason
+        // has to be visible: a silently dropped image looks like a parser bug.
+        const reason =
+          imageError instanceof Error ? imageError.message : String(imageError);
+
+        console.warn("Recipe image dropped", {
+          sourceUrl: finalUrl.toString(),
+          imageUrl: importedRecipe.imageUrl,
+          reason,
+        });
+
         delete importedRecipe.imageUrl;
+        if (process.env.NODE_ENV !== "production") imageDropReason = reason;
       }
     }
 
-    return NextResponse.json(importedRecipe, {
+    return NextResponse.json({ ...importedRecipe, imageDropReason }, {
       headers: { "cache-control": "no-store" },
     });
   } catch (error) {

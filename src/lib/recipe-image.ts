@@ -13,9 +13,38 @@ import {
 
 export const RECIPE_IMAGE_BUCKET = "recipe-images";
 
-const MAX_IMAGE_INPUT_BYTES = 8 * 1024 * 1024;
-const MAX_IMAGE_OUTPUT_BYTES = 900 * 1024;
 const MAX_IMAGE_REDIRECTS = 4;
+const MAX_IMAGE_INPUT_BYTES = 8 * 1024 * 1024;
+
+// Decode cost scales with pixels, so this is what actually bounds CPU and
+// memory. Keep it at sharp's original ceiling: lowering it silently rejects
+// large-but-legitimate source photos, and anonymous cost is already bounded by
+// the rate limiter plus the single-pass preview.
+const MAX_IMAGE_PIXELS = 40_000_000;
+
+// The storage bucket rejects anything above 2MB, so that is the only size at
+// which dropping an image is better than keeping it.
+const HARD_MAX_OUTPUT_BYTES = 2 * 1024 * 1024;
+
+// Anonymous callers only ever get the cheap single-pass preview: one decode
+// instead of three, so an unauthenticated request cannot cost much CPU. The
+// per-preset output size is a target, not a requirement — see prepareRecipeImage.
+const RECIPE_IMAGE_PRESETS = {
+  preview: {
+    targetOutputBytes: 320 * 1024,
+    steps: [{ width: 960, quality: 68 }],
+  },
+  stored: {
+    targetOutputBytes: 900 * 1024,
+    steps: [
+      { width: 1280, quality: 80 },
+      { width: 960, quality: 68 },
+      { width: 720, quality: 58 },
+    ],
+  },
+} as const;
+
+export type RecipeImagePreset = keyof typeof RECIPE_IMAGE_PRESETS;
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/avif",
   "image/gif",
@@ -66,7 +95,11 @@ async function readLimitedResponse(response: Response, maximumBytes: number) {
   return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)), totalLength);
 }
 
-async function downloadRecipeImage(source: string, signal: AbortSignal) {
+async function downloadRecipeImage(
+  source: string,
+  signal: AbortSignal,
+  maxInputBytes: number,
+) {
   let currentUrl: URL;
 
   try {
@@ -127,20 +160,20 @@ async function downloadRecipeImage(source: string, signal: AbortSignal) {
       throw new RecipeImageError("The recipe image format is not supported.");
     }
 
-    return readLimitedResponse(response, MAX_IMAGE_INPUT_BYTES);
+    return readLimitedResponse(response, maxInputBytes);
   }
 
   throw new RecipeImageError("The recipe image redirected too many times.");
 }
 
-function decodeRecipeImageDataUrl(source: string) {
+function decodeRecipeImageDataUrl(source: string, maxInputBytes: number) {
   const match = source.match(/^data:image\/webp;base64,([a-z0-9+/=]+)$/i);
   if (!match) {
     throw new RecipeImageError("The recipe image data is invalid.");
   }
 
   const bytes = Buffer.from(match[1], "base64");
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_IMAGE_INPUT_BYTES) {
+  if (bytes.byteLength === 0 || bytes.byteLength > maxInputBytes) {
     throw new RecipeImageError("The recipe image is too large.", 413);
   }
 
@@ -151,7 +184,7 @@ async function encodeWebp(bytes: Buffer, width: number, quality: number) {
   return sharp(bytes, {
     animated: false,
     failOn: "warning",
-    limitInputPixels: 40_000_000,
+    limitInputPixels: MAX_IMAGE_PIXELS,
   })
     .rotate()
     .resize({
@@ -164,22 +197,39 @@ async function encodeWebp(bytes: Buffer, width: number, quality: number) {
     .toBuffer();
 }
 
-export async function prepareRecipeImage(source: string, signal: AbortSignal) {
+export async function prepareRecipeImage(
+  source: string,
+  signal: AbortSignal,
+  preset: RecipeImagePreset = "stored",
+) {
+  const { targetOutputBytes, steps } = RECIPE_IMAGE_PRESETS[preset];
   const input = /^data:/i.test(source)
-    ? decodeRecipeImageDataUrl(source)
-    : await downloadRecipeImage(source, signal);
+    ? decodeRecipeImageDataUrl(source, MAX_IMAGE_INPUT_BYTES)
+    : await downloadRecipeImage(source, signal, MAX_IMAGE_INPUT_BYTES);
 
-  try {
-    const primary = await encodeWebp(input, 1280, 80);
-    if (primary.byteLength <= MAX_IMAGE_OUTPUT_BYTES) return primary;
+  let smallest: Buffer | null = null;
 
-    const compact = await encodeWebp(input, 960, 68);
-    if (compact.byteLength <= MAX_IMAGE_OUTPUT_BYTES) return compact;
-  } catch {
-    throw new RecipeImageError("The recipe image could not be processed.");
+  for (const step of steps) {
+    let encoded: Buffer;
+
+    try {
+      encoded = await encodeWebp(input, step.width, step.quality);
+    } catch {
+      throw new RecipeImageError("The recipe image could not be processed.");
+    }
+
+    if (encoded.byteLength <= targetOutputBytes) return encoded;
+    if (!smallest || encoded.byteLength < smallest.byteLength) smallest = encoded;
   }
 
-  throw new RecipeImageError("The processed recipe image is too large.", 413);
+  // Missing the target only means the picture is heavier than preferred. Keep it
+  // anyway: losing a recipe image is worse than serving a larger one.
+  if (smallest && smallest.byteLength <= HARD_MAX_OUTPUT_BYTES) return smallest;
+
+  throw new RecipeImageError(
+    `The processed recipe image is too large (${smallest?.byteLength ?? 0} bytes).`,
+    413,
+  );
 }
 
 function getStoredImagePrefix() {
@@ -225,6 +275,6 @@ export async function storeRecipeImage(
 ) {
   if (isStoredRecipeImageUrl(source, userId)) return source;
 
-  const bytes = await prepareRecipeImage(source, signal);
+  const bytes = await prepareRecipeImage(source, signal, "stored");
   return storePreparedRecipeImage(supabase, userId, bytes);
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { consumeRateLimit } from "@/src/lib/rate-limit";
 import {
   RecipeImageError,
   storeRecipeImage,
@@ -10,11 +11,13 @@ export const runtime = "nodejs";
 
 const MAX_REQUEST_BYTES = 1_600_000;
 const IMAGE_TIMEOUT_MS = 10_000;
+const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1_000;
+const IMAGE_LIMIT = 40;
 
-function jsonError(message: string, status: number) {
+function jsonError(message: string, status: number, headers: HeadersInit = {}) {
   return NextResponse.json(
     { error: message },
-    { status, headers: { "cache-control": "no-store" } },
+    { status, headers: { "cache-control": "no-store", ...headers } },
   );
 }
 
@@ -56,6 +59,17 @@ export async function POST(request: Request) {
 
     if (userError || !user) {
       return jsonError("Sign in to save recipe images.", 401);
+    }
+
+    const rateLimit = consumeRateLimit(`recipe-image:user:${user.id}`, {
+      limit: IMAGE_LIMIT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+    });
+
+    if (!rateLimit.allowed) {
+      return jsonError("Too many recipe images right now. Please try again shortly.", 429, {
+        "retry-after": String(rateLimit.retryAfterSeconds),
+      });
     }
 
     const rawBody = await readLimitedRequest(request);
