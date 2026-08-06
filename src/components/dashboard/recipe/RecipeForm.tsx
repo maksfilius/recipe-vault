@@ -197,7 +197,7 @@ export default function RecipeForm({
   };
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto">
+    <div className="-mx-4 max-h-[80vh] overflow-y-auto px-4">
       <form onSubmit={handleSubmit} className="w-full max-w-3xl space-y-6 pb-1">
         {imageUrl ? (
           <div className="relative h-40 overflow-hidden rounded-2xl border border-border/70 bg-muted/55">
@@ -432,8 +432,11 @@ export default function RecipeForm({
           />
         </label>
 
-        <div className="flex justify-end">
-          <Button type="submit" size="md" className="px-5">
+        {/* Sticky inside the dialog's own scroll area: a long recipe put this
+            button far below the field being edited, so saving meant scrolling to
+            the bottom every time. */}
+        <div className="sticky bottom-0 -mx-4 -mb-1 flex justify-end gap-2 border-t border-border/60 bg-card/95 px-4 py-3 backdrop-blur">
+          <Button type="submit" size="md" className="w-full px-5 sm:w-auto">
             {mode === "edit" ? "Update recipe" : "Save recipe"}
           </Button>
         </div>
