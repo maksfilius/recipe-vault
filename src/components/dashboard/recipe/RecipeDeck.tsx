@@ -30,16 +30,20 @@ export function RecipeDeck({
   const position = Math.min(activeIndex, recipes.length - 1);
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Swiper's own container clips the deck, so a card being dragged never
-          rides over the search field or the filter rail above it. */}
+    // Capped and centred: on a tall screen the card would otherwise grow and
+    // stretch the photo. The bottom padding keeps the card clear of the floating
+    // add button, which overlaps the lower part of this area.
+    <div className="flex h-full min-h-0 flex-col justify-center pb-[4.5rem] md:pb-0">
+      {/* The cards effect runs its container with overflow:visible so the stack is
+          visible outside it, which is why main has to state overflow-x itself —
+          otherwise the overflowing cards make the dashboard pan sideways. */}
       <Swiper
         modules={[EffectCards, Keyboard, A11y]}
         effect="cards"
         grabCursor
         keyboard={{ enabled: true }}
         cardsEffect={{ slideShadows: false, perSlideOffset: 9, perSlideRotate: 2 }}
-        className="min-h-0 w-full flex-1"
+        className="min-h-0 w-full flex-1 max-h-[34rem]"
         onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
       >
         {recipes.map((recipe) => (

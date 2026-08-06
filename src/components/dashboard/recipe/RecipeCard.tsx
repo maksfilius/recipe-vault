@@ -102,7 +102,8 @@ export function RecipeCard({
           ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        {/* The deck exists to find a recipe and open it; the facts live inside. */}
+        <div className="mt-4 hidden flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground sm:flex">
           {recipe.totalTime ? <span className="inline-flex items-center gap-1"><Clock3 className="h-3.5 w-3.5" />{recipe.totalTime}</span> : null}
           {recipe.servings ? <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" />{recipe.servings}</span> : null}
           {recipe.ingredients.length > 0 ? <span>{recipe.ingredients.length} ingredients</span> : null}
