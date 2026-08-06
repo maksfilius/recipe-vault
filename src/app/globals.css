@@ -11,6 +11,10 @@
     --color-muted-foreground: hsl(var(--muted-foreground));
     --color-border: hsl(var(--border));
     --color-destructive: hsl(var(--destructive));
+    --color-toast: hsl(var(--toast));
+    --color-toast-foreground: hsl(var(--toast-foreground));
+    --color-toast-accent: hsl(var(--toast-accent));
+    --color-toast-danger: hsl(var(--toast-danger));
     --color-ring: hsl(var(--ring));
 
     --radius: 0.75rem;
@@ -39,6 +43,14 @@
   --border: 285 12% 74%;
   --destructive: 358 68% 46%;
   --ring: var(--primary);
+  /* Toasts use an inverted surface so a confirmation never reads as another card.
+     That flips which end of the scale the icons need, so they get their own
+     tokens rather than reusing primary and destructive. */
+  --toast: 268 30% 13%;
+  --toast-foreground: 34 60% 97%;
+  --toast-accent: 34 90% 62%;
+  --toast-danger: 4 88% 74%;
+
   /* Colour used to veil the landing photographs. Slightly warmer and more
      saturated than the page so the wash reads as sunlit paper, not fog. */
   --veil: 30 46% 94%;
@@ -78,6 +90,10 @@
   --destructive: 4 88% 74%;
   --ring: var(--primary);
   --veil: 265 63% 4%;
+  --toast: 0 0% 97%;
+  --toast-foreground: 268 30% 13%;
+  --toast-accent: 18 80% 42%;
+  --toast-danger: 358 68% 46%;
 
   --cat-breakfast-label: 43 92% 82%;
   --cat-breakfast-grad-start: 34 84% 44%;
