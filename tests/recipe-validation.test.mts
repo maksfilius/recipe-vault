@@ -3,6 +3,14 @@ import assert from "node:assert/strict";
 
 import { recipePayloadSchema } from "../src/lib/recipe-validation.ts";
 
+test("saves a recipe with only a title", () => {
+  const parsed = recipePayloadSchema.parse({ title: "Bread", ingredients: [], steps: [] });
+  assert.equal(parsed.title, "Bread");
+  assert.equal(parsed.description, undefined);
+  assert.deepEqual(parsed.collectionIds, []);
+  assert.deepEqual(parsed.tags, []);
+});
+
 test("accepts a valid https source URL", () => {
   const parsed = recipePayloadSchema.parse({
     title: "Pasta",

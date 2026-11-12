@@ -4,17 +4,16 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const cardVariants = cva(
-  "group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card text-foreground shadow-[0_25px_65px_hsl(var(--background)_/_0.65)] transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+  "group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-card text-foreground transition-colors duration-150",
   {
     variants: {
       variant: {
         elevated: "bg-card",
-        subtle: "bg-muted/40",
-        outline: "border-dashed border-border/60 bg-transparent shadow-none",
-        glass: "border-border/40 bg-foreground/5 supports-[backdrop-filter]:backdrop-blur-2xl",
+        subtle: "bg-muted",
+        outline: "border-dashed bg-transparent",
       },
       interactive: {
-        true: "hover:-translate-y-1 hover:shadow-[0_35px_85px_hsl(var(--background)_/_0.7)] focus-within:-translate-y-1",
+        true: "hover:border-primary/50 focus-within:border-primary/50",
         false: "",
       },
       padding: {

@@ -1,332 +1,148 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { ArrowRight, Link2, LoaderCircle, Sparkles, Utensils } from "lucide-react";
-
-import heroBackground from "@/src/assets/Hero.png";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Link2, LoaderCircle, Utensils } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { Skeleton } from "@/src/components/ui/skeleton";
 import { PENDING_RECIPE_IMPORT_STORAGE_KEY } from "@/src/lib/pending-recipe-import";
 import type { ImportedRecipe } from "@/src/types/recipe";
 
-type ImportedRecipePreview = ImportedRecipe;
-
-function formatSourceHost(sourceUrl: string) {
-  try {
-    return new URL(sourceUrl).hostname.replace(/^www\./, "");
-  } catch {
-    return "recipe source";
-  }
+function sourceHost(sourceUrl: string) {
+  try { return new URL(sourceUrl).hostname.replace(/^www\./, ""); }
+  catch { return "recipe source"; }
 }
 
-function pluralize(count: number, singular: string) {
-  return `${count} ${singular}${count === 1 ? "" : "s"}`;
-}
-
-function ImportPreviewSkeleton() {
-  return (
-    <div
-      className="overflow-hidden rounded-2xl border border-border/60 bg-background/62"
-      role="status"
-      aria-live="polite"
-    >
-      <span className="sr-only">Building your recipe preview</span>
-      <div className="grid sm:grid-cols-[9.5rem_minmax(0,1fr)]">
-        <div className="h-28 animate-pulse bg-muted/75 motion-reduce:animate-none sm:h-full" />
-        <div className="space-y-3 p-5">
-          <div className="h-3 w-28 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
-          <div className="h-7 w-3/4 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
-          <div className="h-3 w-full animate-pulse rounded-full bg-muted/80 motion-reduce:animate-none" />
-          <div className="h-3 w-2/3 animate-pulse rounded-full bg-muted/80 motion-reduce:animate-none" />
-        </div>
-      </div>
-      <div className="h-16 animate-pulse border-t border-border/50 bg-muted/35 motion-reduce:animate-none" />
-    </div>
-  );
-}
-
-const Hero = () => {
-  const scrollYRef = useRef(0);
-  const bgRef = useRef<HTMLDivElement>(null);
+export default function Hero() {
   const inputRef = useRef<HTMLInputElement>(null);
-  const activeRequestRef = useRef<AbortController | null>(null);
-  const ticking = useRef(false);
-  const [demoUrl, setDemoUrl] = useState("");
-  const [importedRecipe, setImportedRecipe] = useState<ImportedRecipePreview | null>(null);
-  const [isImporting, setIsImporting] = useState(false);
-  const [importError, setImportError] = useState("");
+  const activeRequest = useRef<AbortController | null>(null);
+  const [url, setUrl] = useState("");
+  const [recipe, setRecipe] = useState<ImportedRecipe | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleDemoImport = async () => {
-    const normalizedUrl = demoUrl.trim();
+  useEffect(() => () => activeRequest.current?.abort(), []);
 
-    if (!normalizedUrl) {
-      setImportError("Paste a recipe URL first.");
-      setImportedRecipe(null);
+  async function previewRecipe() {
+    const submittedUrl = url.trim();
+    if (!submittedUrl) {
+      setError("Paste a recipe link to start.");
       inputRef.current?.focus();
       return;
     }
-
-    activeRequestRef.current?.abort();
+    activeRequest.current?.abort();
     const controller = new AbortController();
-    activeRequestRef.current = controller;
-    setIsImporting(true);
-    setImportError("");
-    setImportedRecipe(null);
-
+    activeRequest.current = controller;
+    setLoading(true);
+    setError("");
+    setRecipe(null);
     try {
       const response = await fetch("/api/recipes/import", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: normalizedUrl }),
+        body: JSON.stringify({ url: submittedUrl }),
         signal: controller.signal,
       });
-
-      const payload = (await response.json().catch(() => null)) as
-        | (ImportedRecipePreview & { error?: string })
-        | null;
-
+      const payload = (await response.json().catch(() => null)) as (ImportedRecipe & { error?: string }) | null;
       if (!response.ok || !payload || payload.error) {
-        setImportError(payload?.error ?? "We couldn’t import this recipe.");
+        setError(payload?.error ?? "We couldn’t read that recipe. Try another link.");
         return;
       }
-
-      setImportedRecipe(payload);
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") return;
-      setImportError("We couldn’t import this recipe. Please try another link.");
+      setRecipe(payload);
+    } catch (cause) {
+      if (cause instanceof Error && cause.name === "AbortError") return;
+      setError("We couldn’t reach that recipe. Check the link and try again.");
     } finally {
-      if (activeRequestRef.current === controller) {
-        activeRequestRef.current = null;
-        setIsImporting(false);
+      if (activeRequest.current === controller) {
+        activeRequest.current = null;
+        setLoading(false);
       }
     }
-  };
+  }
 
-  const stashRecipeForDashboard = () => {
-    if (!importedRecipe) return;
-
-    // The preview image is an inline data URL, so it is the one field that can
-    // exhaust the session storage quota. Retry without it rather than losing the
-    // whole recipe on the way to the dashboard.
-    const candidates = [importedRecipe, { ...importedRecipe, imageUrl: undefined }];
-
-    for (const candidate of candidates) {
+  function keepDraft() {
+    if (!recipe) return;
+    for (const draft of [recipe, { ...recipe, imageUrl: undefined }]) {
       try {
-        window.sessionStorage.setItem(
-          PENDING_RECIPE_IMPORT_STORAGE_KEY,
-          JSON.stringify(candidate),
-        );
+        window.sessionStorage.setItem(PENDING_RECIPE_IMPORT_STORAGE_KEY, JSON.stringify(draft));
         return;
       } catch {
-        continue;
+        // A large inline image may exceed session storage. Retry without it.
       }
     }
+  }
 
-    // The dashboard remains available even when browser storage is disabled.
-  };
-
-  useEffect(() => {
-    const isReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobileViewport = window.matchMedia("(max-width: 767px)").matches;
-
-    if (isReducedMotion || isMobileViewport) return;
-
-    const onScroll = () => {
-      scrollYRef.current = window.scrollY;
-      if (ticking.current) return;
-
-      ticking.current = true;
-      requestAnimationFrame(() => {
-        const y = scrollYRef.current;
-        if (bgRef.current) {
-          bgRef.current.style.transform = `translate3d(0, ${y * 0.14}px, 0) scale(${1 + y * 0.00006})`;
-        }
-        ticking.current = false;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(
-    () => () => {
-      activeRequestRef.current?.abort();
-      activeRequestRef.current = null;
-    },
-    [],
-  );
-
-  const sourceHost = importedRecipe ? formatSourceHost(importedRecipe.sourceUrl) : "";
-  const previewMeta = importedRecipe
-    ? [
-        importedRecipe.totalTime,
-        importedRecipe.servings,
-        pluralize(importedRecipe.ingredients.length, "ingredient"),
-        pluralize(importedRecipe.steps.length, "step"),
-      ].filter(Boolean)
-    : [];
+  const missing = recipe ? [
+    recipe.ingredients.length === 0 ? "ingredients" : null,
+    recipe.steps.length === 0 ? "steps" : null,
+  ].filter(Boolean) : [];
 
   return (
-    <section className="relative isolate flex min-h-[92svh] items-center overflow-hidden pb-16 pt-28 sm:pb-20 sm:pt-32">
-      <div
-        className="media-veil-hero-sm absolute inset-0 -z-30 md:hidden"
-        style={{
-          "--media": `url(${heroBackground.src})`,
-          backgroundPosition: "64% center",
-          backgroundSize: "cover",
-        } as CSSProperties}
-      />
-      <div
-        ref={bgRef}
-        className="media-veil-hero-lg absolute inset-0 -z-30 hidden scale-[1.02] will-change-transform md:block"
-        style={{
-          "--media": `url(${heroBackground.src})`,
-          backgroundPosition: "center",
-          backgroundSize: "cover",
-        } as CSSProperties}
-      />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_18%_18%,hsl(var(--primary)_/_0.14),transparent_28%)]" />
-
-      <div className="mx-auto grid w-full min-w-0 max-w-7xl grid-cols-[minmax(0,1fr)] items-center gap-10 px-5 sm:px-6 lg:grid-cols-[minmax(0,.82fr)_minmax(520px,1.18fr)] lg:gap-16">
-        <div className="mx-auto w-full min-w-0 max-w-xl text-center lg:mx-0 lg:text-left">
-          <h1 className="animate-fade-in text-balance text-4xl font-bold leading-[1.04] tracking-[-0.035em] text-foreground sm:text-5xl lg:text-[3.55rem]">
-            One link. A recipe you can actually use.
+    <section id="hero" className="scroll-mt-20 border-b border-border bg-background px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
+      <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
+        <div className="max-w-xl">
+          <h1 className="font-display text-balance text-[clamp(3.25rem,6vw,5.5rem)] leading-[1.04] tracking-[-0.035em] text-foreground">
+            Keep the recipe. Skip the clutter.
           </h1>
-
-          <p className="animate-fade-in-delayed mx-auto mt-5 max-w-lg text-base leading-7 text-foreground/78 sm:text-lg sm:leading-8 lg:mx-0">
-            Paste a recipe link and get a clean preview. Save the full recipe to your personal cookbook when you&apos;re ready.
+          <p className="mt-7 max-w-[34rem] text-lg leading-8 text-muted-foreground sm:text-xl">
+            Turn a recipe link into clear ingredients and steps. Preview it for free, then save the recipes you want to cook again.
           </p>
-
-          <div className="animate-fade-in-more mt-7 flex flex-col items-center gap-3 sm:flex-row lg:items-start">
-            <Button size="lg" className="w-full px-6 sm:w-auto" asChild>
-              <Link href="/register">
-                Create your cookbook
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="ghost" className="w-full bg-card/48 px-5 sm:w-auto" asChild>
-              <Link href="/login">Sign in</Link>
-            </Button>
+          <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+            <a href="#try-it" className="inline-flex min-h-11 items-center gap-2 font-semibold text-primary underline-offset-4 hover:underline">
+              Try a recipe link <ArrowRight aria-hidden="true" size={18} />
+            </a>
+            <Link href="/register" className="inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-4 hover:underline">Create your cookbook</Link>
           </div>
         </div>
-
-        <div className="animate-fade-in-more relative mx-auto w-full min-w-0 max-w-2xl">
-          <div className="overflow-hidden rounded-[1.5rem] border border-border/70 bg-card/92 p-4 shadow-[0_28px_80px_hsl(var(--foreground)_/_0.14)] backdrop-blur-xl sm:p-5">
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handleDemoImport();
-              }}
-            >
-              <label className="sr-only" htmlFor="hero-recipe-url">
-                Recipe URL
-              </label>
-              <div className="flex flex-col gap-2 rounded-xl border border-border/75 bg-background/82 p-2 transition focus-within:border-primary/55 focus-within:ring-4 focus-within:ring-primary/10 sm:flex-row">
-                <div className="flex min-w-0 flex-1 items-center gap-3 px-2 py-1.5">
-                  <Link2 className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                  <input
-                    ref={inputRef}
-                    id="hero-recipe-url"
-                    className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-sm"
-                    value={demoUrl}
-                    placeholder="Paste a recipe link"
-                    onChange={(event) => {
-                      setDemoUrl(event.target.value);
-                      setImportError("");
-                    }}
-                    aria-invalid={Boolean(importError)}
-                    aria-describedby={importError ? "hero-import-error" : undefined}
-                    inputMode="url"
-                    spellCheck={false}
-                    autoComplete="url"
-                  />
+        <div id="try-it" className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="border-b border-border px-5 py-4 sm:px-7">
+            <p className="font-display text-2xl text-foreground">See the recipe, first.</p>
+            <p className="mt-1 text-sm text-muted-foreground">No account needed to preview.</p>
+          </div>
+          <div className="p-5 sm:p-7">
+            <form onSubmit={(event) => { event.preventDefault(); void previewRecipe(); }}>
+              <label htmlFor="hero-recipe-url" className="mb-2 block text-sm font-semibold text-foreground">Recipe link</label>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-xl border border-border bg-background px-4 focus-within:border-primary">
+                  <Link2 aria-hidden="true" size={18} className="shrink-0 text-muted-foreground" />
+                  <input ref={inputRef} id="hero-recipe-url" value={url} onChange={(event) => { setUrl(event.target.value); setError(""); }}
+                    placeholder="https://example.com/recipe" className="h-12 w-full min-w-0 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+                    inputMode="url" autoComplete="url" spellCheck={false} aria-invalid={Boolean(error)}
+                    aria-describedby={error ? "hero-import-error" : undefined} />
                 </div>
-                <Button
-                  type="submit"
-                  size="md"
-                  disabled={isImporting}
-                  className="h-11 rounded-lg px-5 sm:h-10"
-                >
-                  {isImporting ? (
-                    <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                  ) : (
-                    <Sparkles aria-hidden="true" />
-                  )}
-                  {isImporting ? "Importing…" : "Preview recipe"}
+                <Button type="submit" disabled={loading} className="min-h-12 shrink-0">
+                  {loading ? <LoaderCircle aria-hidden="true" className="animate-spin motion-reduce:animate-none" /> : <ArrowRight aria-hidden="true" />}
+                  {loading ? "Reading…" : "Preview recipe"}
                 </Button>
               </div>
+              {error && <p id="hero-import-error" role="alert" className="mt-3 text-sm font-medium text-destructive">{error}</p>}
             </form>
-
-            {importError ? (
-              <p
-                id="hero-import-error"
-                className="mt-2 px-1 text-sm font-medium text-red-600 dark:text-red-300"
-                role="alert"
-              >
-                {importError}
-              </p>
-            ) : null}
-
-            <div className="mt-4" aria-busy={isImporting}>
-              {isImporting ? (
-                <ImportPreviewSkeleton />
-              ) : importedRecipe ? (
-                <article className="animate-card-in overflow-hidden rounded-2xl border border-border/60 bg-background/62">
-                  <div className="grid sm:grid-cols-[9.5rem_minmax(0,1fr)]">
-                    <div className="relative h-28 overflow-hidden bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.2),hsl(var(--muted)_/_0.72))] sm:h-full sm:min-h-44">
-                      {importedRecipe.imageUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={importedRecipe.imageUrl}
-                          alt=""
-                          className="absolute inset-0 h-full w-full object-cover"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <Utensils className="absolute inset-0 m-auto h-10 w-10 text-foreground/18" aria-hidden="true" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 p-4 sm:p-5">
-                      <p className="truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-primary">
-                        {[importedRecipe.suggestedCollection, sourceHost].filter(Boolean).join(" · ")}
-                      </p>
-                      <h2 className="mt-1.5 line-clamp-2 text-xl font-bold leading-tight tracking-tight text-foreground">
-                        {importedRecipe.title}
-                      </h2>
-                      <p className="mt-2 line-clamp-2 text-sm leading-5 text-muted-foreground">
-                        {importedRecipe.description}
-                      </p>
-                      <p className="mt-3 text-xs leading-5 text-foreground/68">
-                        {previewMeta.join(" · ")}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3 border-t border-border/55 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-                    <p className="text-xs text-muted-foreground">Full recipe and editing are available in your dashboard.</p>
-                    <Button size="sm" className="shrink-0" asChild>
-                      <Link href="/dashboard" onClick={stashRecipeForDashboard}>
-                        Open full recipe
-                        <ArrowRight aria-hidden="true" />
-                      </Link>
-                    </Button>
+            <div className="mt-6 min-h-56" aria-busy={loading}>
+              {loading ? (
+                <div role="status" className="space-y-4 border-t border-border pt-6">
+                  <span className="sr-only">Reading recipe</span>
+                  <Skeleton className="h-5 w-24" /><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-2/3" />
+                </div>
+              ) : recipe ? (
+                <article className="border-t border-border pt-6">
+                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Preview · {sourceHost(recipe.sourceUrl)}</p>
+                  <h2 className="mt-2 font-display text-3xl leading-tight text-foreground">{recipe.title}</h2>
+                  {recipe.description && <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{recipe.description}</p>}
+                  <p className="mt-4 text-sm text-foreground">{[
+                    recipe.totalTime, recipe.servings,
+                    `${recipe.ingredients.length} ingredients`, `${recipe.steps.length} steps`,
+                  ].filter(Boolean).join(" · ")}</p>
+                  {missing.length > 0 && <p className="mt-3 text-sm text-muted-foreground">We couldn’t find {missing.join(" or ")}. Review the draft before saving.</p>}
+                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
+                    <p className="text-xs text-muted-foreground">Review the full draft before saving.</p>
+                    <Button asChild size="sm"><Link href="/dashboard" onClick={keepDraft}>Open recipe <ArrowRight aria-hidden="true" /></Link></Button>
                   </div>
                 </article>
               ) : (
-                <div className="grid min-h-60 place-items-center rounded-2xl border border-dashed border-border/65 bg-background/42 px-6 py-8 text-center">
-                  <div>
-                    <span className="mx-auto grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                      <Link2 className="h-5 w-5" aria-hidden="true" />
-                    </span>
-                    <p className="mt-3 text-sm font-semibold text-foreground">Recipe preview</p>
-                    <p className="mt-1 text-xs text-muted-foreground">Paste a link to see it here.</p>
-                  </div>
+                <div className="flex min-h-56 flex-col items-center justify-center rounded-xl border border-dashed border-border bg-background px-6 text-center">
+                  <Utensils aria-hidden="true" className="text-primary" size={28} strokeWidth={1.5} />
+                  <p className="mt-4 font-display text-xl text-foreground">Your recipe will appear here</p>
+                  <p className="mt-1 max-w-xs text-sm leading-6 text-muted-foreground">Paste a link from a recipe website to see what we can extract.</p>
                 </div>
               )}
             </div>
@@ -335,6 +151,4 @@ const Hero = () => {
       </div>
     </section>
   );
-};
-
-export default Hero;
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { MailCheck } from "lucide-react";
 
@@ -8,92 +9,65 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { getAuthRedirectUrl } from "@/src/lib/auth";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
+import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
 import { supabase } from "@/src/lib/supabase-client";
 
 export default function ForgotPasswordForm() {
+  const destination = getImportAuthDestination(useSearchParams().get("next"));
+  const authQuery = destination === "/dashboard" ? "" : `?next=${encodeURIComponent(destination)}`;
   const [email, setEmail] = useState("");
   const [sentEmail, setSentEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
-    setNotice(null);
+    setErrorMessage("");
     const normalizedEmail = email.trim();
-
-    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: getAuthRedirectUrl("/reset-password"),
-    });
-
-    if (error) {
-      setNotice({ type: "error", message: getFriendlyAuthErrorMessage(error.message) });
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: getAuthRedirectUrl(`/reset-password${authQuery}`),
+      });
+      if (error) {
+        setErrorMessage(getFriendlyAuthErrorMessage(error.message));
+        return;
+      }
+      setSentEmail(normalizedEmail);
+    } catch {
+      setErrorMessage("Could not send the reset link. Check your connection and try again.");
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    setSentEmail(normalizedEmail);
-    setIsLoading(false);
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
-      <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
-        <h1 className="mb-3 text-center text-3xl font-bold text-foreground">Reset your password</h1>
-        <p className="mb-6 text-center text-sm text-foreground/75">
-          Enter the email you use for Keep &amp; Cook and we&apos;ll send a reset link.
-        </p>
-
-        {sentEmail ? (
-          <div className="text-center" role="status" aria-live="polite">
-            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200">
-              <MailCheck className="size-7" aria-hidden="true" />
-            </div>
-            <p className="text-sm leading-6 text-foreground/80">
-              Check your email for the password reset link.
-            </p>
-            <p className="mt-2 break-words text-sm font-semibold text-foreground">
-              {sentEmail}
-            </p>
-            <Button asChild className="mt-7 w-full">
-              <Link href="/login">Back to sign in</Link>
-            </Button>
-          </div>
-        ) : (
-          <>
-            {notice ? (
-              <div className="mb-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-100">
-                {notice.message}
-              </div>
-            ) : null}
-
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <label className="block space-y-2">
-                <span className="text-sm font-semibold text-foreground">Email</span>
-                <Input
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  autoComplete="email"
-                  placeholder="name@example.com"
-                  required
-                />
-              </label>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send reset link"}
-              </Button>
-            </form>
-
-            <p className="mt-5 text-center text-sm text-foreground/75">
-              Remembered it?{" "}
-              <Link href="/login" className="font-semibold text-primary hover:underline">
-                Back to sign in
-              </Link>
-            </p>
-          </>
-        )}
-      </div>
-    </div>
+    <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <h1 className="text-3xl font-semibold leading-tight">{sentEmail ? "Check your email" : "Reset your password"}</h1>
+      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+        {sentEmail ? "We sent a reset link. Open it to choose a new password." : "Enter your account email and we’ll send you a reset link."}
+      </p>
+      {sentEmail ? (
+        <div className="mt-7" role="status" aria-live="polite">
+          <MailCheck className="h-8 w-8 text-primary" aria-hidden />
+          <p className="mt-4 break-words text-sm font-semibold">{sentEmail}</p>
+          <Button asChild className="mt-6 w-full"><Link href={`/login${authQuery}`}>Back to sign in</Link></Button>
+        </div>
+      ) : (
+        <>
+          {errorMessage ? <p className="mt-5 rounded-xl border border-destructive px-4 py-3 text-sm text-destructive" role="alert">{errorMessage}</p> : null}
+          <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
+            <label className="block space-y-2">
+              <span className="block text-sm font-semibold">Email</span>
+              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} autoComplete="email" placeholder="name@example.com" required />
+            </label>
+            <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? "Sending…" : "Send reset link"}</Button>
+          </form>
+          <p className="mt-7 border-t border-border pt-5 text-center text-sm text-muted-foreground">
+            Remembered your password? <Link href={`/login${authQuery}`} className="font-semibold text-primary underline-offset-4 hover:underline">Sign in</Link>
+          </p>
+        </>
+      )}
+    </section>
   );
 }

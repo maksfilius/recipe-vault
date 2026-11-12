@@ -1,0 +1,48 @@
+# Keep & Cook Chrome prototype
+
+## Install
+
+1. Open `chrome://extensions` in Chrome 116 or later.
+2. Enable **Developer mode**, choose **Load unpacked**, and select this `extension` directory.
+3. Pin Keep & Cook to the toolbar. Visit a recipe page and click its icon.
+
+The extension uses Chrome's native side panel. Click the toolbar icon on each new recipe site to grant temporary page access. If the panel stays open while changing tabs, use the toolbar icon again when Chrome requests page permission.
+
+## Workflow
+
+- The side panel uses the v1 layout: recipe card, separate loading and error screens, and a small Download link below the method. `Read this page` appears only on empty and error screens. After Save opens the website, the panel says the recipe still needs review there; it does not claim cloud saving is complete.
+- Read ingredients and instructions alongside the original website. Check off ingredients.
+- **Start cooking** opens a dialog over the entire source webpage, outside the side panel. It does not use browser fullscreen. If injection fails, a standalone extension tab opens with the same interface and actions. The panel closes after successful injection; **Close** or Escape restores the source webpage.
+- Navigation stays at the bottom of the viewport. Large instruction text fills the remaining space. Long steps are split into parts sized to the window, with **Continue step** before **Next step**. Arrow keys navigate. Ingredients open in a separate drawer. Screen wake lock is best effort.
+- **Download .txt** exports the recipe and source without an account.
+- **Save to library** works in the panel, the page-sized cooking view, and its standalone fallback, including after cooking finishes. It opens the existing `https://keepandcook.com/login` page with a marked recipe fragment. `library-handoff.js` runs before application scripts, validates the recipe, and stages it using the existing `keep-and-cook:pending-recipe-import` contract. Signed-in users go to the dashboard; everyone else logs in or registers. The existing editor opens for review, editing, and explicit Save. Images are excluded from this transfer.
+
+**Version 0.2.0 does not require deploying `/extension-import`.** Old import links are recovered by the extension content script and redirected to the existing login page. Reload the extension in `chrome://extensions` after updating, then reload an old 404 page or save again. The extension itself is loaded locally and is not published to the Chrome Web Store.
+
+## Extraction and privacy
+
+Extraction first reads Recipe JSON-LD from the current page, including nested graphs and instruction sections. If no complete structured recipe exists, the extension calls the existing public Keep & Cook import endpoint with the page URL. This fallback shares the existing anonymous rate limits and may fail on blocked or unsupported sites. It does not send the page HTML or account credentials. Page content is rendered as text, never as HTML in the panel.
+
+Permissions: `activeTab` and `scripting` read the explicitly selected page and open the cooking overlay; `sidePanel` provides the recipe preview; `storage` holds browser-session snapshots for fallback cooking tabs. Persistent host access and the document-start handoff script are limited to `https://keepandcook.com/*`. No Supabase keys or authentication tokens are stored in the extension.
+
+The handoff uses site session storage and keeps the latest unfinished transfer in site local storage for up to seven days for email-confirmation recovery in another tab of the same browser. Recovery is consumed when the dashboard receives the draft; it is not a second saved recipe and never writes to the database itself. This recovery does not follow links opened in a different browser profile/device. Clearing site data removes it. Several simultaneous transfers retain their own same-tab drafts, but cross-tab recovery uses only the latest transfer.
+
+## Manual acceptance check
+
+1. Try a JSON-LD recipe with nested instruction sections and a site requiring server fallback.
+2. Switch tabs and navigate; verify stale recipes disappear and access failures explain how to retry.
+3. Check ingredients, download a UTF-8 text file, and compare steps/source.
+4. Start cooking over the webpage, navigate a long step through all its parts, resize the window, and check that Previous/Next never leave the viewport. Finish, download/save, and close back to the original page. Also verify both actions from the fallback cooking tab.
+5. Transfer a recipe signed in, signed out, and through registration with email confirmation in another tab. Verify that `/login` opens, the editor restores the recipe, Save is required before persistence, and later unrelated dashboard loads do not restore it again.
+6. Try an unsupported page, malformed JSON-LD, missing image, and unavailable network.
+
+This is a local prototype: no store packaging, OCR, AI extraction, or automatic saving. The existing application parser remains the richer fallback. Timer controls are now available in cook mode; they do not promise background notifications after the page closes.
+
+## Verification performed
+
+- Regression tests cover direct panel opening, page-reader injection, saving from standalone extension pages, extraction/export, compatible login handoff before app hydration, old-link recovery, cross-tab recovery, and cleanup after SPA login. Tests also cover the separately implemented app draft-transfer helpers.
+- `npm run build`: production build passed and includes `/extension-import`.
+- Headless Chrome previews use the actual cooking renderer/CSS with mocked Chrome APIs and a long Russian illustrative recipe at 1440×900, 390×844, and 900×450. Text fits and navigation remains visible; the long step becomes two or three parts depending on the viewport.
+- Browser previews do not verify native side-panel permissions, injection into every recipe website, or authenticated production saving. Those remain the manual acceptance checks above.
+
+The panel and cook mode use the application's light and dark color tokens and a local copy of its Fraunces display font. All side-panel states can be inspected through the localhost preview described in `docs/design-extension-panel.md`; cook mode has a separate preview in `docs/design-extension-reader.md`. The signed-in, signed-out, already-saved and saved panel views are design fixtures until the E-02 website handoff returns verified status to the extension.

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import ForgotPasswordForm from "@/src/components/auth/ForgotPasswordForm";
 import { env } from "@/src/lib/env";
@@ -17,5 +18,5 @@ export default async function ForgotPasswordPage() {
     redirect("/dashboard");
   }
 
-  return <ForgotPasswordForm />;
+  return <Suspense fallback={null}><ForgotPasswordForm /></Suspense>;
 }

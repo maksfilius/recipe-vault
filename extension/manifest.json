@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Keep & Cook — Recipe Companion",
+  "version": "0.2.0",
+  "minimum_chrome_version": "116",
+  "description": "Read, cook, download, and keep recipes from the page you are visiting.",
+  "permissions": ["activeTab", "scripting", "sidePanel", "storage"],
+  "host_permissions": ["https://keepandcook.com/*"],
+  "action": { "default_title": "Open recipe in Keep & Cook" },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [{ "matches": ["https://keepandcook.com/*"], "js": ["library-handoff.js"], "run_at": "document_start" }],
+  "side_panel": { "default_path": "sidepanel.html" },
+  "content_security_policy": { "extension_pages": "script-src 'self'; object-src 'none'; connect-src 'self' https://keepandcook.com; img-src 'self' https: data:; style-src 'self'" }
+}

@@ -16,28 +16,3 @@ export async function fetchFavoriteRecipeIds(userId: string) {
 
   return new Set((data as FavoriteRecipeRow[] | null ?? []).map((row) => row.recipe_id));
 }
-
-export async function addFavoriteRecipe(userId: string, recipeId: string) {
-  const { error } = await supabase
-    .from("favorite_recipes")
-    .insert({
-      user_id: userId,
-      recipe_id: recipeId,
-    });
-
-  if (error) {
-    throw error;
-  }
-}
-
-export async function removeFavoriteRecipe(userId: string, recipeId: string) {
-  const { error } = await supabase
-    .from("favorite_recipes")
-    .delete()
-    .eq("user_id", userId)
-    .eq("recipe_id", recipeId);
-
-  if (error) {
-    throw error;
-  }
-}

@@ -1,16 +1,26 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/Fraunces-Variable.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 @layer theme {
   @theme {
     --color-background: hsl(var(--background));
     --color-foreground: hsl(var(--foreground));
     --color-card: hsl(var(--card));
     --color-primary: hsl(var(--primary));
+    --color-primary-hover: hsl(var(--primary-hover));
     --color-primary-foreground: hsl(var(--primary-foreground));
     --color-muted: hsl(var(--muted));
     --color-muted-foreground: hsl(var(--muted-foreground));
     --color-border: hsl(var(--border));
     --color-destructive: hsl(var(--destructive));
+    --color-destructive-foreground: hsl(var(--destructive-foreground));
     --color-toast: hsl(var(--toast));
     --color-toast-foreground: hsl(var(--toast-foreground));
     --color-toast-accent: hsl(var(--toast-accent));
@@ -18,98 +28,57 @@
     --color-ring: hsl(var(--ring));
 
     --radius: 0.75rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1rem;
   }
 }
 
 :root {
   color-scheme: light;
-  --font-sans: "Segoe UI", "SF Pro Display", "Helvetica Neue", Helvetica, sans-serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-display: "Fraunces", Georgia, serif;
   --font-mono: "SFMono-Regular", "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
-  /* Light mirrors the dark theme's warm/cool dialogue instead of being warm all
-     through: warm paper surfaces, plum ink and plum-tinted lines, terracotta
-     accent. Card sits 7 lightness points above the page (was 4) so surfaces read
-     as layers rather than one flat sheet. */
+  /* Warm paper, dark ink, and one terracotta action color. */
   --background: 30 40% 92%;
-  --foreground: 268 30% 13%;
+  --foreground: 268 20% 14%;
   --card: 36 70% 99%;
-  /* Amber at 55% lightness gave white-on-primary a contrast of 2.18:1. This is
-     4.79:1, and 4.89:1 as a label on a card. */
-  --primary: 18 80% 42%;
+  --primary: 18 80% 39%;
+  --primary-hover: 18 80% 34%;
   --primary-foreground: 30 100% 98%;
-  --accent: 286 46% 62%;
-  --muted: 28 32% 87%;
-  --muted-foreground: 266 12% 38%;
-  --border: 285 12% 74%;
-  --destructive: 358 68% 46%;
+  --muted: 30 22% 86%;
+  --muted-foreground: 25 12% 37%;
+  --border: 28 18% 70%;
+  --destructive: 358 68% 44%;
+  --destructive-foreground: 30 100% 98%;
   --ring: var(--primary);
-  /* Toasts use an inverted surface so a confirmation never reads as another card.
-     That flips which end of the scale the icons need, so they get their own
-     tokens rather than reusing primary and destructive. */
-  --toast: 268 30% 13%;
-  --toast-foreground: 34 60% 97%;
+  --toast: 268 20% 14%;
+  --toast-foreground: 30 28% 94%;
   --toast-accent: 34 90% 62%;
   --toast-danger: 4 88% 74%;
 
-  /* Colour used to veil the landing photographs. Slightly warmer and more
-     saturated than the page so the wash reads as sunlit paper, not fog. */
-  --veil: 30 46% 94%;
-
-  --cat-breakfast-label: 27 70% 25%;
-  --cat-breakfast-grad-start: 39 94% 73%;
-  --cat-breakfast-grad-end: 30 86% 61%;
-
-  --cat-lunch-label: 182 52% 25%;
-  --cat-lunch-grad-start: 176 58% 76%;
-  --cat-lunch-grad-end: 190 52% 66%;
-
-  --cat-dinner-label: 8 56% 29%;
-  --cat-dinner-grad-start: 12 90% 80%;
-  --cat-dinner-grad-end: 4 78% 69%;
-
-  --cat-snack-label: 246 34% 31%;
-  --cat-snack-grad-start: 238 74% 84%;
-  --cat-snack-grad-end: 254 62% 75%;
 }
 
 .dark {
   color-scheme: dark;
 
-  --background: 265 63% 4%;
-  --foreground: 0 0% 98%;
-  --card: 267 44% 9%;
-  --primary: 34 86% 55%;
-  --primary-foreground: 24 80% 11%;
-  --accent: 280 70% 60%;
-  --muted: 257 35% 18%;
-  --muted-foreground: 260 18% 82%;
-  --border: 260 28% 24%;
-  /* Lightened so `text-destructive` keeps the pale-red look the hardcoded
-     text-red-300 had on dark surfaces (8.0:1 on a card) while the light theme
-     gets a red that is actually readable on near-white. */
+  --background: 24 24% 9%;
+  --foreground: 30 28% 94%;
+  --card: 25 20% 14%;
+  --primary: 18 80% 64%;
+  --primary-hover: 18 80% 69%;
+  --primary-foreground: 22 35% 10%;
+  --muted: 25 15% 20%;
+  --muted-foreground: 28 16% 72%;
+  --border: 25 13% 33%;
   --destructive: 4 88% 74%;
+  --destructive-foreground: 24 24% 9%;
   --ring: var(--primary);
-  --veil: 265 63% 4%;
-  --toast: 0 0% 97%;
-  --toast-foreground: 268 30% 13%;
-  --toast-accent: 18 80% 42%;
-  --toast-danger: 358 68% 46%;
-
-  --cat-breakfast-label: 43 92% 82%;
-  --cat-breakfast-grad-start: 34 84% 44%;
-  --cat-breakfast-grad-end: 22 72% 32%;
-
-  --cat-lunch-label: 176 62% 78%;
-  --cat-lunch-grad-start: 174 58% 36%;
-  --cat-lunch-grad-end: 192 52% 27%;
-
-  --cat-dinner-label: 8 86% 76%;
-  --cat-dinner-grad-start: 6 70% 36%;
-  --cat-dinner-grad-end: 2 58% 24%;
-
-  --cat-snack-label: 236 86% 84%;
-  --cat-snack-grad-start: 234 72% 46%;
-  --cat-snack-grad-end: 254 64% 34%;
+  --toast: 30 28% 94%;
+  --toast-foreground: 24 24% 9%;
+  --toast-accent: 18 80% 39%;
+  --toast-danger: 358 68% 44%;
 }
 
 @layer base {
@@ -119,7 +88,16 @@
      showed up dark under the home indicator. */
   html { font-family: var(--font-sans); background-color: hsl(var(--background)); }
   body { @apply bg-background text-foreground; font-family: var(--font-sans); }
+  h1 { font-family: var(--font-display); font-optical-sizing: auto; letter-spacing: -0.025em; }
   code, pre, kbd, samp { font-family: var(--font-mono); }
+  :where(a, button, input, select, textarea, [role="button"]):focus-visible {
+    outline: 3px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  ::selection { color: hsl(var(--primary-foreground)); background-color: hsl(var(--primary)); }
+  :where(input, textarea, select) { caret-color: hsl(var(--primary)); }
+  :where(input[type="checkbox"], input[type="radio"]) { accent-color: hsl(var(--primary)); }
+  * { scrollbar-color: hsl(var(--border)) transparent; }
   html, body { transition: background-color .25s ease, color .25s ease, border-color .25s ease; }
   ::view-transition-old(root),
   ::view-transition-new(root) {
@@ -129,128 +107,8 @@
 }
 
 @layer utilities {
-  /* Landing photographs are veiled so text stays readable. A single set of stops
-     cannot serve both themes: over a near-black page the veil reads as a natural
-     scrim, but the identical alphas over a cream page wash the photo out and the
-     few widely spaced stops show up as visible bands. So each theme gets its own
-     ramp — light uses more stops and keeps a clear middle band, dark keeps the
-     original cinematic falloff. The photo itself comes in through --media. */
-  .media-veil-hero-sm {
-    background-image:
-      linear-gradient(
-        180deg,
-        hsl(var(--veil) / 0.95) 0%,
-        hsl(var(--veil) / 0.88) 18%,
-        hsl(var(--veil) / 0.74) 38%,
-        hsl(var(--veil) / 0.7) 54%,
-        hsl(var(--veil) / 0.84) 74%,
-        hsl(var(--veil) / 0.96) 90%,
-        hsl(var(--veil)) 100%
-      ),
-      var(--media);
-  }
+  .font-display { font-family: var(--font-display); font-optical-sizing: auto; }
 
-  .media-veil-hero-lg {
-    background-image:
-      linear-gradient(
-        90deg,
-        hsl(var(--veil) / 0.97) 0%,
-        hsl(var(--veil) / 0.93) 26%,
-        hsl(var(--veil) / 0.8) 46%,
-        hsl(var(--veil) / 0.66) 64%,
-        hsl(var(--veil) / 0.7) 82%,
-        hsl(var(--veil) / 0.78) 100%
-      ),
-      linear-gradient(
-        180deg,
-        hsl(var(--veil) / 0.3) 0%,
-        hsl(var(--veil) / 0.42) 46%,
-        hsl(var(--veil) / 0.72) 78%,
-        hsl(var(--veil)) 100%
-      ),
-      var(--media);
-  }
-
-  .media-veil-cta {
-    background-image:
-      linear-gradient(
-        180deg,
-        hsl(var(--veil)) 0%,
-        hsl(var(--veil) / 0.9) 10%,
-        hsl(var(--veil) / 0.78) 26%,
-        hsl(var(--veil) / 0.7) 44%,
-        hsl(var(--veil) / 0.7) 58%,
-        hsl(var(--veil) / 0.82) 76%,
-        hsl(var(--veil) / 0.94) 90%,
-        hsl(var(--veil)) 100%
-      ),
-      var(--media);
-  }
-
-  .dark .media-veil-hero-sm {
-    background-image:
-      linear-gradient(
-        180deg,
-        hsl(var(--veil) / 0.91),
-        hsl(var(--veil) / 0.7) 48%,
-        hsl(var(--veil)) 100%
-      ),
-      var(--media);
-  }
-
-  .dark .media-veil-hero-lg {
-    background-image:
-      linear-gradient(
-        90deg,
-        hsl(var(--veil) / 0.95) 0%,
-        hsl(var(--veil) / 0.78) 42%,
-        hsl(var(--veil) / 0.53) 72%,
-        hsl(var(--veil) / 0.76) 100%
-      ),
-      linear-gradient(180deg, hsl(var(--veil) / 0.3), hsl(var(--veil)) 100%),
-      var(--media);
-  }
-
-  .dark .media-veil-cta {
-    background-image:
-      linear-gradient(
-        180deg,
-        hsl(var(--veil)) 0%,
-        hsl(var(--veil) / 0.76) 12%,
-        hsl(var(--veil) / 0.34) 38%,
-        hsl(var(--veil) / 0.34) 62%,
-        hsl(var(--veil) / 0.78) 84%,
-        hsl(var(--veil)) 100%
-      ),
-      var(--media);
-  }
-
-  @keyframes fade-in { from { opacity: 0; transform: translateY(6px)} to { opacity: 1; transform: translateY(0)} }
-  @keyframes card-in {
-    0% {
-      opacity: 0;
-      transform: translateY(18px) scale(0.985);
-      filter: blur(6px);
-      border-color: transparent;
-      box-shadow: 0 0 0 hsl(var(--background) / 0);
-    }
-    65% {
-      border-color: transparent;
-      box-shadow: 0 0 0 hsl(var(--background) / 0);
-    }
-    100% {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-      filter: blur(0);
-      border-color: hsl(var(--border) / 0.6);
-      box-shadow: 0 35px 90px hsl(var(--background) / 0.75);
-    }
-  }
-  @keyframes image-shimmer {
-    0% { transform: translateX(-120%); opacity: 0; }
-    20% { opacity: 0.35; }
-    100% { transform: translateX(140%); opacity: 0; }
-  }
   /* Toasts rise from the thumb on a phone and drop in from the top on wide
      screens, matching where each one is anchored. */
   @keyframes notice-in { from { opacity: 0; transform: translateY(12px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
@@ -259,9 +117,4 @@
   @media (min-width: 640px) { .animate-notice-in { animation-name: notice-in-top; } }
   @media (prefers-reduced-motion: reduce) { .animate-notice-in { animation: none; } }
 
-  .animate-fade-in { animation: fade-in .8s ease-out both; }
-  .animate-fade-in-delayed { animation: fade-in .8s ease-out .2s both; }
-  .animate-fade-in-more { animation: fade-in .8s ease-out .4s both; }
-  .animate-card-in { animation: card-in .55s cubic-bezier(.22,1,.36,1) both; }
-  .animate-image-shimmer { animation: image-shimmer 1.8s ease-out infinite; }
 }

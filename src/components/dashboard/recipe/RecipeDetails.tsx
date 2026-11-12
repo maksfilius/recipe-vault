@@ -1,21 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import {
-  ArrowLeft,
-  Clock3,
-  ExternalLink,
-  Pencil,
-  Trash,
-  Utensils,
-  Users,
-} from "lucide-react";
-
+import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { ArrowLeft, ExternalLink, MoreHorizontal, Pencil, Trash } from "lucide-react";
 import { CookingMode } from "./CookingMode";
 import type { Recipe } from "../../../types/recipe";
 import { Button } from "../../ui/button";
-import { formatRelativeTime } from "@/src/lib/format-relative-time";
 import { requestAppFullscreen } from "@/src/lib/fullscreen";
+import { getVisibleRecipeDescription } from "@/src/lib/recipe-details";
 import { formatSourceUrl } from "@/src/lib/utils";
 
 type RecipeDetailsProps = {
@@ -26,152 +17,136 @@ type RecipeDetailsProps = {
   showActions?: boolean;
 };
 
-export function RecipeDetails({
-  recipe,
-  onBack,
-  onEdit,
-  onDelete,
-  showActions = true,
-}: RecipeDetailsProps) {
+export function RecipeDetails({ recipe, onBack, onEdit, onDelete, showActions = true }: RecipeDetailsProps) {
   const [isCooking, setIsCooking] = useState(false);
-  const formattedSourceUrl = recipe.sourceUrl ? formatSourceUrl(recipe.sourceUrl) : null;
-  const hasIngredients = recipe.ingredients.length > 0;
-  const hasSteps = recipe.steps.length > 0;
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const startCookingRef = useRef<HTMLButtonElement>(null);
+  const actionsRef = useRef<HTMLDivElement>(null);
+  const actionsButtonRef = useRef<HTMLButtonElement>(null);
+  const firstActionRef = useRef<HTMLButtonElement>(null);
+  const visibleSteps = recipe.steps.filter((step) => step.text.trim());
+  const sourceHost = recipe.sourceUrl ? formatSourceUrl(recipe.sourceUrl) : null;
+  const description = getVisibleRecipeDescription(recipe);
 
-  if (isCooking) {
-    return <CookingMode recipe={recipe} onExit={() => setIsCooking(false)} />;
-  }
+  useEffect(() => {
+    if (actionsOpen) firstActionRef.current?.focus();
+  }, [actionsOpen]);
+  useEffect(() => {
+    if (!actionsOpen) return;
+    const closeOutside = (event: PointerEvent) => {
+      if (!actionsRef.current?.contains(event.target as Node)) setActionsOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [actionsOpen]);
+
+  const onActionsKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape" && actionsOpen) {
+      event.preventDefault();
+      setActionsOpen(false);
+      actionsButtonRef.current?.focus();
+      return;
+    }
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    if (!actionsOpen) {
+      setActionsOpen(true);
+      return;
+    }
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'));
+    if (!items.length) return;
+    const current = items.indexOf(document.activeElement as HTMLButtonElement);
+    const next = event.key === "ArrowDown" ? (current + 1) % items.length : (current - 1 + items.length) % items.length;
+    items[next].focus();
+  };
+
+  if (isCooking) return <CookingMode recipe={{ ...recipe, steps: visibleSteps }} onExit={() => {
+    setIsCooking(false);
+    requestAnimationFrame(() => startCookingRef.current?.focus());
+  }} />;
 
   return (
-    <section className="mx-auto w-full max-w-5xl">
-      <div className="mb-4 flex items-center justify-between gap-2 sm:mb-5">
-        <Button variant="ghost" className="gap-2 border border-border/60 bg-card/80" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Back to recipes</span>
-          <span className="sm:hidden">Back</span>
+    <section className="mx-auto w-full max-w-3xl pb-24">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <Button type="button" variant="ghost" size="sm" aria-label="Back to recipes" onClick={onBack}>
+          <ArrowLeft aria-hidden />Recipes
         </Button>
-        {showActions ? (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" aria-label="Edit recipe" className="gap-2 border border-border/60 bg-card/80" onClick={onEdit}>
-              <Pencil className="h-4 w-4" />
-              <span className="hidden sm:inline">Edit</span>
+        {showActions && (onEdit || onDelete) ? (
+          <div ref={actionsRef} className="relative" onKeyDown={onActionsKeyDown} onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setActionsOpen(false);
+          }}>
+            <Button ref={actionsButtonRef} type="button" variant="ghost" size="icon" aria-label="More recipe actions" aria-haspopup="menu" aria-expanded={actionsOpen} aria-controls="recipe-actions" onClick={() => setActionsOpen((open) => !open)}>
+              <MoreHorizontal aria-hidden />
             </Button>
-            <Button variant="ghost" aria-label="Delete recipe" className="gap-2 border border-destructive/45 bg-card/80 text-destructive" onClick={onDelete}>
-              <Trash className="h-4 w-4" />
-              <span className="hidden sm:inline">Delete</span>
-            </Button>
+            {actionsOpen ? (
+              <div id="recipe-actions" role="menu" aria-label="Recipe actions" className="absolute right-0 top-[calc(100%+8px)] z-20 w-44 rounded-xl border border-border bg-card p-1.5 shadow-lg">
+                {onEdit ? <button ref={firstActionRef} type="button" role="menuitem" className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-medium text-foreground hover:bg-muted" onClick={() => { setActionsOpen(false); onEdit(); }}><Pencil className="size-4" aria-hidden />Edit</button> : null}
+                {onDelete ? <button ref={!onEdit ? firstActionRef : undefined} type="button" role="menuitem" className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-medium text-destructive hover:bg-muted" onClick={() => { setActionsOpen(false); onDelete(); }}><Trash className="size-4" aria-hidden />Delete</button> : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
 
-      <article className="overflow-hidden rounded-2xl border border-border/70 bg-card/82 text-foreground shadow-[0_28px_72px_hsl(var(--foreground)_/_0.1)]">
-        <div className="relative grid min-h-56 place-items-center overflow-hidden bg-[linear-gradient(135deg,hsl(var(--primary)_/_0.2),hsl(var(--muted)_/_0.72))] px-4 py-10 text-center sm:min-h-64 sm:px-6 sm:py-12">
-          {recipe.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={recipe.imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-          ) : null}
-          <div className="absolute inset-0 bg-gradient-to-b from-background/25 via-background/55 to-background/88" />
-          {!recipe.imageUrl ? <Utensils className="relative z-10 mb-4 h-12 w-12 text-foreground/35" /> : null}
-          <div className="relative z-10 max-w-3xl">
-            <div className="mb-4 flex flex-wrap justify-center gap-2">
-              {recipe.collections.map((collection) => (
-                <span key={collection.id} className="rounded-full border border-primary/30 bg-background/75 px-3 py-1 text-xs font-semibold backdrop-blur">
-                  {collection.name}
-                </span>
-              ))}
-            </div>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{recipe.title}</h1>
-            <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-              {recipe.totalTime ? <span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" />{recipe.totalTime}</span> : null}
-              {recipe.servings ? <span className="inline-flex items-center gap-1.5"><Users className="h-4 w-4" />{recipe.servings}</span> : null}
-              <span>Updated {formatRelativeTime(recipe.updatedAt ?? recipe.createdAt)}</span>
-            </div>
-
-            {hasSteps ? (
-              <Button
-                type="button"
-                className="mt-5 h-12 px-6"
-                onClick={() => {
-                  // Requested here, inside the gesture: by the time cooking mode
-                  // has mounted the browser no longer treats it as user-initiated.
-                  void requestAppFullscreen();
-                  setIsCooking(true);
-                }}
-              >
-                Start cooking
-              </Button>
-            ) : null}
+      <article className="overflow-hidden rounded-2xl border border-border bg-card">
+        {recipe.imageUrl ? (
+          <div className="h-56 overflow-hidden bg-muted sm:h-72">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={recipe.imageUrl} alt="" className="h-full w-full object-cover" />
           </div>
-        </div>
+        ) : null}
 
-        {/* Mobile drops the outer padding and the inner card chrome: four nested
-            paddings left the text column barely 250px wide on a phone. */}
-        <div className="grid gap-0 p-0 sm:gap-6 sm:p-5 lg:grid-cols-[1fr_.85fr] lg:p-7">
-          <section className="border-t border-border/60 bg-background/45 p-4 sm:rounded-2xl sm:border sm:p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-wide">Description</h2>
-            <p className="mt-3 text-base leading-7 text-muted-foreground">
-              {recipe.description || "No description added yet."}
-            </p>
-            {recipe.tags.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {recipe.tags.map((tag) => (
-                  <span key={tag} className="rounded-full border border-border/60 bg-card/70 px-2.5 py-1 text-xs text-muted-foreground">#{tag}</span>
-                ))}
-              </div>
-            ) : null}
-            {recipe.sourceUrl ? (
-              <a
-                href={recipe.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 flex min-w-0 items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/78 px-3 py-2 text-sm font-semibold transition hover:border-border"
-              >
-                <span className="flex items-center gap-2"><ExternalLink className="h-4 w-4" />View source</span>
-                <span className="truncate text-xs font-medium text-muted-foreground">{formattedSourceUrl}</span>
-              </a>
-            ) : null}
-          </section>
-
-          <section className="border-t border-border/60 bg-background/45 p-4 sm:rounded-2xl sm:border sm:p-5">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide">Ingredients</h2>
-              {hasIngredients ? <span className="text-xs text-muted-foreground">{recipe.ingredients.length} items</span> : null}
+        <header className="space-y-5 p-5 sm:p-8">
+          <h1 className="break-words text-3xl font-semibold leading-tight sm:text-4xl">{recipe.title}</h1>
+          {sourceHost || recipe.totalTime || recipe.servings ? (
+            <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap text-sm text-muted-foreground">
+              {sourceHost ? (
+                <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={"Original recipe at " + sourceHost} className="inline-flex min-w-0 items-center gap-1 underline decoration-border underline-offset-4 hover:text-foreground">
+                  <span className="truncate">{sourceHost}</span><ExternalLink className="size-3.5 shrink-0" aria-hidden />
+                </a>
+              ) : null}
+              {sourceHost && (recipe.totalTime || recipe.servings) ? <span aria-hidden>·</span> : null}
+              {recipe.totalTime ? <span className="shrink-0">{recipe.totalTime}</span> : null}
+              {recipe.totalTime && recipe.servings ? <span aria-hidden>·</span> : null}
+              {recipe.servings ? <span className="shrink-0">{recipe.servings}</span> : null}
             </div>
-            {hasIngredients ? (
-              <ul className="mt-2 divide-y divide-border/40 sm:mt-4 sm:space-y-2 sm:divide-y-0">
-                {recipe.ingredients.map((ingredient) => (
-                  <li key={ingredient.id} className="py-2 text-sm text-muted-foreground sm:rounded-lg sm:border sm:border-border/50 sm:bg-card/78 sm:px-3">
-                    {ingredient.amount ? <span className="font-semibold text-foreground">{ingredient.amount} </span> : null}
-                    {ingredient.unit ? <span className="font-semibold text-foreground">{ingredient.unit} </span> : null}
-                    {ingredient.name}
-                  </li>
-                ))}
-              </ul>
-            ) : <p className="mt-4 text-sm text-muted-foreground">No ingredients added yet.</p>}
-          </section>
+          ) : null}
+          {visibleSteps.length > 0 ? (
+            <Button ref={startCookingRef} type="button" onClick={() => {
+              void requestAppFullscreen();
+              setIsCooking(true);
+            }}>Start cooking</Button>
+          ) : null}
+          {description ? <p className="max-w-[70ch] break-words whitespace-pre-wrap text-base leading-7 text-muted-foreground">{description}</p> : null}
+        </header>
 
-          <section className="border-t border-border/60 bg-background/45 p-4 sm:rounded-2xl sm:border sm:p-5 lg:col-span-2">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide">Steps</h2>
-              {hasSteps ? <span className="text-xs text-muted-foreground">{recipe.steps.length} steps</span> : null}
-            </div>
-            {/* Phones float the step number so the text wraps back under it after
-                the first line. Its 24px box matches leading-6 exactly, so the second
-                line starts at the left edge instead of half-indented. From sm up the
-                row is a flex column again, where floats are ignored and the tidier
-                alignment costs nothing. */}
-            {hasSteps ? (
-              <ol className="mt-2 divide-y divide-border/40 sm:mt-4 sm:grid sm:gap-3 sm:divide-y-0">
-                {recipe.steps.map((step, index) => (
-                  <li key={step.id} className="flow-root py-3 sm:flex sm:gap-3 sm:rounded-lg sm:border sm:border-border/50 sm:bg-card/78 sm:p-3">
-                    <span className="float-left mr-2.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border border-primary/35 bg-primary/10 text-xs font-semibold sm:float-none sm:mr-0 sm:h-7 sm:w-7 sm:text-sm">{index + 1}</span>
-                    <p className="text-sm leading-6 text-muted-foreground sm:pt-1">{step.text}</p>
-                  </li>
-                ))}
-              </ol>
-            ) : <p className="mt-4 text-sm text-muted-foreground">No steps added yet.</p>}
-          </section>
-        </div>
+        <section className="border-t border-border p-5 sm:p-8">
+          <h2 className="text-xl font-semibold">Ingredients</h2>
+          {recipe.ingredients.length > 0 ? (
+            <ul className="mt-4 divide-y divide-border">
+              {recipe.ingredients.map((ingredient) => (
+                <li key={ingredient.id} className="break-words py-3 text-base leading-6">
+                  {(ingredient.amount || ingredient.unit) ? <span className="font-semibold">{[ingredient.amount, ingredient.unit].filter(Boolean).join(" ")} </span> : null}
+                  {ingredient.name}
+                </li>
+              ))}
+            </ul>
+          ) : <p className="mt-4 text-sm text-muted-foreground">No ingredients added yet.</p>}
+        </section>
+
+        <section className="border-t border-border p-5 sm:p-8">
+          <h2 className="text-xl font-semibold">Steps</h2>
+          {visibleSteps.length > 0 ? (
+            <ol className="mt-4 divide-y divide-border">
+              {visibleSteps.map((step, index) => (
+                <li key={step.id} className="flex gap-4 py-4 first:pt-0">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold" aria-hidden>{index + 1}</span>
+                  <p className="min-w-0 flex-1 break-words whitespace-pre-wrap text-base leading-7">{step.text}</p>
+                </li>
+              ))}
+            </ol>
+          ) : <p className="mt-4 text-sm text-muted-foreground">No steps added yet. Cooking mode is unavailable.</p>}
+        </section>
       </article>
     </section>
   );

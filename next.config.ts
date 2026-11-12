@@ -21,10 +21,17 @@ const supabaseImageOrigin = (() => {
 
 const nextConfig: NextConfig = {
   devIndicators: false,
+  async redirects() {
+    return [{ source: "/dashboard/favorites", destination: "/dashboard", permanent: false }];
+  },
   async headers() {
     const scriptSrc = isDevelopment
       ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
       : "script-src 'self' 'unsafe-inline'";
+    const connectSrc = [
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      ...(isDevelopment ? [supabaseImageOrigin] : []),
+    ].join(" ");
 
     return [
       {
@@ -41,10 +48,10 @@ const nextConfig: NextConfig = {
               "font-src 'self' data:",
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+              connectSrc,
               "object-src 'none'",
-              "upgrade-insecure-requests",
-            ].join("; "),
+              isDevelopment ? "" : "upgrade-insecure-requests",
+            ].filter(Boolean).join("; "),
           },
           {
             key: "Referrer-Policy",

@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
+import { applyThemePreference, readThemePreference } from "@/src/lib/theme-preference";
 
 export default function ThemeInitializer() {
   useEffect(() => {
-    const root = document.documentElement;
-    const stored = window.localStorage.getItem("theme");
-    const theme = stored === "light" || stored === "dark" ? stored : "dark";
-
-    root.classList.toggle("dark", theme === "dark");
-    root.style.colorScheme = theme;
-    window.dispatchEvent(new Event("theme-change"));
+    applyThemePreference(readThemePreference());
+    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const onSystemChange = () => {
+      if (readThemePreference() === "system") applyThemePreference("system");
+    };
+    media.addEventListener("change", onSystemChange);
+    return () => media.removeEventListener("change", onSystemChange);
   }, []);
 
   return null;

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Keep &amp; Cook</title>
+    <link rel="stylesheet" href="tokens.css">
+    <link rel="stylesheet" href="styles.css">
+    <script src="panel.js" type="module"></script>
+  </head>
+  <body>
+    <header class="panel-header">
+      <a class="brand" href="https://keepandcook.com" target="_blank" rel="noreferrer"><span class="brand-mark" aria-hidden="true">K<span>·</span>C</span><span>Keep &amp; Cook</span></a>
+      <button id="refresh" class="text-button" hidden>Read this page</button>
+    </header>
+    <main>
+      <p id="status" class="sr-only" role="status" aria-live="polite">Reading page</p>
+      <section id="panel-state" class="state-card" data-state="loading" aria-labelledby="state-title">
+        <div id="skeleton" class="skeleton"><div class="skeleton-photo" aria-hidden="true"></div><div class="skeleton-line short" aria-hidden="true"></div><div class="skeleton-line" aria-hidden="true"></div><div class="skeleton-line medium" aria-hidden="true"></div><div class="skeleton-button" aria-hidden="true"></div><p id="loading-label" class="loading-label">Reading page</p></div>
+        <div id="state-copy" class="state-copy"><div id="state-icon" class="state-icon" aria-hidden="true">✳</div><p id="state-eyebrow" class="eyebrow">On this page</p><h1 id="state-title">Reading page</h1><p id="state-description">Looking for ingredients and instructions.</p><p id="state-domain" class="state-domain"></p><a id="manual-link" href="https://keepandcook.com/login?next=%2Fdashboard%3Fadd%3Dmanual" target="_blank" rel="noreferrer" hidden>Add manually on web ↗</a></div>
+      </section>
+      <article id="recipe" class="recipe-card" hidden>
+        <img id="photo" alt="" hidden>
+        <div class="recipe-inner">
+          <p class="eyebrow">Recipe on this page</p>
+          <h1 id="title"></h1>
+          <a id="source" class="source-link" target="_blank" rel="noreferrer"></a>
+          <p id="meta" class="recipe-meta"></p>
+          <p id="description" class="description"></p>
+          <p id="partial-warning" class="notice" hidden>This recipe may be incomplete. Review it before saving.</p>
+          <div class="actions"><button id="cook" class="primary">Start cooking <span aria-hidden="true">→</span></button><button id="save" class="secondary">Save</button></div>
+          <div id="save-feedback" class="save-feedback" role="status" aria-live="polite" hidden></div>
+          <section class="recipe-section"><div class="section-heading"><h2>Ingredients</h2><span id="ingredient-count" class="section-count"></span></div><ul id="ingredients" class="ingredient-list"></ul></section>
+          <section id="method" class="recipe-section"><h2>Method</h2><ol id="steps" class="step-list"></ol></section>
+          <a id="download" class="download-link" href="#">Download .txt ↓</a>
+        </div>
+      </article>
+    </main>
+  </body>
+</html>

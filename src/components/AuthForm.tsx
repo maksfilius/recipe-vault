@@ -1,300 +1,150 @@
-"use client"
+"use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle2, LogIn } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import {
-  getAuthRedirectUrl,
-} from "@/src/lib/auth";
+import { getAuthRedirectUrl } from "@/src/lib/auth";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
+import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
+import { supabase } from "@/src/lib/supabase-client";
 import { Button } from "./ui/button";
-import {supabase} from "@/src/lib/supabase-client";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
+import { Input } from "./ui/input";
 
-interface AuthFormProps {
-  type: 'login' | 'register'
-}
+type AuthFormProps = { type: "login" | "register" };
 
 const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(8, { message: "Password must be at least 8 characters." }),
+  email: z.string().email("Enter a valid email address."),
+  password: z.string().min(1, "Enter your password."),
 });
-
 const registerSchema = loginSchema.extend({
-  username: z.string().min(2, { message: "Username must be at least 2 characters." }),
+  username: z.string().min(2, "Enter at least 2 characters."),
+  password: z.string().min(8, "Use at least 8 characters."),
   repeatPassword: z.string(),
-}).refine((data) => data.password === data.repeatPassword, {
-  message: "Passwords don't match.",
+}).refine((values) => values.password === values.repeatPassword, {
+  message: "Passwords do not match.",
   path: ["repeatPassword"],
 });
-
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
-const formTitles = {
-  login: 'Login',
-  register: 'Register'
-};
-
-const submitLabels = {
-  login: "Sign in",
-  register: "Create account",
-};
-
-const emailConfirmationMessage = "Check your email to confirm your address before signing in.";
-
-export default function AuthForm({type}: AuthFormProps) {
-  const [isLoading, setLoading] = useState<boolean>(false);
-  const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+export default function AuthForm({ type }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  const schema = type === "login" ? loginSchema : registerSchema;
-
+  const destination = getImportAuthDestination(searchParams.get("next"));
+  const authQuery = destination === "/dashboard" ? "" : `?next=${encodeURIComponent(destination)}`;
+  const hasImportDraft = new URL(destination, "https://keepandcook.com").searchParams.has("importDraft");
+  const [isLoading, setIsLoading] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
   const form = useForm<LoginValues | RegisterValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      email: "",
-      password: "",
-      ...(type === "register"
-        ? { username: "", repeatPassword: "" }
-        : {}),
-    }
+    resolver: zodResolver(type === "login" ? loginSchema : registerSchema),
+    defaultValues: { email: "", password: "", ...(type === "register" ? { username: "", repeatPassword: "" } : {}) },
   });
 
-  async function onSubmit(values: LoginValues | RegisterValues) {
+  const onSubmit = async (values: LoginValues | RegisterValues) => {
+    setIsLoading(true);
+    setNotice("");
     try {
-      setLoading(true);
-      setNotice(null);
-
       if (type === "register") {
-        const registerValues = values as RegisterValues;
-
+        const registration = values as RegisterValues;
         const { data, error } = await supabase.auth.signUp({
-          email: registerValues.email,
-          password: registerValues.password,
-          options: {
-            data: {
-              username: registerValues.username,
-            },
-            emailRedirectTo: getAuthRedirectUrl("/dashboard"),
-          },
+          email: registration.email,
+          password: registration.password,
+          options: { data: { username: registration.username }, emailRedirectTo: getAuthRedirectUrl(destination) },
         });
-
         if (error) {
           form.setError("email", { message: getFriendlyAuthErrorMessage(error.message) });
           return;
         }
-
         if (!data.session) {
-          setRegisteredEmail(registerValues.email);
+          setRegisteredEmail(registration.email);
           form.reset();
           return;
         }
-
-        router.replace("/dashboard");
       } else {
-        const loginValues = values as LoginValues;
-
-        const { error } = await supabase.auth.signInWithPassword({
-          email: loginValues.email,
-          password: loginValues.password,
-        });
-
+        const login = values as LoginValues;
+        const { error } = await supabase.auth.signInWithPassword({ email: login.email, password: login.password });
         if (error) {
           form.setError("password", { message: getFriendlyAuthErrorMessage(error.message) });
           return;
         }
-
-        router.replace("/dashboard");
       }
+      router.replace(destination);
+    } catch {
+      setNotice("Could not connect. Check your connection and try again.");
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,hsl(var(--primary)_/_0.18),transparent_32%),linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.55))] px-4">
-      <div className="w-full max-w-md rounded-[1.25rem] border border-border/70 bg-card/92 p-8 shadow-[0_22px_60px_hsl(var(--foreground)_/_0.12)] backdrop-blur">
-        <h2 className="text-3xl font-bold text-foreground mb-6 text-center">
-          {type === "register" && registeredEmail ? "Account created" : formTitles[type]}
-        </h2>
-        {type === "register" && registeredEmail ? (
-          <div className="text-center" role="status" aria-live="polite">
-            <div className="mx-auto mb-5 flex size-14 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/15 text-emerald-700 dark:text-emerald-200">
-              <CheckCircle2 className="size-7" aria-hidden="true" />
-            </div>
-            <p className="mt-3 text-sm leading-6 text-foreground/80">
-              {emailConfirmationMessage}
-            </p>
-            <p className="mt-2 break-words text-sm font-semibold text-foreground">
-              {registeredEmail}
-            </p>
-            <Button asChild className="mt-7 w-full">
-              <Link href="/login">
-                <LogIn aria-hidden="true" />
-                Go to login
-              </Link>
-            </Button>
-          </div>
-        ) : (
-          <>
-        {searchParams.get("reset") === "success" && type === "login" ? (
-          <div
-            className="mb-4 rounded-lg border border-emerald-600/45 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-950 shadow-sm dark:border-emerald-400/60 dark:bg-emerald-500/20 dark:text-emerald-50"
-            role="status"
-            aria-live="polite"
-          >
-            Password updated. Sign in with your new password.
-          </div>
-        ) : null}
-        {notice ? (
-          <div
-            className={[
-              "mb-4 rounded-lg border px-4 py-3 text-sm",
-              notice.type === "error"
-                ? "border-red-400/40 bg-red-500/10 text-red-700 dark:text-red-100"
-                : "border-emerald-500/45 bg-emerald-500/15 font-medium text-emerald-900 dark:text-emerald-100",
-            ].join(" ")}
-            role="status"
-            aria-live="polite"
-          >
-            {notice.message}
-          </div>
-        ) : null}
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            { type == "register" && (
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Name"
-                        autoComplete="nickname"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ) }
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="Email"
-                      autoComplete="email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+    <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 sm:p-8">
+      <h1 className="text-3xl font-semibold leading-tight">
+        {registeredEmail ? "Check your email" : type === "login" ? "Welcome back" : "Create your account"}
+      </h1>
+      <p className="mt-3 text-sm leading-6 text-muted-foreground">
+        {registeredEmail
+          ? "Confirm your address to finish creating your account."
+          : type === "login"
+            ? "Sign in to open your recipe collection."
+            : "Save recipes and make them easy to find again."}
+      </p>
+      {hasImportDraft ? <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">Your recipe draft is waiting. Sign in, then review and save it.</p> : null}
+
+      {registeredEmail ? (
+        <div className="mt-7" role="status" aria-live="polite">
+          <CheckCircle2 className="h-8 w-8 text-primary" aria-hidden />
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">We sent a confirmation link to <span className="break-words font-semibold text-foreground">{registeredEmail}</span>.</p>
+          <Button asChild className="mt-6 w-full"><Link href={`/login${authQuery}`}>Go to sign in</Link></Button>
+        </div>
+      ) : (
+        <>
+          {searchParams.get("reset") === "success" && type === "login" ? (
+            <p className="mt-5 rounded-xl border border-border bg-muted px-4 py-3 text-sm" role="status">Password updated. Sign in with your new password.</p>
+          ) : null}
+          {notice ? <p className="mt-5 rounded-xl border border-destructive bg-card px-4 py-3 text-sm text-destructive" role="alert">{notice}</p> : null}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="mt-7 space-y-5">
+              {type === "register" ? (
+                <FormField control={form.control} name="username" render={({ field }) => (
+                  <FormItem><FormLabel>Your name</FormLabel><FormControl><Input autoComplete="nickname" placeholder="How should we call you?" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              ) : null}
+              <FormField control={form.control} name="email" render={({ field }) => (
+                <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" autoComplete="email" placeholder="name@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="password" render={({ field }) => (
+                <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" autoComplete={type === "register" ? "new-password" : "current-password"} {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              {type === "login" ? (
+                <div className="text-right"><Link href={`/forgot-password${authQuery}`} className="text-sm font-semibold text-primary underline-offset-4 hover:underline">Forgot password?</Link></div>
+              ) : (
+                <FormField control={form.control} name="repeatPassword" render={({ field }) => (
+                  <FormItem><FormLabel>Repeat password</FormLabel><FormControl><Input type="password" autoComplete="new-password" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
               )}
-            />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Password"
-                      autoComplete={type === "register" ? "new-password" : "current-password"}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {type === "login" ? (
-              <div className="-mt-2 text-right">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm font-semibold text-primary hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-            ) : null}
-            { type == "register" && (
-              <FormField
-                control={form.control}
-                name="repeatPassword"
-                render={({ field }) => (
-                  <FormItem>
-                  <FormLabel>Repeat Password</FormLabel>
-                  <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Repeat Password"
-                        autoComplete="new-password"
-                        {...field}
-                      />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-                )}
-              />
-            ) }
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Loading..." : submitLabels[type]}
-            </Button>
-            {type === "register" ? (
-              <p className="text-center text-xs leading-5 text-foreground/70">
-                By creating an account, you agree to our
-                <span className="block">
-                  <Link href="/terms" className="font-semibold text-primary hover:underline">
-                    Terms of Service
-                  </Link>{" "}
-                  and{" "}
-                  <Link href="/privacy" className="font-semibold text-primary hover:underline">
-                    Privacy Policy
-                  </Link>
-                  .
-                </span>
-              </p>
-            ) : null}
-          </form>
-          <p className="mt-5 text-center text-sm text-foreground/75">
-            {type === "login" ? "No account yet?" : "Already have an account?"}{" "}
-            <Link
-              href={type === "login" ? "/register" : "/login"}
-              className="font-semibold text-primary hover:underline"
-            >
-              {type === "login" ? "Create one" : "Sign in"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (type === "login" ? "Signing in…" : "Creating account…") : (type === "login" ? "Sign in" : "Create account")}
+              </Button>
+            </form>
+          </Form>
+          {type === "register" ? (
+            <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">By creating an account, you agree to our <Link href="/terms" className="font-semibold text-primary underline-offset-2 hover:underline">Terms</Link> and <Link href="/privacy" className="font-semibold text-primary underline-offset-2 hover:underline">Privacy Policy</Link>.</p>
+          ) : null}
+          <p className="mt-7 border-t border-border pt-5 text-center text-sm text-muted-foreground">
+            {type === "login" ? "New to Keep & Cook?" : "Already have an account?"}{" "}
+            <Link href={`${type === "login" ? "/register" : "/login"}${authQuery}`} className="font-semibold text-primary underline-offset-4 hover:underline">
+              {type === "login" ? "Create an account" : "Sign in"}
             </Link>
           </p>
-      </Form>
-          </>
-        )}
-    </div>
-    </div>
-  )
+        </>
+      )}
+    </section>
+  );
 }

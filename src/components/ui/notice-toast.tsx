@@ -27,7 +27,7 @@ export function NoticeToast({ type, message, onDismiss }: NoticeToastProps) {
         // Inverted surface: on the light theme a card-coloured toast blended into
         // the cards behind it. Dark plate on light, light plate on dark, so it
         // always reads as a layer above the app rather than part of it.
-        "animate-notice-in fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[80] flex items-start gap-3 rounded-2xl bg-toast px-4 py-3 text-toast-foreground shadow-2xl shadow-black/25",
+        "animate-notice-in fixed inset-x-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-[80] flex items-center gap-3 rounded-2xl bg-toast px-4 py-3 text-toast-foreground shadow-[0_16px_40px_hsl(var(--foreground)_/_0.2)]",
         "sm:inset-x-auto sm:bottom-auto sm:right-6 sm:top-6 sm:w-auto sm:max-w-sm",
       )}
     >
@@ -43,7 +43,7 @@ export function NoticeToast({ type, message, onDismiss }: NoticeToastProps) {
         <button
           type="button"
           aria-label="Dismiss notification"
-          className="-mr-1 -mt-1 shrink-0 rounded-lg p-1 text-toast-foreground/65 transition hover:text-toast-foreground"
+          className="-mr-2 -my-2 inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-toast-foreground transition-colors hover:bg-toast-foreground/10"
           onClick={onDismiss}
         >
           <X className="h-4 w-4" />

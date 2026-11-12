@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Trash2 } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
 import {
@@ -226,6 +227,12 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
 
   return (
     <section className="mx-auto max-w-4xl space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-display text-3xl font-semibold text-foreground">Settings</h1>
+        <Link href="/dashboard" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-semibold text-foreground no-underline hover:bg-muted">
+          <ArrowLeft className="size-4" aria-hidden="true" />Back to recipes
+        </Link>
+      </div>
       {notice ? (
         <div
           className={[

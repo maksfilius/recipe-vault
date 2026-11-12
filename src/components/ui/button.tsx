@@ -5,23 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "cursor-pointer group relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent text-sm font-semibold tracking-tight transition-[background,box-shadow,color,transform] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary/70 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 disabled:saturate-75 active:translate-y-0.5 motion-safe:active:scale-[0.99] [&>svg]:pointer-events-none [&>svg]:size-4 [&>svg]:shrink-0",
+  "group relative inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-transparent text-sm font-semibold transition-colors duration-150 disabled:pointer-events-none disabled:cursor-not-allowed disabled:border-border disabled:bg-muted disabled:text-muted-foreground [&>svg]:pointer-events-none [&>svg]:size-4 [&>svg]:shrink-0",
   {
     variants: {
       variant: {
         primary:
-          "bg-primary text-primary-foreground font-semibold hover:bg-primary/90 active:bg-primary/80",
+          "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-hover",
         secondary:
-          "bg-foreground text-background shadow-[0_12px_30px_hsl(var(--background)_/_0.35)] hover:bg-foreground/95",
+          "border-border bg-muted text-foreground hover:bg-card active:bg-card",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 active:bg-destructive/90",
         ghost:
-          "border-border/60 bg-transparent text-foreground hover:bg-foreground/10 active:bg-foreground/15",
+          "border-border bg-transparent text-foreground hover:bg-muted active:bg-muted",
       },
       size: {
-        xs: "h-8 px-3 text-xs",
-        sm: "h-9 px-4 text-sm",
-        md: "h-10 px-5 text-sm",
-        lg: "h-11 px-6 text-base",
-        icon: "h-10 w-10 p-0",
+        xs: "h-11 px-3 text-xs",
+        sm: "h-11 px-4 text-sm",
+        md: "h-11 px-5 text-sm",
+        lg: "h-12 px-6 text-base",
+        icon: "size-11 p-0",
       },
       fullWidth: {
         true: "w-full",

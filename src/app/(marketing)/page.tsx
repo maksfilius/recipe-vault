@@ -9,22 +9,19 @@ import { env } from "@/src/lib/env";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
-  title: "Keep & Cook",
+  title: "Keep & Cook — Save recipes from websites",
+  description: "Turn a recipe link into clear ingredients and steps. Preview for free, then save your favorite recipes in a private cookbook.",
 };
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen scroll-smooth bg-[linear-gradient(180deg,hsl(var(--background)),hsl(var(--muted)_/_0.16)_42%,hsl(var(--background)))]">
+    <div className="min-h-screen scroll-smooth bg-background">
       <Header />
-      <div id="hero">
+      <main>
         <Hero />
-      </div>
-      <div id="features">
         <Features />
-      </div>
-      <div id="cta">
         <CTA />
-      </div>
+      </main>
       <Footer />
     </div>
   )

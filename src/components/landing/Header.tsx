@@ -1,95 +1,45 @@
-'use client'
+"use client";
 
 import Link from "next/link";
 import { useState } from "react";
-import { Button } from "../../components/ui/button";
 import { Menu, X } from "lucide-react";
-import logo from "@/src/assets/Logo.svg";
-import logoBlack from "@/src/assets/Logo_black.svg";
+import BrandMark from "@/src/components/BrandMark";
 import ThemeToggle from "@/src/components/ThemeToggle";
-import ThemeLogo from "@/src/components/ThemeLogo";
+import { Button } from "@/src/components/ui/button";
 
-const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMenuOpen(false);
-    }
-  };
-
+export default function Header() {
+  const [open, setOpen] = useState(false);
   return (
-    <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/60 bg-background/90 supports-[backdrop-filter]:bg-background/78 supports-[backdrop-filter]:backdrop-blur-md">
-      <nav className="mx-auto flex h-16 w-full max-w-7xl items-center justify-between px-4 sm:px-6">
-        <button
-          onClick={() => scrollToSection("hero")}
-          className="flex items-center gap-3 text-xl font-bold text-foreground transition-opacity hover:opacity-80"
-        >
-          <ThemeLogo
-            lightSrc={logoBlack}
-            darkSrc={logo}
-            alt="Keep & Cook logo"
-            className="h-9 w-auto"
-            priority
-          />
-          <span>Keep &amp; Cook</span>
-        </button>
-
-        <div className="hidden items-center gap-8 md:flex">
-          <button onClick={() => scrollToSection("features")} className="text-foreground/80 transition-colors hover:text-foreground">
-            Features
-          </button>
-          <button onClick={() => scrollToSection("cta")} className="text-foreground/80 transition-colors hover:text-foreground">
-            Get Started
-          </button>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-card">
+      <nav className="mx-auto flex h-18 max-w-6xl items-center justify-between gap-5 px-5 sm:px-8" aria-label="Main navigation">
+        <Link href="/" className="inline-flex min-h-11 items-center gap-3 font-display text-xl font-semibold text-foreground">
+          <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true"><BrandMark className="size-6" /></span>
+          Keep &amp; Cook
+        </Link>
+        <div className="hidden items-center gap-7 md:flex">
+          <a href="#features" className="font-medium text-foreground underline-offset-4 hover:underline">How it works</a>
+          <a href="#extension" className="font-medium text-foreground underline-offset-4 hover:underline">Chrome extension</a>
           <ThemeToggle />
-          <Button size="sm" variant="ghost" asChild>
-            <Link href="/login">Sign In</Link>
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/register">Sign Up</Link>
-          </Button>
+          <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">Sign in</Link>
+          <Button asChild size="sm"><Link href="/register">Create account</Link></Button>
         </div>
-
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="p-2 text-foreground transition-colors hover:text-primary md:hidden"
-        >
-          {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-controls="mobile-nav"
+          aria-label={open ? "Close navigation" : "Open navigation"}
+          className="grid min-h-11 min-w-11 place-items-center rounded-lg border border-border text-foreground md:hidden">
+          {open ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
         </button>
       </nav>
-
-      {isMenuOpen && (
-        <div className="border-b border-border/60 bg-background md:hidden">
-          <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-4">
-            <button
-              onClick={() => scrollToSection("features")}
-              className="py-2 text-left text-foreground/80 transition-colors hover:text-foreground"
-            >
-              Features
-            </button>
-            <button
-              onClick={() => scrollToSection("cta")}
-              className="py-2 text-left text-foreground/80 transition-colors hover:text-foreground"
-            >
-              Get Started
-            </button>
-            <div className="pt-1">
-              <ThemeToggle />
-            </div>
-            <Button size="sm" className="w-full" variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button size="sm" className="w-full" asChild>
-              <Link href="/register">Sign Up</Link>
-            </Button>
+      {open && (
+        <nav id="mobile-nav" aria-label="Mobile navigation" className="border-t border-border bg-card px-5 pb-5 md:hidden">
+          <div className="mx-auto flex max-w-6xl flex-col gap-1">
+            <a href="#features" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">How it works</a>
+            <a href="#extension" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">Chrome extension</a>
+            <Link href="/login" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">Sign in</Link>
+            <Button asChild className="mt-2"><Link href="/register">Create account</Link></Button>
+            <div className="mt-2"><ThemeToggle /></div>
           </div>
-        </div>
+        </nav>
       )}
     </header>
   );
-};
-
-export default Header;
+}

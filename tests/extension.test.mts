@@ -1,0 +1,173 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { runInNewContext } from "node:vm";
+import { load } from "cheerio";
+import { recipePayloadSchema } from "../src/lib/recipe-validation.ts";
+import { recipeText, libraryUrl } from "../extension/shared.js";
+
+const extractionScript = readFileSync(new URL("../extension/extract.js", import.meta.url), "utf8");
+const backgroundScript = readFileSync(new URL("../extension/background.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
+
+test("toolbar click opens the panel directly inside the user gesture", async () => {
+  let click: ((tab: { windowId: number }) => void) | undefined;
+  const opened: unknown[] = [];
+  runInNewContext(backgroundScript, {
+    console,
+    libraryUrl,
+    chrome: {
+      runtime: { onMessage: { addListener() {} } },
+      action: {
+        onClicked: { addListener: (listener: typeof click) => { click = listener; } },
+        setBadgeText: async () => {},
+      },
+      sidePanel: {
+        open: (options: unknown) => { opened.push(options); return Promise.resolve(); },
+        setPanelBehavior: async () => {},
+      },
+    },
+  });
+  assert.ok(click);
+  click({ windowId: 42 });
+  assert.equal(opened.length, 1);
+  assert.equal((opened[0] as { windowId: number }).windowId, 42);
+  await Promise.resolve();
+});
+
+test("standalone cooking tabs can save without a content-script sender tab", async () => {
+  let handler: ((message: unknown, sender: unknown, respond: (value: unknown) => void) => void) | undefined;
+  let target = "";
+  runInNewContext(backgroundScript, {
+    console, libraryUrl,
+    chrome: {
+      runtime: { id: "test", onMessage: { addListener(listener: typeof handler) { handler = listener; } } },
+      action: { onClicked: { addListener() {} } },
+      sidePanel: { setPanelBehavior: async () => {} },
+      tabs: { create: async ({ url }: { url: string }) => { target = url; } },
+    },
+  });
+  handler?.({ type: "save-recipe", recipe: { title: "Soup" } }, { id: "test" }, () => {});
+  await Promise.resolve();
+  assert.match(target, /^https:\/\/keepandcook.com\/login#/);
+});
+
+test("cooking injects a page reader and saves through the existing login route", async () => {
+  const elements = new Map();
+  const element = (id: string) => {
+    if (!elements.has(id)) elements.set(id, { hidden: false, disabled: false, textContent: "", dataset: {}, addEventListener(event: string, listener: () => void) { this[event] = listener; }, replaceChildren() {}, removeAttribute() {} });
+    return elements.get(id);
+  };
+  const opened: string[] = [];
+  let activeTab = { id: 1, url: "https://recipes.example/soup" };
+  let onActivated: (() => Promise<void>) | undefined;
+  const injections: { files?: string[]; args?: unknown[] }[] = [];
+  let closed = false;
+  const recipe = { title: "Soup", description: "Lunch", sourceUrl: "https://recipes.example/soup", ingredients: [{ name: "Carrot" }], steps: [{ text: "Chop." }, { text: "Simmer." }] };
+  const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
+  runInNewContext(script, {
+    URL, console, libraryUrl, readerStyles: async () => "reader styles", renderIngredients() {},
+    fetch: async () => ({ text: async () => "reader styles" }),
+    window: { close() { closed = true; } },
+    navigator: {},
+    document: { visibilityState: "visible", getElementById: element, addEventListener() {}, createElement: () => ({}) },
+    chrome: {
+      tabs: { query: async () => [activeTab], update: async () => {}, create: async ({ url }: { url: string }) => { opened.push(url); }, onActivated: { addListener(listener: () => Promise<void>) { onActivated = listener; } }, onUpdated: { addListener() {} } },
+      runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
+      scripting: { executeScript: async (options: { files?: string[]; args?: unknown[] }) => { injections.push(options); return [{ result: recipe }]; } },
+    },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  await element("cook").click();
+  assert.equal(opened.length, 0);
+  assert.equal(closed, true);
+  assert.deepEqual(Array.from(injections[1].files ?? []), ["reader-utils.js", "reader.js"]);
+  assert.equal(injections[2].args?.[0], recipe);
+  await element("save").click();
+  assert.match(opened[0], /^https:\/\/keepandcook.com\/login#keep-and-cook-import=/);
+  activeTab = { id: 2, url: opened[0] };
+  await onActivated?.();
+  assert.equal(element("recipe").hidden, false);
+});
+
+test("panel separates loading, missing recipe, access, rate limit, and unconfirmed save states", async () => {
+  const elements = new Map();
+  const element = (id: string) => {
+    if (!elements.has(id)) elements.set(id, { hidden: false, textContent: "", dataset: {}, addEventListener(event: string, listener: () => void) { this[event] = listener; }, replaceChildren() {}, removeAttribute() {} });
+    return elements.get(id);
+  };
+  const activeTab = { id: 7, url: "https://example.com/soup" };
+  let extraction: "empty" | "denied" | "recipe" = "empty";
+  let responseStatus = 404;
+  const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
+  runInNewContext(script, {
+    URL, console, libraryUrl, renderIngredients() {}, AbortSignal,
+    document: { getElementById: element, createElement: () => ({ textContent: "" }) },
+    window: { close() {} },
+    fetch: async () => ({ ok: false, status: responseStatus, json: async () => ({ error: responseStatus === 429 ? "Rate limited" : "No recipe" }) }),
+    chrome: {
+      runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
+      tabs: { query: async () => [activeTab], create: async () => {}, onActivated: { addListener() {} }, onUpdated: { addListener() {} } },
+      scripting: { executeScript: async () => {
+        if (extraction === "denied") throw Error("denied");
+        return [{ result: extraction === "recipe" ? { title: "Soup", description: "Lunch", sourceUrl: activeTab.url, ingredients: [{ name: "Salt" }], steps: [{ text: "Mix" }] } : null }];
+      } },
+    },
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(element("panel-state").dataset.state, "no-recipe");
+  extraction = "denied";
+  await element("refresh").click();
+  assert.equal(element("panel-state").dataset.state, "access-error");
+  extraction = "empty";
+  responseStatus = 429;
+  await element("refresh").click();
+  assert.equal(element("panel-state").dataset.state, "extraction-error");
+  extraction = "recipe";
+  await element("refresh").click();
+  assert.equal(element("panel-state").dataset.state, "found");
+  await element("save").click();
+  assert.equal(element("panel-state").dataset.state, "handoff");
+  assert.match(element("save-feedback").textContent, /Review in the opened tab/);
+});
+
+function extract(scripts: unknown[]) {
+  return runInNewContext(extractionScript, {
+    URL,
+    location: { href: "https://recipes.example/soup", hostname: "recipes.example" },
+    document: {
+      querySelectorAll: () => scripts.map((value) => ({ textContent: typeof value === "string" ? value : JSON.stringify(value) })),
+      createElement: () => ({
+        value: "",
+        set innerHTML(value: string) { this.value = load(value).root().text(); },
+        get textContent() { return this.value; },
+      }),
+    },
+  });
+}
+
+test("extension extracts nested graph recipes and instruction sections into an app-compatible payload", () => {
+  const recipe = extract(["invalid JSON", { "@graph": [{ "@type": ["Recipe"], name: "Soup &amp; bread", recipeIngredient: ["2 carrots", "1 onion"], recipeInstructions: [{ "@type": "HowToSection", itemListElement: [{ text: "<b>Chop</b> vegetables." }, { text: "Simmer." }] }], image: { url: "/soup.jpg" }, recipeYield: ["2 servings"] }] }]);
+  assert.equal(recipe.title, "Soup & bread");
+  assert.equal(recipe.steps.length, 2);
+  assert.equal(recipe.steps[0].text, "Chop vegetables.");
+  assert.equal(recipe.imageUrl, "https://recipes.example/soup.jpg");
+  assert.equal(recipePayloadSchema.safeParse(recipe).success, true);
+});
+
+test("extension ignores incomplete recipes, handles malformed images, and bounds fields", () => {
+  const recipe = extract([{ "@type": "Recipe", name: "Incomplete" }, { "@type": "https://schema.org/Recipe", name: "x".repeat(200), recipeIngredient: ["y".repeat(300)], recipeInstructions: "Mix.\nBake.", image: "javascript:alert(1)" }]);
+  assert.equal(recipe.title.length, 160);
+  assert.equal(recipe.ingredients[0].name.length, 200);
+  assert.equal(recipe.steps.length, 2);
+  assert.equal(recipe.imageUrl, undefined);
+  assert.equal(recipePayloadSchema.safeParse(recipe).success, true);
+  assert.equal(extract([{ "@type": "Article", name: "No recipe" }]), null);
+  assert.equal(extract([{ "@type": "Recipe", name: "No picture", recipeIngredient: ["Salt"], recipeInstructions: "Mix." }]).imageUrl, undefined);
+});
+
+test("download preserves Unicode, ingredient quantities, instructions, and attribution", () => {
+  const output = recipeText({ title: "Суп", description: "Обед", sourceUrl: "https://recipes.example/soup", totalTime: "20 min", servings: "2", ingredients: [{ name: "морковь", amount: "2", unit: "шт" }], steps: [{ text: "Нарезать." }, { text: "Варить." }] });
+  assert.match(output, /2 шт морковь/);
+  assert.match(output, /2\. Варить\./);
+  assert.match(output, /https:\/\/recipes.example\/soup/);
+});

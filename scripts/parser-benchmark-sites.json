@@ -1,0 +1,302 @@
+[
+  {
+    "name": "Allrecipes",
+    "domain": "allrecipes.com",
+    "recipeUrl": "https://www.allrecipes.com/recipe/16954/chinese-chicken-fried-rice-ii/",
+    "source": "Similarweb"
+  },
+  {
+    "name": "Parade",
+    "domain": "parade.com",
+    "recipeUrl": "https://parade.com/recipes/slow-cooker-chicken-broccoli-pasta-recipe",
+    "source": "Similarweb"
+  },
+  {
+    "name": "Delish",
+    "domain": "delish.com",
+    "recipeUrl": "https://www.delish.com/cooking/recipe-ideas/a46330/skillet-sicilian-chicken-recipe/",
+    "source": "Similarweb"
+  },
+  {
+    "name": "The Pioneer Woman",
+    "domain": "thepioneerwoman.com",
+    "source": "Similarweb/Detailed",
+    "recipeUrl": "https://www.thepioneerwoman.com/food-cooking/recipes/a62192271/flourless-chocolate-cake-recipe/"
+  },
+  {
+    "name": "The Kitchn",
+    "domain": "thekitchn.com",
+    "recipeUrl": "https://www.thekitchn.com/roast-chicken-recipe-23847070",
+    "source": "Similarweb/Detailed"
+  },
+  {
+    "name": "Serious Eats",
+    "domain": "seriouseats.com",
+    "recipeUrl": "https://www.seriouseats.com/the-best-chicken-parmesan-recipe",
+    "source": "Detailed"
+  },
+  {
+    "name": "Food52",
+    "domain": "food52.com",
+    "recipeUrl": "https://food52.com/recipes/90774-best-utica-greens-recipe",
+    "source": "Detailed"
+  },
+  {
+    "name": "Simply Recipes",
+    "domain": "simplyrecipes.com",
+    "recipeUrl": "https://www.simplyrecipes.com/recipes/banana_bread/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Sally's Baking Addiction",
+    "domain": "sallysbakingaddiction.com",
+    "recipeUrl": "https://sallysbakingaddiction.com/easy-cinnamon-rolls-from-scratch/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Smitten Kitchen",
+    "domain": "smittenkitchen.com",
+    "recipeUrl": "https://smittenkitchen.com/2008/12/zuni-cafe-roast-chicken-bread-salad/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Minimalist Baker",
+    "domain": "minimalistbaker.com",
+    "recipeUrl": "https://minimalistbaker.com/lemon-herb-roasted-chicken-/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Budget Bytes",
+    "domain": "budgetbytes.com",
+    "recipeUrl": "https://www.budgetbytes.com/one-pot-chicken-and-rice/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Skinnytaste",
+    "domain": "skinnytaste.com",
+    "recipeUrl": "https://www.skinnytaste.com/chicken-piccata/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Cookie and Kate",
+    "domain": "cookieandkate.com",
+    "source": "Detailed",
+    "recipeUrl": "https://cookieandkate.com/chocolate-almond-cake/"
+  },
+  {
+    "name": "Love and Lemons",
+    "domain": "loveandlemons.com",
+    "recipeUrl": "https://www.loveandlemons.com/chicken-stir-fry/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Pinch of Yum",
+    "domain": "pinchofyum.com",
+    "recipeUrl": "https://pinchofyum.com/filipino-fried-chicken",
+    "source": "Detailed"
+  },
+  {
+    "name": "Gimme Some Oven",
+    "domain": "gimmesomeoven.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.gimmesomeoven.com/dry-brine-turkey-recipe/"
+  },
+  {
+    "name": "David Lebovitz",
+    "domain": "davidlebovitz.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.davidlebovitz.com/miso-walnut-chocolate-chip-cookies/"
+  },
+  {
+    "name": "Tastes Better From Scratch",
+    "domain": "tastesbetterfromscratch.com",
+    "source": "Detailed",
+    "recipeUrl": "https://tastesbetterfromscratch.com/coconut-macaroons-recipe/"
+  },
+  {
+    "name": "A Couple Cooks",
+    "domain": "acouplecooks.com",
+    "recipeUrl": "https://www.acouplecooks.com/chicken-farro-recipe/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Cooking Classy",
+    "domain": "cookingclassy.com",
+    "recipeUrl": "https://www.cookingclassy.com/peruvian-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "How Sweet Eats",
+    "domain": "howsweeteats.com",
+    "recipeUrl": "https://www.howsweeteats.com/2022/01/weeknight-skillet-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Two Peas & Their Pod",
+    "domain": "twopeasandtheirpod.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.twopeasandtheirpod.com/no-bake-pumpkin-cheesecake-bars/"
+  },
+  {
+    "name": "Oh She Glows",
+    "domain": "ohsheglows.com",
+    "recipeUrl": "https://ohsheglows.com/DELICIOUS-VEGAN-CHILI/",
+    "source": "Detailed"
+  },
+  {
+    "name": "101 Cookbooks",
+    "domain": "101cookbooks.com",
+    "recipeUrl": "https://www.101cookbooks.com/un-chicken-salad/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Alton Brown",
+    "domain": "altonbrown.com",
+    "source": "Detailed",
+    "recipeUrl": "https://altonbrown.com/recipes/good-eats-fudgepops/"
+  },
+  {
+    "name": "Brown Eyed Baker",
+    "domain": "browneyedbaker.com",
+    "recipeUrl": "https://www.browneyedbaker.com/sweet-and-sour-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Downshiftology",
+    "domain": "downshiftology.com",
+    "source": "Detailed",
+    "recipeUrl": "https://downshiftology.com/recipes/thanksgiving-turkey-recipe/"
+  },
+  {
+    "name": "The Recipe Critic",
+    "domain": "therecipecritic.com",
+    "source": "Detailed",
+    "recipeUrl": "https://therecipecritic.com/baked-sweet-and-sour-chicken/"
+  },
+  {
+    "name": "Chef's Pencil",
+    "domain": "chefspencil.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.chefspencil.com/creamy-caramelized-onion-pasta/"
+  },
+  {
+    "name": "My Baking Addiction",
+    "domain": "mybakingaddiction.com",
+    "recipeUrl": "https://www.mybakingaddiction.com/cranberry-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Love & Olive Oil",
+    "domain": "loveandoliveoil.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.loveandoliveoil.com/2026/11/glazed-apple-cider-bundt-cake.html"
+  },
+  {
+    "name": "Oh My Veggies",
+    "domain": "ohmyveggies.com",
+    "recipeUrl": "https://ohmyveggies.com/easy-vegan-butter-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "Spoon Fork Bacon",
+    "domain": "spoonforkbacon.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.spoonforkbacon.com/tomato-butter-pasta-with-shrimp/"
+  },
+  {
+    "name": "Dinner Then Dessert",
+    "domain": "dinnerthendessert.com",
+    "recipeUrl": "https://dinnerthendessert.com/smothered-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "The Stay at Home Chef",
+    "domain": "thestayathomechef.com",
+    "source": "Detailed",
+    "recipeUrl": "https://thestayathomechef.com/the-best-homemade-dinner-rolls-ever/"
+  },
+  {
+    "name": "Alexandra's Kitchen",
+    "domain": "alexandracooks.com",
+    "source": "Detailed",
+    "recipeUrl": "https://alexandracooks.com/2026/11/06/simple-soft-sourdough-dinner-rolls/"
+  },
+  {
+    "name": "Slender Kitchen",
+    "domain": "slenderkitchen.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.slenderkitchen.com/recipe/air-fryer-spicy-chicken-sandwich"
+  },
+  {
+    "name": "Sprinkle Bakes",
+    "domain": "sprinklebakes.com",
+    "recipeUrl": "https://www.sprinklebakes.com/2022/05/classic-buttermilk-waffles.html",
+    "source": "Detailed"
+  },
+  {
+    "name": "Sweet and Savory Meals",
+    "domain": "sweetandsavorymeals.com",
+    "source": "Detailed",
+    "recipeUrl": "https://sweetandsavorymeals.com/millionaire-cranberry-salad/"
+  },
+  {
+    "name": "Seasonal Cravings",
+    "domain": "seasonalcravings.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.seasonalcravings.com/gluten-free-chocolate-chip-banana-bread/"
+  },
+  {
+    "name": "Gluesticks Blog",
+    "domain": "gluesticksblog.com",
+    "source": "Detailed",
+    "recipeUrl": "https://gluesticksblog.com/chubby-gingerbread-man-cookies/"
+  },
+  {
+    "name": "Homesick Texan",
+    "domain": "homesicktexan.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.homesicktexan.com/dr-pepper-sheet-cake/"
+  },
+  {
+    "name": "Sugar Free Londoner",
+    "domain": "sugarfreelondoner.com",
+    "source": "Detailed",
+    "recipeUrl": "https://sugarfreelondoner.com/almond-cream-cheese-pancakes/"
+  },
+  {
+    "name": "On My Kids Plate",
+    "domain": "onmykidsplate.com",
+    "source": "Detailed",
+    "recipeUrl": "https://onmykidsplate.com/rotel-chicken-spaghetti/"
+  },
+  {
+    "name": "Salty Side Dish",
+    "domain": "saltysidedish.com",
+    "recipeUrl": "https://www.saltysidedish.com/marry-me-chicken/",
+    "source": "Detailed"
+  },
+  {
+    "name": "My Quiet Kitchen",
+    "domain": "myquietkitchen.com",
+    "source": "Detailed",
+    "recipeUrl": "https://myquietkitchen.com/vegan-cornbread-dressing-gluten-free-option/"
+  },
+  {
+    "name": "My Pure Plants",
+    "domain": "mypureplants.com",
+    "recipeUrl": "https://mypureplants.com/chickpea-korma/",
+    "source": "Detailed"
+  },
+  {
+    "name": "The Petite Cook",
+    "domain": "thepetitecook.com",
+    "source": "Detailed",
+    "recipeUrl": "https://www.thepetitecook.com/italian-butter-cookies/"
+  },
+  {
+    "name": "Giangi's Kitchen",
+    "domain": "giangiskitchen.com",
+    "recipeUrl": "https://www.giangiskitchen.com/chicken-leeks-lemon/",
+    "source": "Detailed"
+  }
+]

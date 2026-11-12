@@ -54,7 +54,7 @@ const stepSchema = z.object({
 
 export const recipePayloadSchema = z.object({
   title: z.string().trim().min(1, "Recipe name is required.").max(160, "Recipe name is too long."),
-  description: z.string().trim().min(1, "Description is required.").max(5_000, "Description is too long."),
+  description: optionalText(5_000, "Description is too long."),
   sourceUrl: sourceUrlSchema.optional().transform((value) => value || undefined),
   imageUrl: imageUrlSchema.optional().transform((value) => value || undefined),
   totalTime: optionalText(80, "Total time is too long."),
