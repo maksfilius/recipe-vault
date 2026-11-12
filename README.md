@@ -2,6 +2,8 @@
 
 Keep & Cook is a Next.js + Supabase app for saving personal recipes in a searchable dashboard.
 
+Product concept, architecture, design direction, roadmap and the task list live in [`docs/`](docs/README.md).
+
 ## What it includes
 
 - Email/password authentication with signup, login, forgot password, and reset password flows
@@ -18,6 +20,15 @@ Keep & Cook is a Next.js + Supabase app for saving personal recipes in a searcha
 - TypeScript
 - Tailwind CSS
 - Supabase Auth, Postgres, and Storage
+
+## Chrome extension prototype
+
+The unpacked Chrome extension lives in `extension/`. It provides a recipe side
+panel, cooking over the entire source page (with a standalone tab fallback),
+text downloads, and a handoff to the existing library review/save flow. See
+`extension/README.md` for installation and manual acceptance checks. Saving uses
+the existing `/login` page and an extension content script; no deployment of
+`/extension-import` is required for this compatible handoff.
 
 ## Environment
 
