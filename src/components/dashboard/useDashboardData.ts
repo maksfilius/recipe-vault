@@ -30,7 +30,8 @@ export function useDashboardData(importDraftId: string | null) {
       if (!identity.userId) {
         setAllRecipes([]);
         setIsLoading(false);
-        const next = importDraftId ? `/dashboard?importDraft=${importDraftId}` : "/dashboard";
+        // Keep ?add and ?url from a share; the login page filters next through getImportAuthDestination.
+        const next = importDraftId ? `/dashboard?importDraft=${importDraftId}` : `/dashboard${window.location.search}`;
         router.replace(`/login?next=${encodeURIComponent(next)}`);
         return;
       }

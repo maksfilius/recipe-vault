@@ -42,6 +42,7 @@
 | `extension_save_started` | Пользователь открыл веб-передачу черновика | `is_authenticated` если известно |
 | `extension_handoff_completed` | Веб принял черновик и открыл editor | `was_authenticated` |
 | `extension_handoff_failed` | Черновик не принят | `reason: handoff_expired|invalid_url|server_error|unknown` |
+| `share_target_received` | PWA открыта из системного меню «Поделиться» (W-12) | `kind: site|youtube|tiktok|instagram|none` |
 
 Для будущего X-01 добавить `video_import_started`, `video_import_preview_shown`, `video_import_failed` с `platform: youtube|tiktok|instagram`, `input_kind: description|creator_link|user_text` и без текста видео. `recipe_saved {source: video}` уже предусмотрен.
 

@@ -51,7 +51,9 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
     const url = new URL(window.location.href);
     const addMode = url.searchParams.get("add");
     if (addMode !== "manual" && addMode !== "select") return;
+    const sharedUrl = url.searchParams.get("url");
     url.searchParams.delete("add");
+    url.searchParams.delete("url");
     window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
     if (isOfflineMode) {
       setNotice({ type: "error", message: "Reconnect before adding a recipe." });
@@ -60,6 +62,12 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
     setEditingRecipe(null);
     setAddRecipeMode(addMode);
     setIsDialogOpen(true);
+    if (sharedUrl) {
+      setImportUrl(sharedUrl);
+      if (addMode === "select") void handleImportRecipe(sharedUrl);
+    }
+    // Runs once per page load; handleImportRecipe is recreated on every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, importDraftId, isOfflineMode]);
   useEffect(() => {
     if (!notice) return;
@@ -240,9 +248,9 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
     }
   };
 
-  const handleImportRecipe = async () => {
+  const handleImportRecipe = async (urlOverride?: string) => {
     if (isImportingRecipe) return;
-    const normalizedUrl = importUrl.trim();
+    const normalizedUrl = (urlOverride ?? importUrl).trim();
     if (!normalizedUrl) {
       setImportError("Paste a recipe URL first.");
       return;

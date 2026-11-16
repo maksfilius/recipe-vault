@@ -11,6 +11,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#1c1611",
     theme_color: "#b34414",
     orientation: "any",
+    // Android only: puts Keep & Cook in the system Share menu of the installed PWA.
+    share_target: { action: "/share", method: "GET", params: { title: "title", text: "text", url: "url" } },
     icons: [
       {
         src: "/icons/icon-192.png",
