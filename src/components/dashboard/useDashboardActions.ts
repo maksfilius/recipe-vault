@@ -6,13 +6,25 @@ import type { RecipeFormValues } from "@/src/lib/recipe-form-conversion";
 import { recipePayloadSchema } from "@/src/lib/recipe-validation";
 import { toSaveRecipeRpcArgs } from "@/src/lib/save-recipe-args";
 import { mapRowToRecipe, type RecipeRow } from "@/src/lib/recipes";
+import { claimFirstCookHint } from "@/src/lib/recipe-details";
+import { prepareRecipeImport, resolveExistingRecipe } from "@/src/lib/recipe-import-existing";
 import { supabase } from "@/src/lib/supabase-client";
 import { removeRecipeTransfer } from "@/src/lib/recipe-import-transfer";
+import { trackAnalytics } from "@/src/lib/analytics";
+import { getImportSourceKind } from "@/src/lib/analytics-events";
 import type { ImportedRecipe, Recipe } from "@/src/types/recipe";
 import { useDashboardImport, createDraftRecipe, isDraftImportedRecipe, type DraftRecipe, type AddRecipeMode } from "./useDashboardImport";
 import type { useDashboardData } from "./useDashboardData";
 
 type Notice = { type: "success" | "error"; message: string };
+const SAVED_RECIPE_SELECT = "*, recipe_collections(collection:collections(id,user_id,name,position,created_at))";
+
+async function findSavedRecipeRow(userId: string, sourceUrl: string): Promise<RecipeRow | null> {
+  const { data, error } = await supabase.from("recipes").select(SAVED_RECIPE_SELECT)
+    .eq("user_id", userId).eq("source_url", sourceUrl).maybeSingle();
+  if (error) throw error;
+  return (data as RecipeRow | null) ?? null;
+}
 
 export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
   data: ReturnType<typeof useDashboardData>;
@@ -22,6 +34,7 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
   const router = useRouter();
   const { userId, allRecipes, setAllRecipes, collections, isLoading, isOfflineMode } = data;
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [firstCookHintRecipeId, setFirstCookHintRecipeId] = useState<string | null>(null);
   const [editingRecipe, setEditingRecipe] = useState<DraftRecipe | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [addRecipeMode, setAddRecipeMode] = useState<AddRecipeMode>("select");
@@ -71,6 +84,7 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       setNotice({ type: "error", message: "Reconnect before editing a recipe." });
       return;
     }
+    setFirstCookHintRecipeId(null);
     setEditingRecipe(recipe);
     setAddRecipeMode("manual");
     setIsDialogOpen(true);
@@ -84,6 +98,24 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       setImportError("");
       setEditingRecipe(null);
     }
+  };
+
+  const clearImportedDraft = () => {
+    if (!importDraftId || !isDraftImportedRecipe(editingRecipe)) return;
+    try { removeRecipeTransfer(window.localStorage, importDraftId); } catch {}
+    setImportDraftId(null);
+  };
+
+  const openExistingRecipe = (recipe: Recipe) => {
+    setAllRecipes((current) => current.some((item) => item.id === recipe.id)
+      ? current.map((item) => item.id === recipe.id ? recipe : item)
+      : [recipe, ...current]);
+    setFirstCookHintRecipeId(null);
+    setSelectedRecipe(recipe);
+    trackAnalytics("recipe_opened", { entry_point: "other" });
+    clearImportedDraft();
+    handleDialogOpenChange(false);
+    setNotice({ type: "success", message: "This recipe is already in your library." });
   };
 
   const handleDeleteRecipe = async () => {
@@ -144,17 +176,11 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
 
       const isUpdate = Boolean(editingRecipe && !isDraftImportedRecipe(editingRecipe));
       if (parsedValues.data.sourceUrl) {
-        const { data: duplicate } = await supabase.from("recipes").select("id")
-          .eq("user_id", user.id).eq("source_url", parsedValues.data.sourceUrl).maybeSingle();
-        if (duplicate && duplicate.id !== (isUpdate ? editingRecipe?.id : null)) {
-          const existing = allRecipes.find((recipe) => recipe.id === duplicate.id);
-          if (existing) {
-            setSelectedRecipe(existing);
-            handleDialogOpenChange(false);
-            setNotice({ type: "success", message: "This source link is already saved. Open the recipe to edit it." });
-          } else {
-            setNotice({ type: "error", message: "This source link is already saved. Refresh the library to open it." });
-          }
+        const existing = await resolveExistingRecipe(parsedValues.data.sourceUrl,
+          isUpdate ? editingRecipe?.id ?? null : null,
+          (url) => findSavedRecipeRow(user.id, url));
+        if (existing) {
+          openExistingRecipe(existing);
           return;
         }
       }
@@ -174,21 +200,37 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       const { data, error } = await supabase.rpc("save_recipe", toSaveRecipeRpcArgs(parsedValues.data, recipeId, imageUrl));
       const savedRow = (Array.isArray(data) ? data[0] : data) as RecipeRow | null;
       if (error || !savedRow) {
-        setNotice({ type: "error", message: error?.code === "23505"
-          ? "This source link is already saved in your cookbook."
-          : "Failed to save recipe. Try again." });
+        if (error?.code === "23505" && parsedValues.data.sourceUrl) {
+          const existing = await resolveExistingRecipe(parsedValues.data.sourceUrl,
+            isUpdate ? editingRecipe?.id ?? null : null,
+            (url) => findSavedRecipeRow(user.id, url));
+          if (existing) {
+            openExistingRecipe(existing);
+            return;
+          }
+        }
+        setNotice({ type: "error", message: "Failed to save recipe. Try again." });
         return;
       }
 
       const saved = mapRowToRecipe(savedRow, selectedCollections);
-      if (importDraftId && isDraftImportedRecipe(editingRecipe)) {
-        try { removeRecipeTransfer(window.localStorage, importDraftId); } catch {}
-        setImportDraftId(null);
-      }
+      const source = importDraftId ? "extension" : parsedValues.data.sourceUrl ? "url" : "manual";
+      trackAnalytics(isUpdate ? "recipe_updated" : "recipe_saved", isUpdate
+        ? { source } : { source, is_first_recipe: allRecipes.length === 0 });
+      clearImportedDraft();
       setAllRecipes((current) => isUpdate
         ? current.map((recipe) => (recipe.id === saved.id ? saved : recipe))
         : [saved, ...current]);
+      try {
+        if (claimFirstCookHint(window.localStorage, user.id, allRecipes.length,
+          saved.steps.some((step) => step.text.trim().length > 0), isUpdate)) {
+          setFirstCookHintRecipeId(saved.id);
+        }
+      } catch {
+        // The saved recipe remains usable when browser storage is unavailable.
+      }
       setSelectedRecipe(saved);
+      trackAnalytics("recipe_opened", { entry_point: "after_save" });
       setNotice({ type: "success", message: isUpdate ? "Recipe updated." : "Recipe created." });
       handleDialogOpenChange(false);
     } catch {
@@ -205,42 +247,70 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       setImportError("Paste a recipe URL first.");
       return;
     }
+    if (!userId) {
+      setImportError("Sign in to import a recipe.");
+      return;
+    }
 
     setIsImportingRecipe(true);
     setImportError("");
+    trackAnalytics("url_import_started", { source_kind: getImportSourceKind(normalizedUrl) });
     try {
-      const response = await fetch("/api/recipes/import", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ url: normalizedUrl }),
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | (Partial<ImportedRecipe> & { error?: string })
-        | null;
-      if (!response.ok) {
-        setImportError(payload?.error ?? "Failed to import this link. Try again or add it manually.");
-        return;
-      }
-      const parsedPayload = recipePayloadSchema.partial().safeParse(payload);
-      if (!parsedPayload.success) {
-        setImportError("We could not read the recipe preview. Add it manually and keep the link.");
+      const decision = await prepareRecipeImport(normalizedUrl,
+        async (url) => {
+          try {
+            return await findSavedRecipeRow(userId, url);
+          } catch {
+            throw new Error("Could not check your library. Try again.");
+          }
+        },
+        async (url) => {
+          let response: Response;
+          try {
+            response = await fetch("/api/recipes/import", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ url }),
+            });
+          } catch {
+            throw new Error("Could not reach the import service. Try again or add it manually.");
+          }
+          const payload = (await response.json().catch(() => null)) as
+            | (Partial<ImportedRecipe> & { error?: string })
+            | null;
+          if (!response.ok) {
+            throw new Error(payload?.error ?? "Failed to import this link. Try again or add it manually.");
+          }
+          const parsedPayload = recipePayloadSchema.partial().safeParse(payload);
+          if (!parsedPayload.success) {
+            throw new Error("We could not read the recipe preview. Add it manually and keep the link.");
+          }
+          return parsedPayload.data;
+        });
+      if (decision.kind === "existing") {
+        openExistingRecipe(decision.recipe);
         return;
       }
 
-      setEditingRecipe(createDraftRecipe({ ...parsedPayload.data, sourceUrl: parsedPayload.data.sourceUrl ?? normalizedUrl }, collections));
+      const draft = createDraftRecipe({ ...decision.recipe, sourceUrl: decision.recipe.sourceUrl ?? normalizedUrl }, collections);
+      setEditingRecipe(draft);
       setAddRecipeMode("manual");
+      setIsDialogOpen(true);
       setNotice({ type: "success", message: "Recipe imported. Review and save it." });
-    } catch {
-      setImportError("Could not reach the import service. Try again or add it manually.");
+      trackAnalytics("import_preview_shown", { source_kind: getImportSourceKind(normalizedUrl), has_ingredients: draft.ingredients.length > 0, has_steps: draft.steps.length > 0, has_image: Boolean(draft.imageUrl) });
+    } catch (error) {
+      trackAnalytics("import_failed", { source: "url", reason: "unknown" });
+      setImportError(error instanceof Error ? error.message : "Could not import this recipe. Try again.");
     } finally {
       setIsImportingRecipe(false);
     }
   };
 
   return {
-    selectedRecipe, setSelectedRecipe, editingRecipe, isDialogOpen, addRecipeMode, setAddRecipeMode,
+    selectedRecipe, setSelectedRecipe, firstCookHintRecipeId, setFirstCookHintRecipeId,
+    editingRecipe, isDialogOpen, addRecipeMode, setAddRecipeMode,
     notice, setNotice, recipeToDelete, setRecipeToDelete,
-    importUrl, setImportUrl, isImportingRecipe, importError, isSavingRecipe,
+    importUrl, setImportUrl, isImportingRecipe, importError, setImportError, isSavingRecipe,
     handleAddRecipe, handleEditRecipe, handleDialogOpenChange, handleDeleteRecipe,
     handleFormSubmit, handleImportRecipe,
   };

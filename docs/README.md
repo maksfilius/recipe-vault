@@ -9,7 +9,7 @@
 | [design-direction.md](design-direction.md) | Утверждённая палитра, типографика, состояния и правила миграции UI (D-01) |
 | [design-components.md](design-components.md) | Снимки базовых компонентов в обеих темах и на телефоне (D-02) |
 | [design-shell.md](design-shell.md) | Навигация и снимки оболочки на десктопе и телефоне (D-04) |
-| [design-library.md](design-library.md) | Сетка библиотеки, фильтры, сортировка и проверка 0/1/10/200 рецептов (D-05) |
+| [design-library.md](design-library.md) | Минимальная сетка, поиск и пустая библиотека (M-01—M-06) |
 | [design-recipe-details.md](design-recipe-details.md) | Карточка рецепта, источник и состояния неполного рецепта (D-06) |
 | [design-recipe-editor.md](design-recipe-editor.md) | Добавление вручную, импорт ссылки и черновика расширения (D-07) |
 | [design-auth.md](design-auth.md) | Четыре auth-экрана и возврат по `next` после регистрации или сброса пароля (D-08) |
@@ -28,6 +28,7 @@
 | [specs/extension.md](specs/extension.md) | A-03: утверждённый целевой опыт Chrome-расширения v1.0 |
 | [specs/web.md](specs/web.md) | A-04: утверждённый целевой опыт веба и PWA v1.0 |
 | [research/parser-baseline.md](research/parser-baseline.md) | A-05: результаты бенчмарка парсера на 50 сайтах и причины провалов |
+| [research/parser-w03-recheck.md](research/parser-w03-recheck.md) | W-03: повторный прогон и блокировка сайтов, из-за которой общий порог 80% пока не достигнут |
 | [specs/analytics-events.md](specs/analytics-events.md) | A-06: события, воронки, дашборды и требования к приватности |
 | [research/social-import.md](research/social-import.md) | A-07: источники данных для видео/соцсетей, выборка 10 видео, риски и стоимость |
 | [pwa-v1.md](pwa-v1.md) | Офлайн-режим PWA v1 и правила таймеров (без изменений) |

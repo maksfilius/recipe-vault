@@ -6,6 +6,8 @@ import { ArrowRight, Link2, LoaderCircle, Utensils } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { PENDING_RECIPE_IMPORT_STORAGE_KEY } from "@/src/lib/pending-recipe-import";
+import { trackAnalytics } from "@/src/lib/analytics";
+import { getImportSourceKind } from "@/src/lib/analytics-events";
 import type { ImportedRecipe } from "@/src/types/recipe";
 
 function sourceHost(sourceUrl: string) {
@@ -36,6 +38,7 @@ export default function Hero() {
     setLoading(true);
     setError("");
     setRecipe(null);
+    trackAnalytics("url_import_started", { source_kind: getImportSourceKind(submittedUrl) });
     try {
       const response = await fetch("/api/recipes/import", {
         method: "POST",
@@ -45,12 +48,15 @@ export default function Hero() {
       });
       const payload = (await response.json().catch(() => null)) as (ImportedRecipe & { error?: string }) | null;
       if (!response.ok || !payload || payload.error) {
+        trackAnalytics("import_failed", { source: "url", reason: "unknown" });
         setError(payload?.error ?? "We couldn’t read that recipe. Try another link.");
         return;
       }
       setRecipe(payload);
+      trackAnalytics("import_preview_shown", { source_kind: getImportSourceKind(submittedUrl), has_ingredients: payload.ingredients.length > 0, has_steps: payload.steps.length > 0, has_image: Boolean(payload.imageUrl) });
     } catch (cause) {
       if (cause instanceof Error && cause.name === "AbortError") return;
+      trackAnalytics("import_failed", { source: "url", reason: "network" });
       setError("We couldn’t reach that recipe. Check the link and try again.");
     } finally {
       if (activeRequest.current === controller) {

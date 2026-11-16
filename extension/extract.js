@@ -1,12 +1,26 @@
 (() => {
-  const text = (value) => {
-    const element = document.createElement("div");
-    element.innerHTML = String(value ?? "");
-    return (element.textContent ?? "").replace(/\s+/g, " ").trim();
+  const text = (value, preserveBreaks = false) => {
+    let normalized = String(value ?? "")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(?:div|li|ol|p|section)>/gi, "\n")
+      .replace(/<[^>]+>/g, " ");
+    if (normalized.includes("&")) {
+      const element = document.createElement("textarea");
+      for (let pass = 0; pass < 2; pass += 1) {
+        element.innerHTML = normalized;
+        const decoded = element.textContent ?? "";
+        if (decoded === normalized) break;
+        normalized = decoded;
+      }
+    }
+    normalized = normalized.replace(/\u00a0/g, " ");
+    return preserveBreaks ? normalized : normalized.replace(/\s+/g, " ").trim();
   };
   const instructions = (value) => {
     if (Array.isArray(value)) return value.flatMap(instructions);
-    if (typeof value === "string") return value.split(/\n+/).map(text).filter(Boolean);
+    if (typeof value === "string") return text(value, true).split(/\n+/)
+      .map((line) => line.replace(/(\p{Ll}[.!?])(?=\p{Lu})/gu, "$1 ").replace(/\s+/g, " ").trim())
+      .filter(Boolean);
     if (!value || typeof value !== "object") return [];
     return value.itemListElement ? instructions(value.itemListElement) : instructions(value.text);
   };

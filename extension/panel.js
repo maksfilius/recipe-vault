@@ -1,4 +1,4 @@
-import { renderIngredients, recipeText, libraryUrl, readerStyles } from "./shared.js";
+import { renderIngredients, recipeText, libraryUrl, readerStyles, formatServingsLabel } from "./shared.js";
 
 const appOrigin = "https://keepandcook.com";
 const status = document.getElementById("status");
@@ -60,7 +60,7 @@ function showSaveFeedback(kind, url = "") {
 function render() {
   document.getElementById("title").textContent = recipe.title;
   document.getElementById("description").textContent = recipe.description;
-  document.getElementById("meta").textContent = [recipe.totalTime, recipe.servings].filter(Boolean).join(" · ");
+  document.getElementById("meta").textContent = [recipe.totalTime, recipe.servings && formatServingsLabel(recipe.servings)].filter(Boolean).join(" · ");
   const source = document.getElementById("source");
   source.href = recipe.sourceUrl;
   source.textContent = new URL(recipe.sourceUrl).hostname;

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 
 import PwaRegistration from "@/src/components/PwaRegistration";
+import AnalyticsConsent from "@/src/components/AnalyticsConsent";
 import ThemeInitializer from "@/src/components/ThemeInitializer";
 import { env } from "@/src/lib/env";
 
@@ -82,6 +83,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeInitializer />
         <PwaRegistration />
+        <AnalyticsConsent />
         {children}
       </body>
     </html>

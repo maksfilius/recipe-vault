@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Trash2 } from "lucide-react";
@@ -18,8 +18,13 @@ import {
 } from "@/src/components/ui/dialog";
 import { Input } from "@/src/components/ui/input";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
+import { getAnalyticsConsent, setAnalyticsConsent, trackAnalytics } from "@/src/lib/analytics";
 import { clearOfflineRecipeData } from "@/src/lib/offline-recipes";
+import { buildRecipeExport } from "@/src/lib/recipe-export";
+import { mapRowToCollection, mapRowToRecipe, type CollectionRow, type RecipeRow } from "@/src/lib/recipes";
+import type { RecipeCollection } from "@/src/types/recipe";
 import { supabase } from "@/src/lib/supabase-client";
+import { readThemePreference, saveThemePreference, type ThemePreference } from "@/src/lib/theme-preference";
 
 type Notice = {
   type: "success" | "error";
@@ -28,20 +33,32 @@ type Notice = {
 
 type SettingsClientProps = {
   accountDeletionEnabled: boolean;
+  supportEmail: string | null;
 };
 
-export default function SettingsClient({ accountDeletionEnabled }: SettingsClientProps) {
+const themeChoices: { value: ThemePreference; label: string }[] = [
+  { value: "system", label: "System" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+function subscribeTheme(onChange: () => void) {
+  window.addEventListener("theme-change", onChange);
+  return () => window.removeEventListener("theme-change", onChange);
+}
+
+export default function SettingsClient({ accountDeletionEnabled, supportEmail }: SettingsClientProps) {
   const router = useRouter();
+  const theme = useSyncExternalStore(subscribeTheme, readThemePreference, () => "dark");
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [profileName, setProfileName] = useState("");
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [analyticsConsent, setConsentState] = useState<boolean | null>(null);
   const [isSavingPassword, setIsSavingPassword] = useState(false);
   const [isSigningOutOthers, setIsSigningOutOthers] = useState(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -57,12 +74,7 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
         return;
       }
 
-      const metadata = user.user_metadata as
-        | { username?: string; full_name?: string }
-        | undefined;
-
-      setProfileName(metadata?.username ?? metadata?.full_name ?? "");
-      setEmail(user.email ?? "");
+      setUserId(user.id);
       setIsBootstrapping(false);
     };
 
@@ -79,29 +91,58 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
     return () => window.clearTimeout(timeoutId);
   }, [notice]);
 
-  const handleProfileSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSavingProfile(true);
+  useEffect(() => { setConsentState(getAnalyticsConsent()); }, []);
+
+  const handleExport = async () => {
+    if (!userId) return;
+    setIsExporting(true);
     setNotice(null);
-
-    const nextName = profileName.trim();
-
-    const { error } = await supabase.auth.updateUser({
-      data: {
-        username: nextName,
-        full_name: nextName,
-      },
-    });
-
-    if (error) {
-      setNotice({ type: "error", message: getFriendlyAuthErrorMessage(error.message) });
-      setIsSavingProfile(false);
-      return;
+    try {
+      const collections: RecipeCollection[] = [];
+      const recipes: RecipeRow[] = [];
+      const pageSize = 500;
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+          .from("collections")
+          .select("id, user_id, name, position, created_at")
+          .eq("user_id", userId)
+          .order("position", { ascending: true })
+          .order("id", { ascending: true })
+          .range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        const page = (data ?? []) as CollectionRow[];
+        collections.push(...page.map(mapRowToCollection));
+        if (page.length < pageSize) break;
+      }
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+          .from("recipes")
+          .select("*, recipe_collections(collection:collections(id,user_id,name,position,created_at))")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: true })
+          .order("id", { ascending: true })
+          .range(offset, offset + pageSize - 1);
+        if (error) throw error;
+        const page = (data ?? []) as RecipeRow[];
+        recipes.push(...page);
+        if (page.length < pageSize) break;
+      }
+      const payload = buildRecipeExport(recipes.map((row) => mapRowToRecipe(row)), collections, new Date().toISOString());
+      const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `keep-and-cook-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.append(anchor);
+      anchor.click();
+      trackAnalytics("recipe_exported", { format: "json" });
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setNotice({ type: "success", message: "Recipe export downloaded." });
+    } catch {
+      setNotice({ type: "error", message: "Could not export your recipes. Try again." });
+    } finally {
+      setIsExporting(false);
     }
-
-    router.refresh();
-    setNotice({ type: "success", message: "Profile updated." });
-    setIsSavingProfile(false);
   };
 
   const handlePasswordSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -131,20 +172,6 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
     setRepeatPassword("");
     setNotice({ type: "success", message: "Password updated." });
     setIsSavingPassword(false);
-  };
-
-  const handleSignOut = async () => {
-    setIsSigningOut(true);
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      setIsSigningOut(false);
-      setNotice({ type: "error", message: getFriendlyAuthErrorMessage(error.message) });
-      return;
-    }
-
-    await clearOfflineRecipeData();
-    router.replace("/login");
   };
 
   const handleSignOutOtherSessions = async () => {
@@ -248,36 +275,40 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
         </div>
       ) : null}
 
-      <form
-        onSubmit={handleProfileSubmit}
-        className="space-y-4 rounded-2xl border border-border/60 bg-card/50 p-5"
-      >
+      <div className="space-y-4 rounded-2xl border border-border/60 bg-card/50 p-5">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Profile</h2>
+          <h2 className="text-lg font-semibold text-foreground">Export your recipes</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            This name is shown in the dashboard header.
+            Download your recipes, collections, and tags as JSON.
           </p>
         </div>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-foreground">Display name / username</span>
-          <Input
-            value={profileName}
-            onChange={(event) => setProfileName(event.target.value)}
-            autoComplete="nickname"
-            required
-          />
-        </label>
-
-        <label className="block space-y-2">
-          <span className="text-sm font-medium text-foreground">Email</span>
-          <Input value={email} readOnly disabled />
-        </label>
-
-        <Button type="submit" disabled={isSavingProfile}>
-          {isSavingProfile ? "Saving..." : "Save profile"}
+        <Button type="button" onClick={() => void handleExport()} disabled={isExporting}>
+          {isExporting ? "Preparing export..." : "Download JSON"}
         </Button>
-      </form>
+      </div>
+
+      <div className="space-y-4 rounded-2xl border border-border/60 bg-card/50 p-5">
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Theme</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Choose how Keep &amp; Cook looks on this device.</p>
+        </div>
+        <div role="group" aria-label="Theme preference" className="flex flex-wrap gap-2">
+          {themeChoices.map(({ value, label }) => (
+            <Button key={value} type="button" variant={theme === value ? "primary" : "ghost"} aria-pressed={theme === value} onClick={() => saveThemePreference(value)}>
+              {label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3 rounded-2xl border border-border/60 bg-card/50 p-5">
+        <h2 className="text-lg font-semibold text-foreground">Product analytics</h2>
+        <p className="text-sm text-muted-foreground">Optional usage events help us improve Keep &amp; Cook. We do not send recipe content or email. <Link href="/privacy" className="underline">Privacy details</Link></p>
+        <div role="group" aria-label="Product analytics preference" className="flex flex-wrap gap-2">
+          <Button type="button" variant={analyticsConsent === true ? "primary" : "ghost"} aria-pressed={analyticsConsent === true} onClick={() => { setAnalyticsConsent(true); setConsentState(true); }}>Allow analytics</Button>
+          <Button type="button" variant={analyticsConsent === false ? "primary" : "ghost"} aria-pressed={analyticsConsent === false} onClick={() => { setAnalyticsConsent(false); setConsentState(false); }}>Decline</Button>
+        </div>
+      </div>
 
       <form
         onSubmit={handlePasswordSubmit}
@@ -328,11 +359,6 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
         </div>
 
         <div className="flex flex-wrap gap-2">
-          {/* On a phone this is the only way out: the tab bar replaced the drawer
-              that used to hold sign out, and an installed app keeps it here. */}
-          <Button type="button" onClick={() => void handleSignOut()} disabled={isSigningOut}>
-            {isSigningOut ? "Signing out..." : "Sign out"}
-          </Button>
           <Button
             type="button"
             variant="ghost"
@@ -408,6 +434,14 @@ export default function SettingsClient({ accountDeletionEnabled }: SettingsClien
           </Dialog>
         </div>
       ) : null}
+      <div className="space-y-3 rounded-2xl border border-border/60 bg-card/50 p-5">
+        <h2 className="text-lg font-semibold text-foreground">Help and legal</h2>
+        <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium">
+          <Link href="/privacy" className="text-foreground underline underline-offset-4">Privacy</Link>
+          <Link href="/terms" className="text-foreground underline underline-offset-4">Terms</Link>
+          <a href={supportEmail ? `mailto:${supportEmail}` : "https://github.com/maksfilius/recipe-vault/issues/new"} className="text-foreground underline underline-offset-4">Support</a>
+        </div>
+      </div>
     </section>
   );
 }

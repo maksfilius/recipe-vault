@@ -12,8 +12,13 @@ export function renderIngredients(container, ingredients) {
   }));
 }
 
+export function formatServingsLabel(value) {
+  const trimmed = String(value ?? "").trim();
+  return /^\d+(?:[.,]\d+)?$/.test(trimmed) ? `${trimmed} servings` : value;
+}
+
 export function recipeText(recipe) {
-  return [recipe.title, recipe.sourceUrl, [recipe.totalTime, recipe.servings].filter(Boolean).join(" · "), recipe.description, "", "Ingredients", ...recipe.ingredients.map((ingredient) => [ingredient.amount, ingredient.unit, ingredient.name].filter(Boolean).join(" ")), "", "Method", ...recipe.steps.map((step, index) => `${index + 1}. ${step.text}`)].join("\n");
+  return [recipe.title, recipe.sourceUrl, [recipe.totalTime, recipe.servings && formatServingsLabel(recipe.servings)].filter(Boolean).join(" · "), recipe.description, "", "Ingredients", ...recipe.ingredients.map((ingredient) => [ingredient.amount, ingredient.unit, ingredient.name].filter(Boolean).join(" ")), "", "Method", ...recipe.steps.map((step, index) => `${index + 1}. ${step.text}`)].join("\n");
 }
 
 export function libraryUrl(recipe) {

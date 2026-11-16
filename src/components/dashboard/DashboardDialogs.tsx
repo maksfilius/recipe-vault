@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Link2, Pencil } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import RecipeForm from "./recipe/RecipeForm";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -13,7 +13,7 @@ export function DashboardDialogs({ actions }: {
   actions: ReturnType<typeof useDashboardActions>;
 }) {
   const {
-    editingRecipe, isDialogOpen, addRecipeMode, setAddRecipeMode, importUrl, setImportUrl,
+    editingRecipe, isDialogOpen, addRecipeMode, setAddRecipeMode, importUrl, setImportUrl, setImportError,
     isImportingRecipe, importError, isSavingRecipe, handleImportRecipe, handleFormSubmit,
     handleDialogOpenChange,
     recipeToDelete, setRecipeToDelete, handleDeleteRecipe,
@@ -33,32 +33,28 @@ export function DashboardDialogs({ actions }: {
                   ? "Check the imported details, fill any gaps, then save."
                   : "Update the details you want to change."
                 : addRecipeMode === "select"
-                  ? "Start with a recipe link or write your own."
+                  ? "Paste a recipe link or write it manually."
                   : "Only a recipe name is required. Add ingredients and steps when you have them."}
             </DialogDescription>
           </DialogHeader>
           {!editingRecipe && addRecipeMode === "select" ? (
-            <div className="grid gap-3">
-              <div className="rounded-2xl border border-border bg-card p-4 sm:p-5">
-                <div className="flex items-center gap-2"><Link2 className="h-5 w-5 text-primary" aria-hidden /><h3 className="text-base font-semibold">Import from a link</h3></div>
-                <p className="mt-2 text-sm text-muted-foreground">We&apos;ll bring the recipe into an editable draft for you to review.</p>
-                <form noValidate className="mt-4 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void handleImportRecipe(); }}>
-                  <Input type="url" aria-label="Recipe URL" value={importUrl} onChange={(event) => setImportUrl(event.target.value)} placeholder="https://example.com/recipe" className="min-w-0 flex-1" />
-                  <Button type="submit" disabled={isImportingRecipe}>
-                    {isImportingRecipe ? "Importing…" : importError ? "Try import again" : "Import recipe"}
-                  </Button>
-                </form>
-                {isImportingRecipe ? <p className="mt-3 text-sm text-muted-foreground" role="status">Reading the page and preparing your draft…</p> : null}
-                {importError ? <p className="mt-3 text-sm text-destructive" role="alert">{importError} You can retry or add it manually with the link kept in the form.</p> : null}
-              </div>
-              <button type="button" className="flex min-h-16 items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left hover:bg-muted" onClick={() => setAddRecipeMode("manual")}>
-                <Pencil className="h-5 w-5 shrink-0 text-primary" aria-hidden />
-                <span><span className="block text-sm font-semibold">Add manually</span><span className="mt-1 block text-sm text-muted-foreground">Write a recipe from scratch.</span></span>
-              </button>
+            <div>
+              <form noValidate className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => { event.preventDefault(); void handleImportRecipe(); }}>
+                <Input type="url" aria-label="Recipe URL" aria-invalid={Boolean(importError)} aria-describedby={importError ? "dialog-import-error" : undefined}
+                  value={importUrl} onChange={(event) => { setImportUrl(event.target.value); setImportError(""); }}
+                  placeholder="https://example.com/recipe" className="min-w-0 flex-1" />
+                <Button type="submit" disabled={isImportingRecipe}>
+                  {isImportingRecipe ? "Importing…" : importError ? "Retry" : "Import"}
+                </Button>
+              </form>
+              {isImportingRecipe ? <p className="mt-3 text-sm text-muted-foreground" role="status">Reading the recipe…</p> : null}
+              {importError ? <p id="dialog-import-error" className="mt-3 text-sm text-destructive" role="alert">{importError}</p> : null}
+              <button type="button" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                onClick={() => setAddRecipeMode("manual")}>or write it manually</button>
             </div>
           ) : addRecipeMode === "manual" ? (
             <>
-              {!editingRecipe ? <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => setAddRecipeMode("select")}><ArrowLeft aria-hidden />Back to options</Button> : null}
+              {!editingRecipe ? <Button type="button" variant="ghost" size="sm" className="w-fit" onClick={() => setAddRecipeMode("select")}><ArrowLeft aria-hidden />Back to link</Button> : null}
               {editingRecipe && isDraftImportedRecipe(editingRecipe) && getImportReviewWarnings(editingRecipe).length > 0 ? (
                 <div className="rounded-xl border border-border bg-muted p-4 text-sm" role="status">
                   <p className="font-semibold">Check these details before saving</p>

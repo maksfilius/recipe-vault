@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 const port = Number(process.env.KC_CDP_PORT || 9228);
 const base = process.env.KC_PREVIEW_URL || "http://127.0.0.1:8765/extension/sidepanel.html";
+const screenshotPrefix = process.env.KC_SCREENSHOT_PREFIX || "kc-d12";
 const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
 const target = targets.find((item) => item.type === "page");
 assert.ok(target, "No Chrome page target available");
@@ -29,7 +30,7 @@ await send("Runtime.enable");
 await send("Network.enable");
 await send("Network.setCacheDisabled", { cacheDisabled: true });
 await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-const states = ["loading", "parser", "found", "no-recipe", "access-error", "extraction-error", "signed-out", "signed-in", "already-saved", "saved"];
+const states = process.env.KC_PREVIEW_STATES?.split(",") ?? ["loading", "parser", "found", "no-recipe", "access-error", "extraction-error", "signed-out", "signed-in", "already-saved", "saved"];
 for (const state of states) {
   await send("Page.navigate", { url: `${base}?preview=${state}&theme=light` });
   await new Promise((resolve) => setTimeout(resolve, 100));
@@ -44,12 +45,12 @@ for (const state of states) {
   assert.equal(result.result.value.state, state);
   assert.ok(result.result.value.scrollWidth <= 390, `Horizontal overflow in ${state}: ${JSON.stringify(result.result.value)}`);
   const shot = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, clip: { x: 0, y: 0, width: 390, height: 844, scale: 1 } });
-  await writeFile(join(process.cwd(), "docs/screenshots", `kc-d12-${state}.png`), Buffer.from(shot.data, "base64"));
+  await writeFile(join(process.cwd(), "docs/screenshots", `${screenshotPrefix}-${state}.png`), Buffer.from(shot.data, "base64"));
   process.stdout.write(`${state}: ${result.result.value.width}×844, scrollWidth ${result.result.value.scrollWidth}\n`);
 }
 await send("Page.navigate", { url: `${base}?preview=found&theme=dark` });
 await new Promise((resolve) => setTimeout(resolve, 100));
 await send("Runtime.evaluate", { expression: "new Promise(resolve => { const check = async () => { if (document.getElementById('panel-state')?.dataset.state === 'found') { await document.fonts.ready; resolve(true); } else setTimeout(check, 30); }; check(); })", awaitPromise: true });
 const dark = await send("Page.captureScreenshot", { format: "png", captureBeyondViewport: false, clip: { x: 0, y: 0, width: 390, height: 844, scale: 1 } });
-await writeFile(join(process.cwd(), "docs/screenshots", "kc-d12-found-dark.png"), Buffer.from(dark.data, "base64"));
+await writeFile(join(process.cwd(), "docs/screenshots", `${screenshotPrefix}-found-dark.png`), Buffer.from(dark.data, "base64"));
 ws.close();

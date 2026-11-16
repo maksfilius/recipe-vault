@@ -17,7 +17,6 @@ export default function Header() {
           Keep &amp; Cook
         </Link>
         <div className="hidden items-center gap-7 md:flex">
-          <a href="#features" className="font-medium text-foreground underline-offset-4 hover:underline">How it works</a>
           <a href="#extension" className="font-medium text-foreground underline-offset-4 hover:underline">Chrome extension</a>
           <ThemeToggle />
           <Link href="/login" className="font-medium text-foreground underline-offset-4 hover:underline">Sign in</Link>
@@ -32,7 +31,6 @@ export default function Header() {
       {open && (
         <nav id="mobile-nav" aria-label="Mobile navigation" className="border-t border-border bg-card px-5 pb-5 md:hidden">
           <div className="mx-auto flex max-w-6xl flex-col gap-1">
-            <a href="#features" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">How it works</a>
             <a href="#extension" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">Chrome extension</a>
             <Link href="/login" onClick={() => setOpen(false)} className="flex min-h-11 items-center text-foreground">Sign in</Link>
             <Button asChild className="mt-2"><Link href="/register">Create account</Link></Button>

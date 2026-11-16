@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { recipePayloadSchema, type RecipePayload } from "@/src/lib/recipe-validation";
 import { storeRecipeTransfer } from "@/src/lib/recipe-import-transfer";
 import { supabase } from "@/src/lib/supabase-client";
+import { trackAnalytics } from "@/src/lib/analytics";
 
 export default function ExtensionImportPage() {
   const [recipe, setRecipe] = useState<RecipePayload | null>(null);
@@ -27,11 +28,14 @@ export default function ExtensionImportPage() {
       setRecipe(parsed);
       window.history.replaceState(null, "", window.location.pathname);
       void supabase.auth.getUser().then(({ data: { user } }) => {
+        try { window.sessionStorage.setItem(`keep-and-cook-handoff-auth:${id}`, user ? "yes" : "no"); } catch { /* Optional metric. */ }
         window.location.replace(user ? next : `/login?next=${encodeURIComponent(next)}`);
       }).catch(() => {
+        trackAnalytics("extension_handoff_failed", { reason: "server_error" });
         setError("Could not check your account. Sign in below to continue with your recipe.");
       });
     } catch {
+      trackAnalytics("extension_handoff_failed", { reason: "invalid_url" });
       setError("Could not keep this recipe for import. Allow site storage, then choose Save to library in the extension again.");
     }
   }, []);

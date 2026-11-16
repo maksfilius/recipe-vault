@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { consumeRateLimit } from "@/src/lib/rate-limit";
+import { consumeRateLimit, RateLimitUnavailableError } from "@/src/lib/rate-limit";
 import {
   RecipeImageError,
   storeRecipeImage,
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
       return jsonError("Sign in to save recipe images.", 401);
     }
 
-    const rateLimit = consumeRateLimit(`recipe-image:user:${user.id}`, {
+    const rateLimit = await consumeRateLimit(`recipe-image:user:${user.id}`, {
       limit: IMAGE_LIMIT,
       windowMs: RATE_LIMIT_WINDOW_MS,
     });
@@ -92,6 +92,12 @@ export async function POST(request: Request) {
       { headers: { "cache-control": "no-store" } },
     );
   } catch (error) {
+    if (error instanceof RateLimitUnavailableError) {
+      return jsonError("Recipe images are temporarily unavailable. Please try again shortly.", 503, {
+        "retry-after": "5",
+      });
+    }
+
     if (error instanceof RecipeImageError) {
       return jsonError(error.message, error.status);
     }

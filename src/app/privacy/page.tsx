@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     "Read the Keep & Cook Privacy Policy to understand how account and recipe data is collected, used, and protected.",
 };
 
-const updatedAt = "April 21, 2026";
+const updatedAt = "November 16, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -70,6 +70,15 @@ export default function PrivacyPage() {
               <li>To respond to support requests and service issues.</li>
               <li>To maintain, improve, and protect the service.</li>
             </ul>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-semibold">Optional Product Analytics</h2>
+            <div className="space-y-3 text-muted-foreground">
+              <p>With your permission, we use PostHog Cloud EU to count specific actions such as opening a recipe, saving it, starting cooking mode, or exporting your library. The service processes analytics data in its EU region.</p>
+              <p>We send event names and limited categories or booleans, such as import source and whether a preview contains steps. After sign-in, events may be linked to your internal account ID. PostHog may process technical information such as your IP address to receive these events. We do not send recipe titles, ingredients, steps, notes, email, search terms, or recipe URLs.</p>
+              <p>Analytics is off until you choose Allow. We disable automatic page and interaction capture and session recording. You can change your choice in Settings at any time; declining does not affect recipe features. If you request account deletion, contact us about removing associated analytics data as well.</p>
+            </div>
           </section>
 
           <section className="space-y-4">

@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { getAuthRedirectUrl } from "@/src/lib/auth";
+import { identifyAnalytics, rememberPendingSignup, trackAnalytics } from "@/src/lib/analytics";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
 import { supabase } from "@/src/lib/supabase-client";
@@ -48,6 +49,8 @@ export default function AuthForm({ type }: AuthFormProps) {
   });
 
   const onSubmit = async (values: LoginValues | RegisterValues) => {
+    const entryPoint = hasImportDraft ? "extension" : "landing";
+    if (type === "register") trackAnalytics("signup_started", { entry_point: entryPoint });
     setIsLoading(true);
     setNotice("");
     try {
@@ -63,17 +66,22 @@ export default function AuthForm({ type }: AuthFormProps) {
           return;
         }
         if (!data.session) {
+          if (data.user) rememberPendingSignup(data.user.id, entryPoint);
           setRegisteredEmail(registration.email);
           form.reset();
           return;
         }
+        if (data.user) {
+          void identifyAnalytics(data.user.id).then(() => trackAnalytics("signup_completed", { entry_point: entryPoint }));
+        }
       } else {
         const login = values as LoginValues;
-        const { error } = await supabase.auth.signInWithPassword({ email: login.email, password: login.password });
+        const { data, error } = await supabase.auth.signInWithPassword({ email: login.email, password: login.password });
         if (error) {
           form.setError("password", { message: getFriendlyAuthErrorMessage(error.message) });
           return;
         }
+        if (data.user) void identifyAnalytics(data.user.id).then(() => trackAnalytics("login_completed", { entry_point: entryPoint }));
       }
       router.replace(destination);
     } catch {

@@ -76,9 +76,17 @@ function extractCharsetFromHtmlHead(bytes: Uint8Array) {
 }
 
 function normalizeText(value: string) {
-  return value
+  let text = value.replace(/<[^>]+>/g, " ");
+  if (text.includes("&")) {
+    for (let pass = 0; pass < 2; pass += 1) {
+      const $ = cheerio.load(`<textarea>${text}</textarea>`, null, false);
+      const decoded = $("textarea").text();
+      if (decoded === text) break;
+      text = decoded;
+    }
+  }
+  return text
     .replace(/\u00a0/g, " ")
-    .replace(/<[^>]+>/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -262,7 +270,9 @@ function splitInstructionString(value: string) {
     .split(/\r?\n+/)
     .flatMap((line) => line.split(/\s+(?=(?:step\s+)?\d{1,2}[.)]\s+)/i))
     .map((line) =>
-      normalizeText(line).replace(/^(?:(?:step|schritt|шаг)\s*)?\d{1,2}[.):.-]\s*/iu, ""),
+      normalizeText(line)
+        .replace(/(\p{Ll}[.!?])(?=\p{Lu})/gu, "$1 ")
+        .replace(/^(?:(?:step|schritt|шаг)\s*)?\d{1,2}[.):.-]\s*/iu, ""),
     )
     .filter(Boolean);
 
@@ -820,10 +830,11 @@ function extractHintedIngredientBlock($: cheerio.CheerioAPI) {
 function extractIngredientTableBlock($: cheerio.CheerioAPI) {
   return $("article table, main table, [role='main'] table, body table")
     .toArray()
-    .map((table): ScoredBlock => {
+    .map((table) => {
       const lines = uniqueStrings(
         $(table)
           .find("tr")
+          .filter((_, row) => $(row).closest("table").get(0) === table)
           .toArray()
           .map((row) => {
             const cells = $(row)
@@ -838,9 +849,15 @@ function extractIngredientTableBlock($: cheerio.CheerioAPI) {
       const ingredientLines = lines.filter(
         (line) => !isIngredientHeading(line) && line.length <= 220 && scoreIngredientLine(line) > 0,
       );
+      const hints = getElementHints($, table);
+      const firstRow = normalizeText($(table).find("tr").first().text());
+      const ingredientContext =
+        /(?:^|[\s_-])(?:ingr|ingredients?|zutaten|ингредиенты|продукты)(?:$|[\s_-])/iu.test(hints) ||
+        /^(?:ingredients?|products?|zutaten|ингредиенты|продукты)(?:\s|:|$)/iu.test(firstRow);
 
       return {
         lines: ingredientLines,
+        ingredientContext,
         score:
           lines.length > 0
             ? ingredientLines.reduce((total, line) => total + scoreIngredientLine(line), 0) / lines.length
@@ -848,7 +865,10 @@ function extractIngredientTableBlock($: cheerio.CheerioAPI) {
       };
     })
     .filter((block) => block.lines.length >= 2 && block.score >= 0.45)
-    .sort((a, b) => b.score - a.score || b.lines.length - a.lines.length)
+    .sort((a, b) =>
+      Number(b.ingredientContext) - Number(a.ingredientContext) ||
+      b.score - a.score ||
+      b.lines.length - a.lines.length)
     .at(0);
 }
 
@@ -972,6 +992,7 @@ function extractRepeatedTextBlock($: cheerio.CheerioAPI) {
 function isNoisyDescription(description: string, title: string) {
   const normalized = normalizeText(description);
   if (!normalized) return true;
+  if (normalized.toLocaleLowerCase() === normalizeText(title).toLocaleLowerCase()) return true;
 
   const punctuationCount = (normalized.match(/[,;]/g) ?? []).length;
   const mentionsTitle = title && normalized.toLowerCase().includes(title.toLowerCase());
@@ -1129,7 +1150,7 @@ export function buildImportedRecipe(html: string, sourceUrl: string): ImportedRe
       ? recipeDescription
       : fallbackDescription && !isNoisyDescription(fallbackDescription, title)
         ? fallbackDescription
-        : title,
+        : "",
     MAX_DESCRIPTION_LENGTH,
   );
   const ingredients = parseIngredients(recipe?.recipeIngredient ?? null);

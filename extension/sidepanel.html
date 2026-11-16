@@ -11,13 +11,12 @@
   <body>
     <header class="panel-header">
       <a class="brand" href="https://keepandcook.com" target="_blank" rel="noreferrer"><span class="brand-mark" aria-hidden="true">K<span>·</span>C</span><span>Keep &amp; Cook</span></a>
-      <button id="refresh" class="text-button" hidden>Read this page</button>
     </header>
     <main>
       <p id="status" class="sr-only" role="status" aria-live="polite">Reading page</p>
       <section id="panel-state" class="state-card" data-state="loading" aria-labelledby="state-title">
         <div id="skeleton" class="skeleton"><div class="skeleton-photo" aria-hidden="true"></div><div class="skeleton-line short" aria-hidden="true"></div><div class="skeleton-line" aria-hidden="true"></div><div class="skeleton-line medium" aria-hidden="true"></div><div class="skeleton-button" aria-hidden="true"></div><p id="loading-label" class="loading-label">Reading page</p></div>
-        <div id="state-copy" class="state-copy"><div id="state-icon" class="state-icon" aria-hidden="true">✳</div><p id="state-eyebrow" class="eyebrow">On this page</p><h1 id="state-title">Reading page</h1><p id="state-description">Looking for ingredients and instructions.</p><p id="state-domain" class="state-domain"></p><a id="manual-link" href="https://keepandcook.com/login?next=%2Fdashboard%3Fadd%3Dmanual" target="_blank" rel="noreferrer" hidden>Add manually on web ↗</a></div>
+        <div id="state-copy" class="state-copy"><div id="state-icon" class="state-icon" aria-hidden="true">✳</div><p id="state-eyebrow" class="eyebrow">On this page</p><h1 id="state-title">Reading page</h1><p id="state-description">Looking for ingredients and instructions.</p><p id="state-domain" class="state-domain"></p><button id="refresh" class="text-button" hidden>Read this page</button><a id="manual-link" href="https://keepandcook.com/login?next=%2Fdashboard%3Fadd%3Dmanual" target="_blank" rel="noreferrer" hidden>Add manually on web ↗</a></div>
       </section>
       <article id="recipe" class="recipe-card" hidden>
         <img id="photo" alt="" hidden>
@@ -32,7 +31,7 @@
           <div id="save-feedback" class="save-feedback" role="status" aria-live="polite" hidden></div>
           <section class="recipe-section"><div class="section-heading"><h2>Ingredients</h2><span id="ingredient-count" class="section-count"></span></div><ul id="ingredients" class="ingredient-list"></ul></section>
           <section id="method" class="recipe-section"><h2>Method</h2><ol id="steps" class="step-list"></ol></section>
-          <a id="download" class="download-link" href="#">Download .txt ↓</a>
+          <a id="download" class="download-link" href="#" download>Download</a>
         </div>
       </article>
     </main>

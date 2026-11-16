@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { consumeRateLimit, getClientAddress } from "@/src/lib/rate-limit";
+import { consumeRateLimit, getClientAddress, RateLimitUnavailableError } from "@/src/lib/rate-limit";
 import { buildImportedRecipe, decodeRecipeHtml } from "@/src/lib/recipe-import-parser";
 import {
   prepareRecipeImage,
@@ -154,13 +154,23 @@ export async function POST(request: Request) {
   }
 
   const { supabase, user } = await getRequestUser();
-  const rateLimit = consumeRateLimit(
-    user ? `import:user:${user.id}` : `import:ip:${getClientAddress(request)}`,
-    {
-      limit: user ? AUTHENTICATED_IMPORT_LIMIT : ANONYMOUS_IMPORT_LIMIT,
-      windowMs: RATE_LIMIT_WINDOW_MS,
-    },
-  );
+  let rateLimit;
+  try {
+    rateLimit = await consumeRateLimit(
+      user ? `import:user:${user.id}` : `import:ip:${getClientAddress(request)}`,
+      {
+        limit: user ? AUTHENTICATED_IMPORT_LIMIT : ANONYMOUS_IMPORT_LIMIT,
+        windowMs: RATE_LIMIT_WINDOW_MS,
+      },
+    );
+  } catch (error) {
+    if (error instanceof RateLimitUnavailableError) {
+      return jsonError("Recipe import is temporarily unavailable. Please try again shortly.", 503, {
+        "retry-after": "5",
+      });
+    }
+    throw error;
+  }
 
   if (!rateLimit.allowed) {
     return jsonError(

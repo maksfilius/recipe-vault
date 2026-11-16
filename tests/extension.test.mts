@@ -4,10 +4,21 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { load } from "cheerio";
 import { recipePayloadSchema } from "../src/lib/recipe-validation.ts";
-import { recipeText, libraryUrl } from "../extension/shared.js";
+import { recipeText, libraryUrl, formatServingsLabel } from "../extension/shared.js";
 
 const extractionScript = readFileSync(new URL("../extension/extract.js", import.meta.url), "utf8");
 const backgroundScript = readFileSync(new URL("../extension/background.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
+
+test("side panel keeps only the brand in its header and places retry in the empty state", () => {
+  const html = readFileSync(new URL("../extension/sidepanel.html", import.meta.url), "utf8");
+  const $ = load(html);
+  assert.equal($(".panel-header").children().length, 1);
+  assert.equal($("#panel-state #refresh").length, 1);
+  assert.equal($("#recipe .actions button").length, 2);
+  assert.equal($("#recipe .actions button.primary").text().trim(), "Start cooking →");
+  assert.equal($("#recipe .actions button.secondary").text().trim(), "Save");
+  assert.equal($("#method + #download").text().trim(), "Download");
+});
 
 test("toolbar click opens the panel directly inside the user gesture", async () => {
   let click: ((tab: { windowId: number }) => void) | undefined;
@@ -62,10 +73,10 @@ test("cooking injects a page reader and saves through the existing login route",
   let onActivated: (() => Promise<void>) | undefined;
   const injections: { files?: string[]; args?: unknown[] }[] = [];
   let closed = false;
-  const recipe = { title: "Soup", description: "Lunch", sourceUrl: "https://recipes.example/soup", ingredients: [{ name: "Carrot" }], steps: [{ text: "Chop." }, { text: "Simmer." }] };
+  const recipe = { title: "Soup", description: "Lunch", sourceUrl: "https://recipes.example/soup", servings: "2", ingredients: [{ name: "Carrot" }], steps: [{ text: "Chop." }, { text: "Simmer." }] };
   const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
   runInNewContext(script, {
-    URL, console, libraryUrl, readerStyles: async () => "reader styles", renderIngredients() {},
+    URL, console, libraryUrl, formatServingsLabel, readerStyles: async () => "reader styles", renderIngredients() {},
     fetch: async () => ({ text: async () => "reader styles" }),
     window: { close() { closed = true; } },
     navigator: {},
@@ -77,6 +88,7 @@ test("cooking injects a page reader and saves through the existing login route",
     },
   });
   await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(element("meta").textContent, "2 servings");
   await element("cook").click();
   assert.equal(opened.length, 0);
   assert.equal(closed, true);
@@ -100,7 +112,7 @@ test("panel separates loading, missing recipe, access, rate limit, and unconfirm
   let responseStatus = 404;
   const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
   runInNewContext(script, {
-    URL, console, libraryUrl, renderIngredients() {}, AbortSignal,
+    URL, console, libraryUrl, formatServingsLabel, renderIngredients() {}, AbortSignal,
     document: { getElementById: element, createElement: () => ({ textContent: "" }) },
     window: { close() {} },
     fetch: async () => ({ ok: false, status: responseStatus, json: async () => ({ error: responseStatus === 429 ? "Rate limited" : "No recipe" }) }),
@@ -115,16 +127,20 @@ test("panel separates loading, missing recipe, access, rate limit, and unconfirm
   });
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(element("panel-state").dataset.state, "no-recipe");
+  assert.equal(element("refresh").hidden, false);
   extraction = "denied";
   await element("refresh").click();
   assert.equal(element("panel-state").dataset.state, "access-error");
+  assert.equal(element("refresh").hidden, false);
   extraction = "empty";
   responseStatus = 429;
   await element("refresh").click();
   assert.equal(element("panel-state").dataset.state, "extraction-error");
+  assert.equal(element("refresh").hidden, false);
   extraction = "recipe";
   await element("refresh").click();
   assert.equal(element("panel-state").dataset.state, "found");
+  assert.equal(element("refresh").hidden, true);
   await element("save").click();
   assert.equal(element("panel-state").dataset.state, "handoff");
   assert.match(element("save-feedback").textContent, /Review in the opened tab/);
@@ -154,6 +170,24 @@ test("extension extracts nested graph recipes and instruction sections into an a
   assert.equal(recipePayloadSchema.safeParse(recipe).success, true);
 });
 
+test("extension decodes double escapes and keeps HTML-separated instructions apart", () => {
+  const recipe = extract([{
+    "@type": "Recipe",
+    name: "Fish &amp;amp; Chips",
+    description: "A &amp;quot;quick&amp;quot; dinner &quot;today&quot;.",
+    recipeIngredient: ["1 cup flour &amp;amp; herbs &amp; spice"],
+    recipeInstructions: [{ text: "Don&amp;#39;t rush &amp;amp; stir. Fry immediately.Make sauce.<br>Serve warm.</p><p>It&#39;s ready." }],
+  }]);
+  assert.equal(recipe.title, "Fish & Chips");
+  assert.equal(recipe.description, 'A "quick" dinner "today".');
+  assert.equal(recipe.ingredients[0].name, "1 cup flour & herbs & spice");
+  assert.deepEqual(Array.from(recipe.steps as { text: string }[], (step) => step.text), [
+    "Don't rush & stir. Fry immediately. Make sauce.",
+    "Serve warm.",
+    "It's ready.",
+  ]);
+});
+
 test("extension ignores incomplete recipes, handles malformed images, and bounds fields", () => {
   const recipe = extract([{ "@type": "Recipe", name: "Incomplete" }, { "@type": "https://schema.org/Recipe", name: "x".repeat(200), recipeIngredient: ["y".repeat(300)], recipeInstructions: "Mix.\nBake.", image: "javascript:alert(1)" }]);
   assert.equal(recipe.title.length, 160);
@@ -167,6 +201,7 @@ test("extension ignores incomplete recipes, handles malformed images, and bounds
 
 test("download preserves Unicode, ingredient quantities, instructions, and attribution", () => {
   const output = recipeText({ title: "Суп", description: "Обед", sourceUrl: "https://recipes.example/soup", totalTime: "20 min", servings: "2", ingredients: [{ name: "морковь", amount: "2", unit: "шт" }], steps: [{ text: "Нарезать." }, { text: "Варить." }] });
+  assert.match(output, /20 min · 2 servings/);
   assert.match(output, /2 шт морковь/);
   assert.match(output, /2\. Варить\./);
   assert.match(output, /https:\/\/recipes.example\/soup/);

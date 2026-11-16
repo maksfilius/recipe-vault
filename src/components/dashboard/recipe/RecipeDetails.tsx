@@ -6,8 +6,9 @@ import { CookingMode } from "./CookingMode";
 import type { Recipe } from "../../../types/recipe";
 import { Button } from "../../ui/button";
 import { requestAppFullscreen } from "@/src/lib/fullscreen";
-import { getVisibleRecipeDescription } from "@/src/lib/recipe-details";
+import { formatServingsLabel, getVisibleRecipeDescription } from "@/src/lib/recipe-details";
 import { formatSourceUrl } from "@/src/lib/utils";
+import { trackAnalytics } from "@/src/lib/analytics";
 
 type RecipeDetailsProps = {
   recipe: Recipe;
@@ -15,9 +16,12 @@ type RecipeDetailsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   showActions?: boolean;
+  showFirstCookHint?: boolean;
+  onDismissFirstCookHint?: () => void;
 };
 
-export function RecipeDetails({ recipe, onBack, onEdit, onDelete, showActions = true }: RecipeDetailsProps) {
+export function RecipeDetails({ recipe, onBack, onEdit, onDelete, showActions = true,
+  showFirstCookHint = false, onDismissFirstCookHint }: RecipeDetailsProps) {
   const [isCooking, setIsCooking] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const startCookingRef = useRef<HTMLButtonElement>(null);
@@ -108,14 +112,24 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete, showActions = 
               {sourceHost && (recipe.totalTime || recipe.servings) ? <span aria-hidden>·</span> : null}
               {recipe.totalTime ? <span className="shrink-0">{recipe.totalTime}</span> : null}
               {recipe.totalTime && recipe.servings ? <span aria-hidden>·</span> : null}
-              {recipe.servings ? <span className="shrink-0">{recipe.servings}</span> : null}
+              {recipe.servings ? <span className="shrink-0">{formatServingsLabel(recipe.servings)}</span> : null}
             </div>
           ) : null}
           {visibleSteps.length > 0 ? (
-            <Button ref={startCookingRef} type="button" onClick={() => {
-              void requestAppFullscreen();
-              setIsCooking(true);
-            }}>Start cooking</Button>
+            <div className="space-y-2">
+              <Button ref={startCookingRef} type="button" onClick={() => {
+                onDismissFirstCookHint?.();
+                trackAnalytics("cook_mode_started", { recipe_origin: "saved" });
+                void requestAppFullscreen();
+                setIsCooking(true);
+              }}>Start cooking</Button>
+              {showFirstCookHint ? (
+                <div role="status" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <p>Start cooking opens a clear, step-by-step view.</p>
+                  <button type="button" className="min-h-11 font-medium text-foreground underline decoration-border underline-offset-4 hover:decoration-current" onClick={onDismissFirstCookHint}>Got it</button>
+                </div>
+              ) : null}
+            </div>
           ) : null}
           {description ? <p className="max-w-[70ch] break-words whitespace-pre-wrap text-base leading-7 text-muted-foreground">{description}</p> : null}
         </header>

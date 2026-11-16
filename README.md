@@ -7,11 +7,11 @@ Product concept, architecture, design direction, roadmap and the task list live 
 ## What it includes
 
 - Email/password authentication with signup, login, forgot password, and reset password flows
-- Private dashboard for creating, editing, favoriting, and browsing recipes
-- User-owned collections, faceted tags, imported metadata, and first-party recipe images
+- Private recipe grid with search, URL import, manual entry, editing and cooking mode
+- Recipe detail pages with source attribution, imported metadata and first-party images
 - Installable PWA with a versioned, read-only offline recipe snapshot
-- Account settings for profile name, password changes, and signing out other sessions
-- Marketing landing page with metadata, Open Graph image, robots, and sitemap
+- Account settings for JSON export, password, theme, other sessions, deletion and legal links
+- Landing page with a URL demo, Chrome extension introduction and final signup action
 
 ## Tech stack
 
@@ -44,10 +44,16 @@ RESEND_API_KEY=re_xxxxxxxxx
 RESEND_FROM_EMAIL=Keep & Cook <onboarding@resend.dev>
 RESEND_TEST_TO_EMAIL=you@example.com
 RESEND_TEST_TOKEN=replace-with-a-long-random-token
+# UPSTASH_REDIS_REST_URL=https://your-database.upstash.io
+# UPSTASH_REDIS_REST_TOKEN=your-upstash-rest-token
+# NEXT_PUBLIC_POSTHOG_KEY=phc_your_eu_project_token
 ```
 
 `NEXT_PUBLIC_SITE_URL` should match the deployed app origin so email auth redirects land on the right host.
-`NEXT_PUBLIC_SUPPORT_EMAIL` is the contact address shown in legal pages and the footer.
+Set both `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` on every production instance to share import and image rate limits. Leave both unset for local development to use process memory. An incomplete pair or an unavailable configured Redis returns 503 for these operations; the app does not fall back to separate per-instance counters.
+`NEXT_PUBLIC_SUPPORT_EMAIL` is the contact address shown in legal pages, the footer, and settings. Without it, settings links to this repository's issue form for support.
+`NEXT_PUBLIC_POSTHOG_KEY` enables optional web analytics only in production builds. Use a PostHog Cloud EU project token and the EU ingestion region. Events are sent only after the visitor chooses Allow; this choice can be changed in Settings. Development builds never send analytics. In the PostHog project, keep session recordings, autocapture, error tracking, and feature flags disabled, and set the spending limit to zero as specified in `docs/specs/analytics-events.md`.
+To verify W-08 after deployment, use a test account in a fresh browser profile: allow analytics, import a URL, sign up or sign in, save and open a recipe, start and finish cooking mode, then export JSON. Confirm the named events and enum properties in PostHog EU Activity, and inspect a captured event to ensure no recipe content, email, or source URL was transmitted. Repeat after choosing Decline in Settings and confirm no new events arrive. Review the published Privacy Policy and PostHog data retention/deletion settings before enabling the project token.
 `SUPABASE_SERVICE_ROLE_KEY` is required if you want the in-app account deletion flow enabled.
 Replace `re_xxxxxxxxx` with your real Resend API key before sending email.
 `RESEND_FROM_EMAIL` should use a verified sender in production, such as `Keep & Cook <hello@your-domain.com>`.
@@ -102,6 +108,8 @@ many-to-many collections, adds tags and import metadata, creates an atomic
 `20260805_converge_legacy_recipe_schema.sql` safely brings older production
 installations to the same model while preserving their legacy compatibility
 columns and favorites table shape.
+`20261113_stop_default_recipe_collections.sql` starts new accounts with zero
+collections. It does not change collections already owned by existing users.
 
 Why this matters:
 
@@ -170,11 +178,12 @@ cap and a single encode pass, so an unauthenticated request cannot spend much
 CPU or memory. Signed-in imports use the `stored` preset and upload to Supabase
 Storage.
 
-Two known limits of this approach:
+The limiter uses Upstash Redis when both server-only credentials above are set. Its sliding window is approximate at window boundaries; the request budgets remain 8, 30, and 40 per 10 minutes. Without credentials, local development uses an in-memory sliding window.
 
-- the counters live in process memory, so each serverless instance limits
-  independently. A shared store (Vercel KV or Upstash) is required before the
-  demo carries real traffic.
+Known limits of this approach:
+
+- without Upstash credentials, counters live in process memory, so separate
+  local server instances have independent limits.
 - address keying is blunt: visitors behind one carrier-grade NAT address share a
   budget. Raise `ANONYMOUS_IMPORT_LIMIT` if legitimate visitors report 429s.
 - the address comes from `x-forwarded-for`, which Vercel overwrites with the real

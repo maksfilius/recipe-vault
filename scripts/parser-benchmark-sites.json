@@ -298,5 +298,11 @@
     "domain": "giangiskitchen.com",
     "recipeUrl": "https://www.giangiskitchen.com/chicken-leeks-lemon/",
     "source": "Detailed"
+  },
+  {
+    "name": "RussianFood",
+    "domain": "russianfood.com",
+    "recipeUrl": "https://www.russianfood.com/recipes/recipe.php?rid=55956",
+    "source": "B-03 regression"
   }
 ]

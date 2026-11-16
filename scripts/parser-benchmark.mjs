@@ -214,11 +214,11 @@ const yes = (value) => value ? '✓' : '—';
 const safe = (value) => String(value).replaceAll('|', '\\|').replaceAll('\n', ' ');
 const date = new Date().toISOString();
 const lines = [
-  '# A-05 — baseline парсера на 50 сайтах',
+  `# A-05 — проверка парсера на ${sites.length} сайтах`,
   '',
-  `Запуск: ${date}. Прогнано ${results.length} из 50 сайтов. Полный результат (ингредиенты **и** шаги): **${successCount}/${results.length} = ${(successCount / results.length * 100).toFixed(1)}%**. Страница рецепта получена и передана в \`buildImportedRecipe\`: **${reachedCount}/${results.length}**.`,
+  `Запуск: ${date}. Прогнано ${results.length} из ${sites.length} сайтов. Полный результат (ингредиенты **и** шаги): **${successCount}/${results.length} = ${(successCount / results.length * 100).toFixed(1)}%**. Страница рецепта получена и передана в \`buildImportedRecipe\`: **${reachedCount}/${results.length}**.`,
   '',
-  `Метод: 5 публичных лидеров американской категории [Similarweb](https://www.similarweb.com/top-websites/united-states/food-and-drink/cooking-and-recipes/) плюс 45 уникальных сайтов из [Detailed.com Top 50 Food Blogs](https://detailed.com/food-blogs/). Это **не** строгий топ-50 по трафику США: полный список Similarweb публично недоступен, а блоговый рейтинг — другая методика. Для каждого сайта в манифесте закреплён один URL отдельного рецепта (${results.filter((r) => r.selectedBy === 'pinned').length}/${results.length} на этом запуске). Если URL не закреплён, скрипт ищет вероятную ссылку на главной; такой автовыбор требует ручной сверки.`,
+  `Метод: исходные 5 публичных лидеров американской категории [Similarweb](https://www.similarweb.com/top-websites/united-states/food-and-drink/cooking-and-recipes/) плюс 45 уникальных сайтов из [Detailed.com Top 50 Food Blogs](https://detailed.com/food-blogs/); остальные сайты добавлены для проверки регрессий. Исходная выборка **не** является строгим топ-50 по трафику США: полный список Similarweb публично недоступен, а блоговый рейтинг — другая методика. Для каждого сайта в манифесте закреплён один URL отдельного рецепта (${results.filter((r) => r.selectedBy === 'pinned').length}/${results.length} на этом запуске). Если URL не закреплён, скрипт ищет вероятную ссылку на главной; такой автовыбор требует ручной сверки.`,
   '',
   'Скрипт: `node --experimental-strip-types scripts/parser-benchmark.mjs`. Список: `scripts/parser-benchmark-sites.json`. Ограничение HTML 3 МБ, тайм-аут 12 с на запрос, максимум 5 редиректов в пределах того же HTTPS-домена, user-agent как у текущего API. Изображения не скачиваются; поле `image` означает только извлечённый URL. Запуск из другой сети или позже может дать другой результат из-за защиты сайтов и изменений страниц.',
   '',

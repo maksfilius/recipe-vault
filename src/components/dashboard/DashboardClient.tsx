@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
 
 import { RecipeCard, RecipeCardSkeleton } from "./recipe/RecipeCard";
 import { RecipeDetails } from "./recipe/RecipeDetails";
@@ -13,6 +12,8 @@ import { useDashboardData } from "./useDashboardData";
 import { useDashboardFilters } from "./useDashboardFilters";
 import { useDashboardActions } from "./useDashboardActions";
 import { DashboardDialogs } from "./DashboardDialogs";
+import { EmptyLibrary } from "./EmptyLibrary";
+import { trackAnalytics } from "@/src/lib/analytics";
 
 export default function Dashboard() {
   const searchParams = useSearchParams();
@@ -41,7 +42,10 @@ export default function Dashboard() {
       <DashboardDialogs actions={actions} />
 
       {selectedRecipe ? (
-        <RecipeDetails recipe={selectedRecipe} onBack={() => setSelectedRecipe(null)} onEdit={() => handleEditRecipe(selectedRecipe)} onDelete={() => setRecipeToDelete(selectedRecipe)} showActions={!isOfflineMode} />
+        <RecipeDetails recipe={selectedRecipe} onBack={() => { actions.setFirstCookHintRecipeId(null); setSelectedRecipe(null); }}
+          onEdit={() => handleEditRecipe(selectedRecipe)} onDelete={() => setRecipeToDelete(selectedRecipe)} showActions={!isOfflineMode}
+          showFirstCookHint={actions.firstCookHintRecipeId === selectedRecipe.id}
+          onDismissFirstCookHint={() => actions.setFirstCookHintRecipeId(null)} />
       ) : (
         <section className="mx-auto max-w-7xl min-w-0 pb-8">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
@@ -50,11 +54,18 @@ export default function Dashboard() {
             ) : loadError ? (
               <EmptyState className="col-span-full" title="Connect to load your recipes" description={loadError} action={<Button type="button" onClick={() => window.location.reload()}>Retry</Button>} />
             ) : allRecipes.length === 0 ? (
-              <EmptyState className="col-span-full" title="No recipes yet" description="Save a recipe to begin your cookbook." action={<Button type="button" disabled={isOfflineMode} onClick={handleAddRecipe}><Plus className="size-4" aria-hidden="true" />Add recipe</Button>} />
+              <div className="col-span-full">
+                <EmptyLibrary
+                  importUrl={actions.importUrl} setImportUrl={actions.setImportUrl} importError={actions.importError}
+                  clearImportError={() => actions.setImportError("")}
+                  isImporting={actions.isImportingRecipe} isSaving={actions.isSavingRecipe} isOffline={isOfflineMode}
+                  onImport={actions.handleImportRecipe} onManualSubmit={actions.handleFormSubmit}
+                />
+              </div>
             ) : filteredRecipes.length === 0 ? (
               <EmptyState className="col-span-full" title="No recipes found" description={searchTerm.trim() ? `Nothing matches “${searchTerm.trim()}”.` : "No recipes match your search."} action={<Button type="button" onClick={clearAllFilters}>Clear search</Button>} />
             ) : (
-              filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} onClick={() => setSelectedRecipe(recipe)} />)
+              filteredRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} onClick={() => { trackAnalytics("recipe_opened", { entry_point: searchTerm.trim() ? "search" : "dashboard" }); setSelectedRecipe(recipe); }} />)
             )}
           </div>
         </section>

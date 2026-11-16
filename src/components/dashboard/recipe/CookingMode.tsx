@@ -9,6 +9,8 @@ import { paginateStepText, remapPageIndex } from "@/src/lib/cooking-step-pages";
 import { exitAppFullscreen } from "@/src/lib/fullscreen";
 import { findStepDurations, formatCountdown } from "@/src/lib/step-durations";
 import type { Recipe } from "@/src/types/recipe";
+import { trackAnalytics } from "@/src/lib/analytics";
+import { getStepCountBucket } from "@/src/lib/analytics-events";
 
 type CookingModeProps = { recipe: Recipe; onExit: () => void };
 type RunningTimer = { id: string; label: string; endsAt: number; stepIndex: number };
@@ -206,8 +208,11 @@ export function CookingMode({ recipe, onExit }: CookingModeProps) {
     else if (stepIndex < lastStepIndex) {
       setStepIndex((step) => step + 1);
       setPartIndex(0);
-    } else onExit();
-  }, [partIndex, pages.length, stepIndex, lastStepIndex, onExit]);
+    } else {
+      trackAnalytics("cook_mode_completed", { recipe_origin: "saved", step_count_bucket: getStepCountBucket(steps.length) });
+      onExit();
+    }
+  }, [partIndex, pages.length, stepIndex, lastStepIndex, onExit, steps.length]);
 
   function onDialogKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
     if (event.key === "Escape") {

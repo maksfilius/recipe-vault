@@ -1,7 +1,24 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { buildImportedRecipe } from "../src/lib/recipe-import-parser.ts";
+
+test("RussianFood chicken broth chooses five recipe ingredients over reaction counts", () => {
+  const html = readFileSync(new URL("./fixtures/russianfood-55956.html", import.meta.url), "utf8");
+  const recipe = buildImportedRecipe(html, "https://www.russianfood.com/recipes/recipe.php?rid=55956");
+  assert.deepEqual(recipe?.ingredients.map((ingredient) => ingredient.name), [
+    "Курица", "Вода", "Лук", "Морковь", "Соль",
+  ]);
+  assert.equal(recipe?.steps.length, 8);
+});
+
+test("RussianFood chicken broth does not repeat the title as a description", () => {
+  const html = readFileSync(new URL("./fixtures/russianfood-55956.html", import.meta.url), "utf8");
+  const recipe = buildImportedRecipe(html, "https://www.russianfood.com/recipes/recipe.php?rid=55956");
+  assert.equal(recipe?.title, "Бульон куриный");
+  assert.equal(recipe?.description, "");
+});
 
 test("imports an English JSON-LD recipe", () => {
   const recipe = buildImportedRecipe(
@@ -29,6 +46,30 @@ test("imports an English JSON-LD recipe", () => {
   assert.equal(recipe?.ingredients[0]?.name, "flour");
   assert.equal(recipe?.ingredients[1]?.name, "eggs");
   assert.equal(recipe?.steps.length, 2);
+});
+
+test("decodes doubly escaped recipe text and preserves instruction boundaries", () => {
+  const payload = {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    name: "Fish &amp;amp; Chips",
+    description: "A &amp;quot;quick&amp;quot; dinner &quot;today&quot;.",
+    recipeIngredient: ["1 cup flour &amp;amp; herbs &amp; spice"],
+    recipeInstructions: [{ text: "Don&amp;#39;t rush &amp;amp; stir. Fry immediately.Make sauce.<br>Serve warm.</p><p>It&#39;s ready." }],
+  };
+  const recipe = buildImportedRecipe(
+    `<script type="application/ld+json">${JSON.stringify(payload)}</script>`,
+    "https://example.com/fish-and-chips",
+  );
+
+  assert.equal(recipe?.title, "Fish & Chips");
+  assert.equal(recipe?.description, 'A "quick" dinner "today".');
+  assert.equal(recipe?.ingredients[0]?.name, "flour & herbs & spice");
+  assert.deepEqual(recipe?.steps.map((step) => step.text), [
+    "Don't rush & stir. Fry immediately. Make sauce.",
+    "Serve warm.",
+    "It's ready.",
+  ]);
 });
 
 test("imports a German JSON-LD recipe without language-specific rules", () => {
@@ -135,7 +176,7 @@ test("falls back to structured tables and repeated step blocks", () => {
     "https://example.com/braised-potatoes",
   );
 
-  assert.equal(recipe?.description, "Braised potatoes");
+  assert.equal(recipe?.description, "");
   assert.equal(recipe?.ingredients.length, 3);
   assert.equal(recipe?.ingredients[0]?.name, "Potatoes");
   assert.equal(recipe?.ingredients[0]?.amount, "350");

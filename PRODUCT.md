@@ -19,17 +19,17 @@ The production web application is at `https://keepandcook.com/`. The Chrome exte
 ## Entry Points and Core Journey
 
 1. **Web URL preview:** paste a recipe URL → see a complete or explicitly incomplete draft → choose Save → sign in if needed → review in editor → confirmed Save → open recipe card.
-2. **Chrome extension:** click the icon on a specific recipe tab → native side panel shows a clean recipe → cook without an account or choose Save → web editor handles authentication, review, collections/tags and final Save. No all-sites auto-detection in v1.
+2. **Chrome extension:** click the icon on a specific recipe tab → native side panel shows a clean recipe → cook without an account or choose Save → web editor handles authentication, review and final Save. No all-sites auto-detection in v1.
 3. **Manual entry:** create or edit a recipe in the web library, with ingredients, steps and source link when available.
-4. **Return:** search/filter private recipes, open a card, start cook mode, then return to the same library from desktop or phone.
+4. **Return:** search private recipes, open a card, start cook mode, then return to the same library from desktop or phone.
 5. **Later:** Android Web Share Target and YouTube URL import are planned work. Arbitrary TikTok/Instagram import, paid plans and app-store applications are not current capabilities.
 
 ## Capabilities and Constraints
 
 - Private user-owned recipes, authentication and server-confirmed writes. Preserve existing manual and URL entry paths while redesigning.
-- Library search, collections, tags, favorites, editing and cooking mode exist in the web app; the v1 target improves navigation, mobile library overview, incomplete-import states and return from extension.
+- The current web library shows a simple recipe grid and search. Collections, tags and favorites remain in stored data, while their navigation and controls are hidden in the minimal interface. New accounts start with no collections.
 - Cooking in the extension covers the webpage content area with an overlay; a separate tab is the fallback where injection is unavailable. Large readable steps, persistent navigation, ingredient checklist, timers and wake lock are v1 targets. Original servings are shown, without automatic scaling.
-- Download as `.txt` and browser Print/Save as PDF in the extension. The v1 web export target includes an open JSON format for every user.
+- Download as `.txt` and browser Print/Save as PDF in the extension. Settings provides a JSON export of recipes, collections and tags.
 - Source URL and attribution remain visible. Missing ingredients, steps, time or servings are never invented. Saving requires review and explicit user action.
 - PWA snapshot supports reading and cooking offline. Creation, editing, deleting and other mutations require a confirmed online write.
 - Meal planning, shopping list, public social feed, automatic unit conversion, voice control and AI assistant are outside v1.
@@ -44,6 +44,7 @@ Product voice: direct, calm and useful. Say what was extracted, what is missing,
 
 ## Product Principles
 
+- Keep the visible path short: one clear next action per screen, with advanced recipe data retained without crowding the first view.
 - Give a useful, readable recipe before asking for an account.
 - Keep one private library across entry points; the editor is the final review before Save.
 - Make extraction limits visible and preserve the creator's source.
@@ -61,5 +62,5 @@ Product voice: direct, calm and useful. Say what was extracted, what is missing,
 
 - Component and screen migration to the approved tokens in D-02…D-14; v1 functional flows are already approved.
 - Technical extension handoff route and recovery behavior in E-02, while keeping the approved user flow.
-- Data export packaging in W-07, consent/legal copy and analytics implementation in W-08.
+- Export packaging in W-07, consent/legal copy and analytics implementation in W-08.
 - Actual YouTube API/LLM quality, video source storage and platform policy review before X-01; price and Pro boundary later in P-01.
