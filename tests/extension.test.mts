@@ -261,13 +261,17 @@ test("extension formats JSON-LD time and servings like the server", () => {
   assert.equal(recipe({}).totalTime, "");
 });
 
-test("extension merges recipe parts and reads h-recipe instructions", () => {
+test("extension and server merge recipe parts and read h-recipe instructions", () => {
   const html = `<div itemscope itemtype="https://schema.org/Recipe"><h2 itemprop="name">Roast chicken</h2>
     <ul><li itemprop="recipeIngredient">1 chicken</li></ul><div class="e-instructions"><p>Season the chicken.</p><p>Roast it.</p></div></div>
     <div itemscope itemtype="https://schema.org/Recipe"><h2 itemprop="name">Bread salad</h2>
     <ul><li itemprop="recipeIngredient">1 loaf bread</li></ul><div class="e-instructions"><p>Toast the bread.</p></div></div>`;
   const local = extractHtml(html);
+  const server = buildImportedRecipe(html, "https://recipes.example/lemon-chicken");
+  assert.ok(server);
   assert.deepEqual(Array.from(local.ingredients as { name: string }[], (item) => item.name), ["1 chicken", "1 loaf bread"]);
-  // The server parser's heuristic keeps only the first e-instructions block here; the extension keeps both.
-  assert.deepEqual(Array.from(local.steps as { text: string }[], (step) => step.text), ["Season the chicken.", "Roast it.", "Toast the bread."]);
+  assert.deepEqual(server.ingredients.map((item) => [item.amount, item.unit, item.name].filter(Boolean).join(" ")), ["1 chicken", "1 loaf bread"]);
+  const steps = ["Season the chicken.", "Roast it.", "Toast the bread."];
+  assert.deepEqual(Array.from(local.steps as { text: string }[], (step) => step.text), steps);
+  assert.deepEqual(server.steps.map((step) => step.text), steps);
 });

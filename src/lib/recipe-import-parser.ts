@@ -618,10 +618,15 @@ function extractIngredientsFromMicrodata($: cheerio.CheerioAPI) {
 }
 
 function extractStepsFromMicrodata($: cheerio.CheerioAPI) {
-  const instructionNodes = selectRecipePropertyNodes(
+  const propertyNodes = selectRecipePropertyNodes(
     $,
     '[itemprop~="recipeInstructions"], [property~="recipeInstructions"]',
   );
+  // h-recipe's e-instructions covers Jetpack recipes, which omit itemprop="recipeInstructions".
+  // Same rule as extension/extract.js.
+  const instructionNodes = propertyNodes.length > 0
+    ? propertyNodes
+    : $(RECIPE_SCOPE_SELECTOR).find(".e-instructions").toArray();
   const nested = uniqueStrings(
     instructionNodes.flatMap((element) => {
       const childTexts = $(element)
