@@ -82,6 +82,15 @@ export default function PrivacyPage() {
           </section>
 
           <section className="space-y-4">
+            <h2 className="text-2xl font-semibold">Chrome Extension</h2>
+            <div className="space-y-3 text-muted-foreground">
+              <p>The Keep &amp; Cook extension reads a web page only after you click its icon on that page. It looks for recipe data in the page itself. If it finds none, it sends the page address to our recipe import service, which fetches that public page to read the recipe. The page content is not sent.</p>
+              <p>A recipe you open in cooking mode is kept in the browser&apos;s session storage for that cooking tab. When you choose Save, the extension opens Keep &amp; Cook with the recipe in the link fragment, which browsers do not send to our servers. The site keeps that draft in your browser for up to seven days so you can finish signing in; nothing is saved to your account until you review it and choose Save.</p>
+              <p>The extension does not use analytics, does not read your Keep &amp; Cook account or session, and stores no passwords or access tokens.</p>
+            </div>
+          </section>
+
+          <section className="space-y-4">
             <h2 className="text-2xl font-semibold">How Information Is Shared</h2>
             <div className="space-y-3 text-muted-foreground">
               <p>We do not sell your personal information.</p>

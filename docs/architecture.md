@@ -12,41 +12,47 @@
 
 ```
 src/app/
-  (marketing)/page.tsx        лендинг (Hero с демо-импортом без аккаунта, Features, CTA)
-  (auth)/                     login, register, forgot-password, reset-password
-  dashboard/page.tsx          библиотека: список/колода, поиск, фильтры, редактор, импорт (753 строки, монолит)
-  dashboard/favorites/        избранное
-  dashboard/settings/         профиль, пароль, выход из сессий, удаление аккаунта
-  extension-import/           durable-handoff из расширения (не задеплоен, не обязателен)
+  (marketing)/page.tsx        лендинг: Hero с превью рецепта по ссылке без аккаунта, блок расширения, CTA
+  (auth)/                     login, register, forgot-password, reset-password (возврат по ?next)
+  dashboard/page.tsx          тонкая обёртка над components/dashboard/DashboardClient
+  dashboard/settings/         тема, экспорт JSON, аналитика, выход, удаление аккаунта
+  share/                      Web Share Target PWA (Android): ссылка → импорт в редактор
+  extension/welcome/          страница после первой установки расширения
   api/recipes/import          POST: URL → рецепт (fetch, парсинг, картинка)
   api/recipes/images          POST: загрузка картинки рецепта
   api/account/delete          удаление аккаунта (нужен service role key)
   privacy, terms, sitemap, robots, manifest, opengraph-image
 src/components/
-  ui/                         button, card, dialog, form, input, label, notice-toast
-  dashboard/                  AppShell, SideBar, TopBar, BottomNav
-  dashboard/recipe/           RecipeCard, RecipeDeck, RecipeDetails, RecipeForm, CookingMode
+  ui/                         button, card, chip, dialog, empty-state, form, input, label, notice-toast, skeleton
+  dashboard/                  AppShell, TopBar, DashboardClient, DashboardDialogs, EmptyLibrary,
+                              хуки useDashboardData / Filters / Actions / Import
+  dashboard/recipe/           RecipeCard, RecipeDetails, RecipeForm (три поля), CookingMode
   landing/                    Header, Hero, Features, CTA, Footer
+  AnalyticsConsent.tsx        баннер согласия на аналитику
 src/lib/
-  recipe-import-parser.ts     JSON-LD → microdata → эвристики (1415 строк)
+  recipe-import-parser.ts     JSON-LD → microdata (+ h-recipe e-instructions) → эвристики
   recipe-import-url.ts        нормализация URL, защита от SSRF (только публичные адреса)
+  recipe-import-existing.ts   «уже в библиотеке» по source_url (W-05)
   recipe-image.ts             загрузка картинки, пресеты preview/stored, запись в Storage
-  rate-limit.ts               in-memory лимиты (см. техдолг)
-  recipe-validation.ts        zod-схема payload рецепта
+  rate-limit.ts               Upstash Redis, in-memory fallback без env (локально)
+  analytics.ts, analytics-events.ts   PostHog EU после согласия; whitelist событий и свойств
+  share-target.ts             извлечение ссылки из title/text/url
+  auth-destination.ts         безопасный ?next после входа
+  pending-recipe-import.ts    ключи sessionStorage для черновика (лендинг, расширение)
+  recipe-export.ts            экспорт библиотеки в JSON
   offline-recipes.ts          снимок библиотеки в IndexedDB для PWA
   step-durations.ts           поиск длительностей в шагах (для таймеров)
-  pending-recipe-import.ts    ключ sessionStorage для передачи черновика в редактор
-  recipe-import-transfer.ts   хранение черновиков из расширения (до 7 дней, localStorage)
 public/sw.js                  service worker (версионированные кэши)
 supabase/migrations/          полная схема БД
 extension/                    Chrome-расширение MV3, plain JS без сборки
+scripts/                      бенчмарки парсера и расширения, иконки, упаковка расширения
 ```
 
 ## Модель данных
 
 - `recipes`: title, description, ingredients (jsonb `{id,name,amount?,unit?}[]`), steps (jsonb `{id,text}[]`), tags `text[]`, source_url (уникален в пределах пользователя), image_url (только наш Storage), total_time, servings, timestamps.
-- `collections` и `recipe_collections`: связь многие-ко-многим. Дефолтные коллекции: Breakfast, Lunch, Dinner, Snacks.
-- `favorite_recipes`: избранное.
+- `collections` и `recipe_collections`: связь многие-ко-многим. Новым аккаунтам коллекции не создаются (миграция `20261113`); в минимальном UI коллекции, теги и избранное скрыты, но сохраняются и попадают в экспорт.
+- `favorite_recipes`: избранное (скрыто в UI).
 - Функция `save_recipe` сохраняет рецепт и его коллекции атомарно.
 - RLS включён на всех таблицах, каждый пользователь видит только своё. Картинки читаются публично.
 - Таблиц для подписок, событий и профиля с планом пока нет.
@@ -59,20 +65,20 @@ extension/                    Chrome-расширение MV3, plain JS без �
 2. Fetch: таймаут 12 с, до 5 редиректов, не больше 3 МБ HTML.
 3. Парсер: Recipe JSON-LD (включая `@graph` и секции инструкций), затем microdata, затем эвристики по разметке.
 4. Картинка: для анонимов — сжатый data-URL (`preview`), для вошедших — загрузка в Storage (`stored`).
-5. Лимиты: аноним — 8 импортов за 10 минут по IP, пользователь — 30, картинки — 40.
+5. Лимиты: аноним — 8 импортов за 10 минут по IP, пользователь — 30, картинки — 40. Счётчики общие для всех инстансов через Upstash Redis (`UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`).
 
 ## PWA
 
-Офлайн работает только на чтение: снимок библиотеки хранится в IndexedDB, картинки и оболочка кэшируются service worker. Подробности в [pwa-v1.md](pwa-v1.md).
+Офлайн работает только на чтение: снимок библиотеки хранится в IndexedDB, картинки и оболочка кэшируются service worker. Подробности в [pwa-v1.md](pwa-v1.md). На Android установленная PWA есть в меню «Поделиться» (`share_target` → `/share`).
 
-## Расширение (v0.2.0, прототип)
+## Расширение (v0.2.0, готово к упаковке, не опубликовано)
 
 - MV3, разрешения: `activeTab`, `scripting`, `sidePanel`, `storage`. Host permission только на `https://keepandcook.com/*`.
-- `background.js` открывает side panel по клику на иконку и открывает вкладку сохранения.
-- `extract.js` выполняется на странице и достаёт Recipe JSON-LD. Если не нашёл, `panel.js` вызывает публичный `/api/recipes/import` с URL страницы.
+- `background.js` открывает side panel по клику на иконку, вкладку сохранения и `/extension/welcome` при первой установке.
+- `extract.js` выполняется на странице и достаёт Recipe JSON-LD или microdata; время и порции по правилам серверного парсера. Если не нашёл, `panel.js` вызывает публичный `/api/recipes/import` с URL страницы. Адрес сайта — одна константа `APP_ORIGIN` в `shared.js`.
 - `sidepanel.html` и `panel.js`: карточка рецепта, чекбоксы ингредиентов, скачивание `.txt`, кнопки «Начать готовить» и «Сохранить».
 - `reader.js` и `reader.css`: cook mode поверх всей страницы (оверлей). Если инжект не удался, открывается отдельная вкладка `cooking.html`.
-- Сохранение: открывается `keepandcook.com/login#<recipe>`. Контент-скрипт `library-handoff.js` (`document_start`) валидирует рецепт и кладёт его в `sessionStorage` по ключу `keep-and-cook:pending-recipe-import`. Дальше пользователь входит, попадает в редактор дашборда и сам жмёт Save.
+- Сохранение: открывается `keepandcook.com/login#<recipe>`. Контент-скрипт `library-handoff.js` (`document_start`) валидирует рецепт и кладёт его в `sessionStorage` по ключу `keep-and-cook:pending-recipe-import` с меткой источника `extension`. Дальше пользователь входит, попадает в редактор дашборда и сам жмёт Save. Решение и альтернативы — [ADR 001](adr/001-extension-save.md).
 - В расширении нет авторизации и токенов. Картинки при сохранении не передаются.
 - Палитра расширения: кремовый фон, тёмно-фиолетовый текст, терракотовый акцент. Она стала основой нового дизайна, см. [design-direction.md](design-direction.md).
 
@@ -80,11 +86,8 @@ extension/                    Chrome-расширение MV3, plain JS без �
 
 | # | Проблема | Почему важно | Задача |
 |---|---|---|---|
-| 1 | In-memory rate limit: у каждого serverless-инстанса свой счётчик | Перед привлечением трафика публичный импорт легко абузить | W-02 |
-| 2 | `dashboard/page.tsx` — монолит на 753 строки | Редизайн и новые фичи будут конфликтовать между агентами | W-01 |
-| 3 | Нет продуктовой аналитики и мониторинга ошибок | Нельзя измерить воронку и поймать сбои | A-06, W-08, W-09 |
-| 4 | Домен `keepandcook.com` захардкожен в расширении и в `recipe-import-transfer.ts` | Нельзя тестировать на preview или локально | W-10 |
-| 5 | Незакоммиченные изменения прототипа (auth `next`, `/extension-import`, тесты) | Состояние репозитория не совпадает с продом | E-01 |
-| 6 | Два cook mode (`CookingMode.tsx` и `extension/reader.js`) с разной логикой | Расходятся UX и фичи, например таймеры | D-10, E-06 |
-| 7 | Расширение без сборки и без общего кода с вебом (парсер дублируется частично) | Исправления парсера приходится делать дважды | E-05 |
-| 8 | Нет E2E-тестов критичных потоков | Регрессии видны только на проде | W-11 |
+| 1 | Нет мониторинга ошибок | Сбои на проде видны только по жалобам | W-09 |
+| 2 | Нет E2E-тестов критичных потоков; локальный `supabase start` не проверен после переименования миграции `20260805` → `20260806` | Регрессии видны только на проде | W-11 |
+| 3 | Два cook mode (`CookingMode.tsx` и `extension/reader.js`) | UX и таймеры нужно менять в двух местах | — |
+| 4 | Расширение без сборки: правила времени и порций продублированы в `extract.js` (покрыто тестом на общей фикстуре) | Изменение правил в парсере нужно повторить в расширении | — |
+| 5 | 12 сайтов из топ-50 блокируют серверный fetch | Импорт по ссылке на них не работает, в расширении — работает | W-03 |
