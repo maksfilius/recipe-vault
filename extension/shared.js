@@ -1,3 +1,6 @@
+// The only place the extension names the website. For a local build see README.
+export const APP_ORIGIN = "https://keepandcook.com";
+
 export function renderIngredients(container, ingredients) {
   container.replaceChildren(...ingredients.map((ingredient) => {
     const item = document.createElement("li");
@@ -26,7 +29,7 @@ export function libraryUrl(recipe) {
   delete payload.imageUrl;
   const hash = encodeURIComponent(JSON.stringify(payload));
   if (hash.length > 180000) throw new Error("This recipe is too large to transfer. Download it instead.");
-  return `https://keepandcook.com/login#keep-and-cook-import=${hash}`;
+  return `${APP_ORIGIN}/login#keep-and-cook-import=${hash}`;
 }
 
 export async function readerStyles() {

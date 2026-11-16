@@ -8,6 +8,14 @@
 
 The extension uses Chrome's native side panel. Click the toolbar icon on each new recipe site to grant temporary page access. If the panel stays open while changing tabs, use the toolbar icon again when Chrome requests page permission.
 
+## Local website
+
+The extension talks to production by default. To point it at `npm run dev`, without committing the change:
+
+1. In `shared.js`, set `APP_ORIGIN` to `http://localhost:3000`.
+2. In `manifest.json`, replace `https://keepandcook.com` with `http://localhost:3000` in `host_permissions`, `content_scripts.matches` and the CSP `connect-src`.
+3. Reload the extension in `chrome://extensions`. Save now opens `http://localhost:3000/login#keep-and-cook-import=…`.
+
 ## Workflow
 
 - The side panel header contains only the logo. The recipe card has **Start cooking** and **Save** actions, with a small **Download** link below the method. `Read this page` appears in the empty and error states. After Save opens the website, the panel says the recipe still needs review there; it does not claim cloud saving is complete.

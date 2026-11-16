@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { load } from "cheerio";
 import { recipePayloadSchema } from "../src/lib/recipe-validation.ts";
-import { recipeText, libraryUrl, formatServingsLabel } from "../extension/shared.js";
+import { recipeText, libraryUrl, formatServingsLabel, APP_ORIGIN } from "../extension/shared.js";
 
 const extractionScript = readFileSync(new URL("../extension/extract.js", import.meta.url), "utf8");
 const backgroundScript = readFileSync(new URL("../extension/background.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
@@ -76,7 +76,7 @@ test("cooking injects a page reader and saves through the existing login route",
   const recipe = { title: "Soup", description: "Lunch", sourceUrl: "https://recipes.example/soup", servings: "2", ingredients: [{ name: "Carrot" }], steps: [{ text: "Chop." }, { text: "Simmer." }] };
   const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
   runInNewContext(script, {
-    URL, console, libraryUrl, formatServingsLabel, readerStyles: async () => "reader styles", renderIngredients() {},
+    URL, console, APP_ORIGIN, libraryUrl, formatServingsLabel, readerStyles: async () => "reader styles", renderIngredients() {},
     fetch: async () => ({ text: async () => "reader styles" }),
     window: { close() { closed = true; } },
     navigator: {},
@@ -112,7 +112,7 @@ test("panel separates loading, missing recipe, access, rate limit, and unconfirm
   let responseStatus = 404;
   const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
   runInNewContext(script, {
-    URL, console, libraryUrl, formatServingsLabel, renderIngredients() {}, AbortSignal,
+    URL, console, APP_ORIGIN, libraryUrl, formatServingsLabel, renderIngredients() {}, AbortSignal,
     document: { getElementById: element, createElement: () => ({ textContent: "" }) },
     window: { close() {} },
     fetch: async () => ({ ok: false, status: responseStatus, json: async () => ({ error: responseStatus === 429 ? "Rate limited" : "No recipe" }) }),

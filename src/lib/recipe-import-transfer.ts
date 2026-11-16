@@ -32,8 +32,10 @@ export function removeRecipeTransfer(storage: DraftStorage, id: string) {
 export function getImportAuthDestination(next: string | null | undefined) {
   if (!next || next.length > 4_096 || !next.startsWith("/") || next.startsWith("//") || next.includes("#")) return "/dashboard";
   try {
-    const url = new URL(next, "https://keepandcook.com");
-    if (url.origin !== "https://keepandcook.com") return "/dashboard";
+    // Any base works: it only resolves the relative path, and the origin check rejects paths that escape it.
+    const base = "https://app.invalid";
+    const url = new URL(next, base);
+    if (url.origin !== base) return "/dashboard";
     if (url.pathname === "/dashboard/favorites") return "/dashboard";
     if (url.pathname === "/dashboard/settings") return url.search ? "/dashboard" : url.pathname;
     if (url.pathname !== "/dashboard") return "/dashboard";

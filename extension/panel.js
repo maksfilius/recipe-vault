@@ -1,7 +1,8 @@
-import { renderIngredients, recipeText, libraryUrl, readerStyles, formatServingsLabel } from "./shared.js";
+import { renderIngredients, recipeText, libraryUrl, readerStyles, formatServingsLabel, APP_ORIGIN } from "./shared.js";
 
-const appOrigin = "https://keepandcook.com";
 const status = document.getElementById("status");
+document.getElementById("brand-link").href = APP_ORIGIN;
+document.getElementById("manual-link").href = `${APP_ORIGIN}/login?next=%2Fdashboard%3Fadd%3Dmanual`;
 const stateCard = document.getElementById("panel-state");
 const preview = typeof location !== "undefined" && /^(localhost|127\.0\.0\.1)$/.test(location.hostname) ? new URLSearchParams(location.search).get("preview") : null;
 let recipe;
@@ -46,7 +47,7 @@ function showSaveFeedback(kind, url = "") {
   feedback.textContent = messages[kind] || "";
   feedback.hidden = !messages[kind];
   stateCard.dataset.state = kind;
-  if (url && new URL(url).origin === appOrigin && kind !== "handoff") {
+  if (url && new URL(url).origin === APP_ORIGIN && kind !== "handoff") {
     const link = document.createElement("a");
     link.href = url;
     link.target = "_blank";
@@ -112,7 +113,7 @@ async function readPage() {
       showState("parser", { domain: pageDomain });
       let response;
       try {
-        response = await fetch(`${appOrigin}/api/recipes/import`, {
+        response = await fetch(`${APP_ORIGIN}/api/recipes/import`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ url: tab.url }), signal: AbortSignal.timeout(35000), credentials: "omit",
         });
@@ -143,7 +144,7 @@ document.getElementById("refresh").addEventListener("click", readPage);
 if (!preview) {
   chrome.tabs.onActivated.addListener(async () => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.url?.startsWith(`${appOrigin}/`) || tab?.url?.startsWith(chrome.runtime.getURL(""))) {
+    if (tab?.url?.startsWith(`${APP_ORIGIN}/`) || tab?.url?.startsWith(chrome.runtime.getURL(""))) {
       if (["handoff", "signed-out", "signed-in", "already-saved", "saved"].includes(stateCard.dataset.state)) return;
       ++requestId;
       recipe = null;
@@ -154,7 +155,7 @@ if (!preview) {
     void readPage();
   });
   chrome.tabs.onUpdated.addListener((tabId, change, tab) => {
-    if (tab.active && change.status === "complete" && !tab.url?.startsWith(`${appOrigin}/`) && !tab.url?.startsWith(chrome.runtime.getURL(""))) void readPage();
+    if (tab.active && change.status === "complete" && !tab.url?.startsWith(`${APP_ORIGIN}/`) && !tab.url?.startsWith(chrome.runtime.getURL(""))) void readPage();
   });
 }
 document.getElementById("download").addEventListener("click", (event) => {
@@ -226,7 +227,7 @@ if (preview) {
   else {
     recipe = sample;
     render();
-    if (["handoff", "signed-out", "signed-in", "already-saved", "saved"].includes(preview)) showSaveFeedback(preview, "https://keepandcook.com/dashboard");
+    if (["handoff", "signed-out", "signed-in", "already-saved", "saved"].includes(preview)) showSaveFeedback(preview, `${APP_ORIGIN}/dashboard`);
   }
 } else {
   if (typeof matchMedia === "function" && matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.classList.add("dark");
