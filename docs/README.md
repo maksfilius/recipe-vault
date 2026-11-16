@@ -17,6 +17,7 @@
 | [design-cook-mode.md](design-cook-mode.md) | Шаги, ингредиенты, таймеры, wake lock и браузерная проверка cook mode (D-10) |
 | [design-extension-panel.md](design-extension-panel.md) | Все состояния боковой панели расширения и локальные снимки (D-12) |
 | [design-extension-reader.md](design-extension-reader.md) | Cook mode расширения, таймеры и проверка трёх размеров (D-13) |
+| [d14-verification.md](d14-verification.md) | Визуальный QA: телефон 390px в light и dark, горизонтальный скролл, остатки старых стилей |
 | [w01-verification.md](w01-verification.md) | Ручная проверка рефакторинга библиотеки и найденный конфликт локальных миграций |
 | [m01-m03-verification.md](m01-m03-verification.md) | Минимальная шапка и библиотека: снимки, размеры сетки, проверка меню и перенаправления |
 | [m04-verification.md](m04-verification.md) | Минимальный экран рецепта: три варианта на телефоне и десктопе, проверка меню действий |
