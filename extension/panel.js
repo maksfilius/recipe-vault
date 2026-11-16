@@ -174,7 +174,8 @@ document.getElementById("save").addEventListener("click", async () => {
   if (!recipe) return;
   try {
     await chrome.tabs.create({ url: libraryUrl(recipe) });
-    showSaveFeedback("handoff");
+    // The review continues in the website tab; the panel would only cover it.
+    window.close();
   } catch {
     const feedback = document.getElementById("save-feedback");
     feedback.hidden = false;

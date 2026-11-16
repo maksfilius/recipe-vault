@@ -72,8 +72,7 @@ test("cooking injects a page reader and saves through the existing login route",
     return elements.get(id);
   };
   const opened: string[] = [];
-  let activeTab = { id: 1, url: "https://recipes.example/soup" };
-  let onActivated: (() => Promise<void>) | undefined;
+  const activeTab = { id: 1, url: "https://recipes.example/soup" };
   const injections: { files?: string[]; args?: unknown[] }[] = [];
   let closed = false;
   const recipe = { title: "Soup", description: "Lunch", sourceUrl: "https://recipes.example/soup", servings: "2", ingredients: [{ name: "Carrot" }], steps: [{ text: "Chop." }, { text: "Simmer." }] };
@@ -85,7 +84,7 @@ test("cooking injects a page reader and saves through the existing login route",
     navigator: {},
     document: { visibilityState: "visible", getElementById: element, addEventListener() {}, createElement: () => ({}) },
     chrome: {
-      tabs: { query: async () => [activeTab], update: async () => {}, create: async ({ url }: { url: string }) => { opened.push(url); }, onActivated: { addListener(listener: () => Promise<void>) { onActivated = listener; } }, onUpdated: { addListener() {} } },
+      tabs: { query: async () => [activeTab], update: async () => {}, create: async ({ url }: { url: string }) => { opened.push(url); }, onActivated: { addListener() {} }, onUpdated: { addListener() {} } },
       runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
       scripting: { executeScript: async (options: { files?: string[]; args?: unknown[] }) => { injections.push(options); return [{ result: recipe }]; } },
     },
@@ -97,11 +96,10 @@ test("cooking injects a page reader and saves through the existing login route",
   assert.equal(closed, true);
   assert.deepEqual(Array.from(injections[1].files ?? []), ["reader-utils.js", "reader.js"]);
   assert.equal(injections[2].args?.[0], recipe);
+  closed = false;
   await element("save").click();
   assert.match(opened[0], /^https:\/\/keepandcook.com\/login#keep-and-cook-import=/);
-  activeTab = { id: 2, url: opened[0] };
-  await onActivated?.();
-  assert.equal(element("recipe").hidden, false);
+  assert.equal(closed, true, "Save hands the review to the website tab and closes the panel");
 });
 
 test("panel separates loading, missing recipe, access, rate limit, and unconfirmed save states", async () => {
@@ -112,12 +110,13 @@ test("panel separates loading, missing recipe, access, rate limit, and unconfirm
   };
   const activeTab = { id: 7, url: "https://example.com/soup" };
   let extraction: "empty" | "denied" | "recipe" = "empty";
+  let panelClosed = false;
   let responseStatus = 404;
   const script = readFileSync(new URL("../extension/panel.js", import.meta.url), "utf8").replace(/^import .*;\n/, "");
   runInNewContext(script, {
     URL, console, APP_ORIGIN, libraryUrl, formatServingsLabel, renderIngredients() {}, AbortSignal,
     document: { getElementById: element, createElement: () => ({ textContent: "" }) },
-    window: { close() {} },
+    window: { close() { panelClosed = true; } },
     fetch: async () => ({ ok: false, status: responseStatus, json: async () => ({ error: responseStatus === 429 ? "Rate limited" : "No recipe" }) }),
     chrome: {
       runtime: { getURL: (path: string) => `chrome-extension://test/${path}` },
@@ -145,8 +144,7 @@ test("panel separates loading, missing recipe, access, rate limit, and unconfirm
   assert.equal(element("panel-state").dataset.state, "found");
   assert.equal(element("refresh").hidden, true);
   await element("save").click();
-  assert.equal(element("panel-state").dataset.state, "handoff");
-  assert.match(element("save-feedback").textContent, /Review in the opened tab/);
+  assert.equal(panelClosed, true);
 });
 
 function extract(scripts: unknown[]) {
@@ -274,4 +272,20 @@ test("extension and server merge recipe parts and read h-recipe instructions", (
   const steps = ["Season the chicken.", "Roast it.", "Toast the bread."];
   assert.deepEqual(Array.from(local.steps as { text: string }[], (step) => step.text), steps);
   assert.deepEqual(server.steps.map((step) => step.text), steps);
+});
+
+test("extension resolves Yoast photo references and falls back to og:image", () => {
+  const base = { "@type": "Recipe", name: "Coleslaw", recipeIngredient: ["1 cabbage"], recipeInstructions: "Slice." };
+  const graph = { "@graph": [{ ...base, image: { "@id": "https://recipes.example/coleslaw/#primaryimage" } }, { "@type": "ImageObject", "@id": "https://recipes.example/coleslaw/#primaryimage", url: "https://images.recipes.example/coleslaw.jpg", contentUrl: "https://images.recipes.example/coleslaw.jpg" }] };
+  assert.equal(extract([graph]).imageUrl, "https://images.recipes.example/coleslaw.jpg");
+  assert.equal(extract([{ ...base, image: { "@type": "ImageObject", contentUrl: "/slaw.jpg" } }]).imageUrl, "https://recipes.example/slaw.jpg");
+  const html = `<meta property="og:image" content="https://images.recipes.example/og.jpg"><script type="application/ld+json">${JSON.stringify({ ...base, image: { "@id": "#missing" } })}</script>`;
+  assert.equal(extractHtml(html).imageUrl, "https://images.recipes.example/og.jpg");
+});
+
+test("save link keeps an https photo for the website to download, but not a data preview", () => {
+  const recipe = { title: "Slaw", description: "Side", sourceUrl: "https://recipes.example/slaw", ingredients: [{ id: "a", name: "Cabbage" }], steps: [{ id: "b", text: "Slice." }] };
+  const payload = (url: string) => JSON.parse(decodeURIComponent(new URL(url).hash.slice("#keep-and-cook-import=".length)));
+  assert.equal(payload(libraryUrl({ ...recipe, imageUrl: "https://images.recipes.example/slaw.jpg" })).imageUrl, "https://images.recipes.example/slaw.jpg");
+  assert.equal(payload(libraryUrl({ ...recipe, imageUrl: "data:image/webp;base64,AAAA" })).imageUrl, undefined);
 });

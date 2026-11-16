@@ -54,3 +54,12 @@ test("SPA login clears the recovery after the dashboard consumes the pending rec
   watch?.();
   assert.equal(localStorage.getItem("keep-and-cook:extension-auth-recovery"), null);
 });
+
+test("handoff keeps an https photo and drops anything else", () => {
+  for (const [imageUrl, expected] of [["https://images.example/p.jpg", "https://images.example/p.jpg"], ["javascript:alert(1)", undefined], ["http://images.example/p.jpg", undefined]] as const) {
+    const sessionStorage = storage();
+    const location = new URL(`https://keepandcook.com/login#keep-and-cook-import=${encodeURIComponent(JSON.stringify({ ...recipe, imageUrl }))}`);
+    runInNewContext(script, { URL, console, setInterval: () => 0, location, sessionStorage, localStorage: storage(), history: { replaceState() {} } });
+    assert.equal(JSON.parse(sessionStorage.getItem(pendingKey)!).imageUrl, expected);
+  }
+});

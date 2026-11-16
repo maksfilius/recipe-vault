@@ -26,7 +26,8 @@ export function recipeText(recipe) {
 
 export function libraryUrl(recipe) {
   const payload = { ...recipe };
-  delete payload.imageUrl;
+  // The website downloads the photo on Save; a data: preview from the server fallback is too large for a link.
+  if (!/^https:\/\//.test(payload.imageUrl ?? "") || payload.imageUrl.length > 2048) delete payload.imageUrl;
   const hash = encodeURIComponent(JSON.stringify(payload));
   if (hash.length > 180000) throw new Error("This recipe is too large to transfer. Download it instead.");
   return `${APP_ORIGIN}/login#keep-and-cook-import=${hash}`;

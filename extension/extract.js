@@ -25,9 +25,12 @@
     return value.itemListElement ? instructions(value.itemListElement) : instructions(value.text);
   };
   const candidates = [];
+  // Yoast-style graphs point to the photo as {"@id": "…#primaryimage"}; keep every node to resolve it.
+  const nodes = new Map();
   const visit = (value, depth = 0) => {
     if (!value || typeof value !== "object" || depth > 30) return;
     if (Array.isArray(value)) return value.forEach((entry) => visit(entry, depth + 1));
+    if (typeof value["@id"] === "string" && Object.keys(value).length > 1) nodes.set(value["@id"], value);
     const types = [value["@type"]].flat();
     if (types.some((type) => /(?:^|[/#])Recipe$/i.test(String(type)))) candidates.push(value);
     Object.values(value).forEach((entry) => visit(entry, depth + 1));
@@ -86,6 +89,13 @@
     if (parts.length && parsed.every((part) => part !== null)) return formatMinutes(parsed.reduce((sum, part) => sum + part, 0));
     return duration(recipe.cookTime ?? recipe.prepTime);
   };
+  const imageSource = (raw) => {
+    const item = [raw].flat()[0];
+    if (!item || typeof item === "string") return item || undefined;
+    const node = item.url || item.contentUrl ? item : nodes.get(item["@id"]);
+    const url = [node?.url ?? node?.contentUrl].flat()[0];
+    return typeof url === "string" ? url : undefined;
+  };
   const servings = (raw) => {
     const value = firstText(raw);
     return /^\d+(?:[.,]\d+)?$/.test(value) ? `${value} servings` : value.slice(0, 40);
@@ -96,11 +106,11 @@
     const ingredients = [recipe.recipeIngredient ?? []].flat().map(text).filter(Boolean);
     const steps = instructions(recipe.recipeInstructions);
     if (!ingredients.length || !steps.length || !text(recipe.name)) continue;
-    const rawImage = [recipe.image].flat()[0];
     let imageUrl;
     try {
+      const rawImage = imageSource(recipe.image) ?? document.querySelectorAll('meta[property="og:image"]')[0]?.getAttribute("content");
       if (!rawImage) throw new Error("No recipe image.");
-      const image = new URL(typeof rawImage === "object" ? rawImage?.url : rawImage, location.href);
+      const image = new URL(rawImage, location.href);
       if (image.protocol === "https:") imageUrl = image.href;
     } catch { imageUrl = undefined; }
     return {

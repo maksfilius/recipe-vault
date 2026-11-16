@@ -12,7 +12,7 @@
     if (!Array.isArray(value.ingredients) || !value.ingredients.length || value.ingredients.length > 100 || value.ingredients.some((item) => !item || typeof item.id !== "string" || typeof item.name !== "string" || item.name.length > 200)) throw new Error("Invalid ingredients.");
     if (!Array.isArray(value.steps) || !value.steps.length || value.steps.length > 100 || value.steps.some((item) => !item || typeof item.id !== "string" || typeof item.text !== "string" || item.text.length > 5000)) throw new Error("Invalid steps.");
     const recipe = { ...value };
-    delete recipe.imageUrl;
+    if (typeof recipe.imageUrl !== "string" || recipe.imageUrl.length > 2048 || !/^https:\/\/[^\s]+$/i.test(recipe.imageUrl)) delete recipe.imageUrl;
     return recipe;
   };
   try {

@@ -184,13 +184,14 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
       }
 
       let imageUrl: string | undefined;
+      let photoSkipped = false;
       try {
         imageUrl = isUpdate && parsedValues.data.imageUrl === editingRecipe?.imageUrl
           ? parsedValues.data.imageUrl
           : await persistRecipeImage(parsedValues.data.imageUrl);
-      } catch (error) {
-        setNotice({ type: "error", message: error instanceof Error ? error.message : "The recipe image could not be saved." });
-        return;
+      } catch {
+        // A photo the source site refuses to serve must not block saving the recipe itself.
+        photoSkipped = true;
       }
 
       const recipeId = isUpdate ? editingRecipe!.id : globalThis.crypto.randomUUID();
@@ -228,7 +229,7 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
       }
       setSelectedRecipe(saved);
       trackAnalytics("recipe_opened", { entry_point: "after_save" });
-      setNotice({ type: "success", message: isUpdate ? "Recipe updated." : "Recipe created." });
+      setNotice({ type: "success", message: `${isUpdate ? "Recipe updated." : "Recipe created."}${photoSkipped ? " The photo could not be saved." : ""}` });
       handleDialogOpenChange(false);
     } catch {
       setNotice({ type: "error", message: "Failed to save recipe. Check your connection and try again." });
