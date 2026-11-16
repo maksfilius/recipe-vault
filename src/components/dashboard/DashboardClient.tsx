@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
 import { RecipeCard, RecipeCardSkeleton } from "./recipe/RecipeCard";
 import { RecipeDetails } from "./recipe/RecipeDetails";
@@ -16,12 +15,10 @@ import { EmptyLibrary } from "./EmptyLibrary";
 import { trackAnalytics } from "@/src/lib/analytics";
 
 export default function Dashboard() {
-  const searchParams = useSearchParams();
-  const [importDraftId, setImportDraftId] = useState(() => searchParams.get("importDraft"));
-  const data = useDashboardData(importDraftId);
+  const data = useDashboardData();
   const { allRecipes, isLoading, isOfflineMode, loadError } = data;
-  const { searchTerm, filteredRecipes, clearAllFilters } = useDashboardFilters(allRecipes, importDraftId);
-  const actions = useDashboardActions({ data, importDraftId, setImportDraftId });
+  const { searchTerm, filteredRecipes, clearAllFilters } = useDashboardFilters(allRecipes);
+  const actions = useDashboardActions({ data });
   const { selectedRecipe, setSelectedRecipe, notice, setNotice, setRecipeToDelete,
     handleAddRecipe, handleEditRecipe } = actions;
 

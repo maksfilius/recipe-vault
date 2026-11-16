@@ -1,6 +1,8 @@
 (() => {
   const marker = "#keep-and-cook-import=";
   const pendingKey = "keep-and-cook:pending-recipe-import";
+  // Tells the dashboard (src/lib/pending-recipe-import.ts) that this draft came from the extension.
+  const sourceKey = "keep-and-cook:pending-recipe-source";
   const recoveryKey = "keep-and-cook:extension-auth-recovery";
   const validate = (value) => {
     if (!value || typeof value !== "object") throw new Error("Invalid recipe.");
@@ -24,6 +26,7 @@
       if (raw.length > 180000) throw new Error("Recipe too large.");
       const recipe = validate(JSON.parse(decodeURIComponent(raw)));
       sessionStorage.setItem(pendingKey, JSON.stringify(recipe));
+      sessionStorage.setItem(sourceKey, "extension");
       const createdAt = Date.now();
       try { localStorage.setItem(recoveryKey, JSON.stringify({ recipe, createdAt })); } catch {}
       const watch = setInterval(() => {
@@ -43,6 +46,7 @@
       const recovery = JSON.parse(raw);
       if (typeof recovery.createdAt === "number" && recovery.createdAt <= Date.now() && Date.now() - recovery.createdAt < 7 * 86400000 && !sessionStorage.getItem(pendingKey)) {
         sessionStorage.setItem(pendingKey, JSON.stringify(validate(recovery.recipe)));
+        sessionStorage.setItem(sourceKey, "extension");
       }
       localStorage.removeItem(recoveryKey);
     }

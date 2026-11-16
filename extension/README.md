@@ -35,7 +35,7 @@ The extension talks to production by default. To point it at `npm run dev`, with
 - **Download** exports a `.txt` file with the recipe and source without an account.
 - **Save to library** works in the panel, the page-sized cooking view, and its standalone fallback, including after cooking finishes. It opens the existing `https://keepandcook.com/login` page with a marked recipe fragment. `library-handoff.js` runs before application scripts, validates the recipe, and stages it using the existing `keep-and-cook:pending-recipe-import` contract. Signed-in users go to the dashboard; everyone else logs in or registers. The existing editor opens for review, editing, and explicit Save. Images are excluded from this transfer.
 
-**Version 0.2.0 does not require deploying `/extension-import`.** Old import links are recovered by the extension content script and redirected to the existing login page. Reload the extension in `chrome://extensions` after updating, then reload an old 404 page or save again. The extension itself is loaded locally and is not published to the Chrome Web Store.
+The website has no `/extension-import` route. Old prototype links to it are recovered by the extension content script and redirected to the login handoff. The script also marks the draft as coming from the extension, so the dashboard reports `extension_handoff_completed` and `recipe_saved {source: extension}`. Reload the extension in `chrome://extensions` after updating, then reload an old 404 page or save again. The extension itself is loaded locally and is not published to the Chrome Web Store.
 
 ## Extraction and privacy
 
@@ -59,7 +59,7 @@ This is a local prototype: no store packaging, OCR, AI extraction, or automatic 
 ## Verification performed
 
 - Regression tests cover direct panel opening, page-reader injection, saving from standalone extension pages, extraction/export, compatible login handoff before app hydration, old-link recovery, cross-tab recovery, and cleanup after SPA login. Tests also cover the separately implemented app draft-transfer helpers.
-- `npm run build`: the production build was checked during the extension prototype work. The current v1 handoff uses `/login`; `/extension-import` is a compatibility route.
+- `npm run build`: the production build was checked during the extension prototype work. The v1 handoff uses `/login`.
 - Headless Chrome previews use the actual cooking renderer/CSS with mocked Chrome APIs and a long Russian illustrative recipe at 1440×900, 390×844, and 900×450. Text fits and navigation remains visible; the long step becomes two or three parts depending on the viewport.
 - Browser previews do not verify native side-panel permissions, injection into every recipe website, or authenticated production saving. Those remain the manual acceptance checks above.
 

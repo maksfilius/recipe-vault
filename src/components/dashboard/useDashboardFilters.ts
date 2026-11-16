@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { selectLibraryRecipes } from "@/src/lib/dashboard-library";
 import type { Recipe } from "@/src/types/recipe";
 
-export function useDashboardFilters(allRecipes: Recipe[], importDraftId: string | null) {
+export function useDashboardFilters(allRecipes: Recipe[]) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get("q") ?? "";
@@ -24,9 +24,6 @@ export function useDashboardFilters(allRecipes: Recipe[], importDraftId: string 
     }
   }, [pathname]);
 
-  useEffect(() => {
-    if (searchParams.get("importDraft") !== importDraftId) updateQuery({ importDraft: importDraftId }, true);
-  }, [importDraftId, searchParams, updateQuery]);
 
   const clearSearch = () => updateQuery({ q: null, collections: null, tags: null, sort: null });
 

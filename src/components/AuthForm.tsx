@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,7 +11,8 @@ import { z } from "zod";
 import { getAuthRedirectUrl } from "@/src/lib/auth";
 import { identifyAnalytics, rememberPendingSignup, trackAnalytics } from "@/src/lib/analytics";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
-import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
+import { getImportAuthDestination } from "@/src/lib/auth-destination";
+import { PENDING_RECIPE_IMPORT_STORAGE_KEY, readPendingRecipeSource } from "@/src/lib/pending-recipe-import";
 import { supabase } from "@/src/lib/supabase-client";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -39,17 +40,22 @@ export default function AuthForm({ type }: AuthFormProps) {
   const searchParams = useSearchParams();
   const destination = getImportAuthDestination(searchParams.get("next"));
   const authQuery = destination === "/dashboard" ? "" : `?next=${encodeURIComponent(destination)}`;
-  const hasImportDraft = new URL(destination, "https://keepandcook.com").searchParams.has("importDraft");
+  const isSharedLink = new URLSearchParams(destination.split("?")[1] ?? "").has("url");
   const [isLoading, setIsLoading] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
   const [notice, setNotice] = useState("");
+  // extension/library-handoff.js and the landing preview stage the draft before this page hydrates.
+  const [hasPendingDraft, setHasPendingDraft] = useState(false);
+  useEffect(() => {
+    try { setHasPendingDraft(Boolean(window.sessionStorage.getItem(PENDING_RECIPE_IMPORT_STORAGE_KEY))); } catch { /* No draft to mention. */ }
+  }, []);
   const form = useForm<LoginValues | RegisterValues>({
     resolver: zodResolver(type === "login" ? loginSchema : registerSchema),
     defaultValues: { email: "", password: "", ...(type === "register" ? { username: "", repeatPassword: "" } : {}) },
   });
 
   const onSubmit = async (values: LoginValues | RegisterValues) => {
-    const entryPoint = hasImportDraft ? "extension" : "landing";
+    const entryPoint = readPendingRecipeSource() ?? (isSharedLink ? "share" : "landing");
     if (type === "register") trackAnalytics("signup_started", { entry_point: entryPoint });
     setIsLoading(true);
     setNotice("");
@@ -103,7 +109,7 @@ export default function AuthForm({ type }: AuthFormProps) {
             ? "Sign in to open your recipe collection."
             : "Save recipes and make them easy to find again."}
       </p>
-      {hasImportDraft ? <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">Your recipe draft is waiting. Sign in, then review and save it.</p> : null}
+      {hasPendingDraft ? <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">Your recipe draft is waiting. Sign in, then review and save it.</p> : null}
 
       {registeredEmail ? (
         <div className="mt-7" role="status" aria-live="polite">

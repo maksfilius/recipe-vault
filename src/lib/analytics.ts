@@ -81,17 +81,20 @@ export async function identifyAnalytics(userId: string): Promise<void> {
 
 export function resetAnalyticsIdentity(): void { client?.reset(); identifiedUserId = null; }
 
-export function rememberPendingSignup(userId: string, entryPoint: "landing" | "extension"): void {
+type SignupEntryPoint = "landing" | "extension" | "share";
+
+export function rememberPendingSignup(userId: string, entryPoint: SignupEntryPoint): void {
   if (getAnalyticsConsent() !== true) return;
   try { window.localStorage.setItem(PENDING_SIGNUP_KEY, `${userId}:${entryPoint}`); } catch { /* Optional metric. */ }
 }
 
-export function consumePendingSignup(userId: string): "landing" | "extension" | null {
+export function consumePendingSignup(userId: string): SignupEntryPoint | null {
   try {
     const stored = window.localStorage.getItem(PENDING_SIGNUP_KEY);
-    if (stored !== `${userId}:landing` && stored !== `${userId}:extension`) return null;
+    const entryPoint = stored?.startsWith(`${userId}:`) ? stored.slice(userId.length + 1) : null;
+    if (entryPoint !== "landing" && entryPoint !== "extension" && entryPoint !== "share") return null;
     window.localStorage.removeItem(PENDING_SIGNUP_KEY);
-    return stored.endsWith(":extension") ? "extension" : "landing";
+    return entryPoint;
   } catch { return null; }
 }
 

@@ -10,7 +10,7 @@ import { supabase } from "@/src/lib/supabase-client";
 import { resolveDashboardIdentity } from "@/src/lib/dashboard-auth";
 import type { Recipe, RecipeCollection } from "@/src/types/recipe";
 
-export function useDashboardData(importDraftId: string | null) {
+export function useDashboardData() {
   const router = useRouter();
   const [userId, setUserId] = useState("");
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
@@ -31,7 +31,7 @@ export function useDashboardData(importDraftId: string | null) {
         setAllRecipes([]);
         setIsLoading(false);
         // Keep ?add and ?url from a share; the login page filters next through getImportAuthDestination.
-        const next = importDraftId ? `/dashboard?importDraft=${importDraftId}` : `/dashboard${window.location.search}`;
+        const next = `/dashboard${window.location.search}`;
         router.replace(`/login?next=${encodeURIComponent(next)}`);
         return;
       }
@@ -82,7 +82,7 @@ export function useDashboardData(importDraftId: string | null) {
       }
     };
     void fetchRecipes();
-  }, [router, importDraftId]);
+  }, [router]);
 
   useEffect(() => {
     if (!hasLoadedRecipeData || !userId) return;

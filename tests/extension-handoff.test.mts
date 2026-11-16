@@ -20,10 +20,12 @@ test("production handoff opens existing login and restores the app's pending imp
   let stripped = false;
   runInNewContext(script, { URL, console, setInterval: () => 0, location: url, sessionStorage, localStorage, history: { replaceState() { stripped = true; } } });
   assert.deepEqual(JSON.parse(sessionStorage.getItem(pendingKey)!), recipe);
+  assert.equal(sessionStorage.getItem("keep-and-cook:pending-recipe-source"), "extension");
   assert.equal(stripped, true);
   const newTab = storage();
   runInNewContext(script, { URL, console, location: new URL("https://keepandcook.com/dashboard"), sessionStorage: newTab, localStorage });
   assert.deepEqual(JSON.parse(newTab.getItem(pendingKey)!), recipe);
+  assert.equal(newTab.getItem("keep-and-cook:pending-recipe-source"), "extension");
   const laterTab = storage();
   runInNewContext(script, { URL, console, location: new URL("https://keepandcook.com/dashboard"), sessionStorage: laterTab, localStorage });
   assert.equal(laterTab.getItem(pendingKey), null);

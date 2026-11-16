@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
-import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
+import { getImportAuthDestination } from "@/src/lib/auth-destination";
 import { supabase } from "@/src/lib/supabase-client";
 
 export default function ResetPasswordForm() {

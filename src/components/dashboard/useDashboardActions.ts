@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RecipeFormValues } from "@/src/lib/recipe-form-conversion";
 import { recipePayloadSchema } from "@/src/lib/recipe-validation";
@@ -9,7 +9,6 @@ import { mapRowToRecipe, type RecipeRow } from "@/src/lib/recipes";
 import { claimFirstCookHint } from "@/src/lib/recipe-details";
 import { prepareRecipeImport, resolveExistingRecipe } from "@/src/lib/recipe-import-existing";
 import { supabase } from "@/src/lib/supabase-client";
-import { removeRecipeTransfer } from "@/src/lib/recipe-import-transfer";
 import { trackAnalytics } from "@/src/lib/analytics";
 import { getImportSourceKind } from "@/src/lib/analytics-events";
 import type { ImportedRecipe, Recipe } from "@/src/types/recipe";
@@ -26,11 +25,7 @@ async function findSavedRecipeRow(userId: string, sourceUrl: string): Promise<Re
   return (data as RecipeRow | null) ?? null;
 }
 
-export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
-  data: ReturnType<typeof useDashboardData>;
-  importDraftId: string | null;
-  setImportDraftId: Dispatch<SetStateAction<string | null>>;
-}) {
+export function useDashboardActions({ data }: { data: ReturnType<typeof useDashboardData> }) {
   const router = useRouter();
   const { userId, allRecipes, setAllRecipes, collections, isLoading, isOfflineMode } = data;
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -42,12 +37,13 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
   const [recipeToDelete, setRecipeToDelete] = useState<Recipe | null>(null);
   const [importUrl, setImportUrl] = useState("");
   const [isImportingRecipe, setIsImportingRecipe] = useState(false);
+  const [draftSource, setDraftSource] = useState<"extension" | null>(null);
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [importError, setImportError] = useState("");
 
-  useDashboardImport({ isLoading, userId, importDraftId, collections, setNotice, setEditingRecipe, setAddRecipeMode, setIsDialogOpen });
+  useDashboardImport({ isLoading, userId, collections, setNotice, setEditingRecipe, setAddRecipeMode, setIsDialogOpen, setDraftSource });
   useEffect(() => {
-    if (isLoading || importDraftId) return;
+    if (isLoading) return;
     const url = new URL(window.location.href);
     const addMode = url.searchParams.get("add");
     if (addMode !== "manual" && addMode !== "select") return;
@@ -68,7 +64,7 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
     }
     // Runs once per page load; handleImportRecipe is recreated on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, importDraftId, isOfflineMode]);
+  }, [isLoading, isOfflineMode]);
   useEffect(() => {
     if (!notice) return;
     const timeoutId = window.setTimeout(() => setNotice(null), 3200);
@@ -105,13 +101,8 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       setImportUrl("");
       setImportError("");
       setEditingRecipe(null);
+      setDraftSource(null);
     }
-  };
-
-  const clearImportedDraft = () => {
-    if (!importDraftId || !isDraftImportedRecipe(editingRecipe)) return;
-    try { removeRecipeTransfer(window.localStorage, importDraftId); } catch {}
-    setImportDraftId(null);
   };
 
   const openExistingRecipe = (recipe: Recipe) => {
@@ -121,7 +112,6 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
     setFirstCookHintRecipeId(null);
     setSelectedRecipe(recipe);
     trackAnalytics("recipe_opened", { entry_point: "other" });
-    clearImportedDraft();
     handleDialogOpenChange(false);
     setNotice({ type: "success", message: "This recipe is already in your library." });
   };
@@ -222,11 +212,10 @@ export function useDashboardActions({ data, importDraftId, setImportDraftId }: {
       }
 
       const saved = mapRowToRecipe(savedRow, selectedCollections);
-      const source = importDraftId ? "extension" : parsedValues.data.sourceUrl ? "url" : "manual";
+      const source = draftSource ?? (parsedValues.data.sourceUrl ? "url" : "manual");
       trackAnalytics(isUpdate ? "recipe_updated" : "recipe_saved", isUpdate
         ? { source } : { source, is_first_recipe: allRecipes.length === 0 });
-      clearImportedDraft();
-      setAllRecipes((current) => isUpdate
+        setAllRecipes((current) => isUpdate
         ? current.map((recipe) => (recipe.id === saved.id ? saved : recipe))
         : [saved, ...current]);
       try {

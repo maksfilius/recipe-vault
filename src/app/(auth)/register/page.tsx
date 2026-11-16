@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import AuthForm from '../../../components/AuthForm'
 import { env } from "@/src/lib/env";
 import { getServerUser } from "@/src/lib/supabase-server";
-import { getImportAuthDestination } from "@/src/lib/recipe-import-transfer";
+import { getImportAuthDestination } from "@/src/lib/auth-destination";
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.siteUrl),
