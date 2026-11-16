@@ -10,6 +10,14 @@ The first install (not an update) opens `/extension/welcome` on the website with
 
 The extension uses Chrome's native side panel. Click the toolbar icon on each new recipe site to grant temporary page access. If the panel stays open while changing tabs, use the toolbar icon again when Chrome requests page permission.
 
+## Release build
+
+1. Bump `version` in `manifest.json`, commit, and tag the commit: `git tag extension-v<version>`.
+2. Run `npm run pack:extension`. It refuses to pack without a matching tag or with uncommitted changes in `extension/`.
+3. Upload `dist/keep-and-cook-extension-<version>.zip`. Before that, load `dist/extension/` with Load unpacked and run the manual check below.
+
+Icons come from `src/assets/Logo.svg` via `node scripts/generate-icons.mjs`.
+
 ## Local website
 
 The extension talks to production by default. To point it at `npm run dev`, without committing the change:
