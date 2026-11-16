@@ -4,6 +4,8 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { load } from "cheerio";
 import { recipePayloadSchema } from "../src/lib/recipe-validation.ts";
+import { buildImportedRecipe } from "../src/lib/recipe-import-parser.ts";
+import { runExtensionExtract } from "../scripts/run-extension-extract.mjs";
 import { recipeText, libraryUrl, formatServingsLabel, APP_ORIGIN } from "../extension/shared.js";
 
 const extractionScript = readFileSync(new URL("../extension/extract.js", import.meta.url), "utf8");
@@ -152,7 +154,7 @@ function extract(scripts: unknown[]) {
     URL,
     location: { href: "https://recipes.example/soup", hostname: "recipes.example" },
     document: {
-      querySelectorAll: () => scripts.map((value) => ({ textContent: typeof value === "string" ? value : JSON.stringify(value) })),
+      querySelectorAll: (selector: string) => selector.includes("ld+json") ? scripts.map((value) => ({ textContent: typeof value === "string" ? value : JSON.stringify(value) })) : [],
       createElement: () => ({
         value: "",
         set innerHTML(value: string) { this.value = load(value).root().text(); },
@@ -225,4 +227,47 @@ test("background opens the welcome page on first install only", () => {
   assert.deepEqual(created, []);
   installed?.({ reason: "install" });
   assert.deepEqual(created, [`${APP_ORIGIN}/extension/welcome`]);
+});
+
+function extractHtml(html: string, href = "https://recipes.example/lemon-chicken") {
+  return runExtensionExtract(extractionScript, html, href);
+}
+
+test("extension reads microdata recipes the way the server parser does", () => {
+  const html = readFileSync(new URL("./fixtures/microdata-recipe.html", import.meta.url), "utf8");
+  const local = extractHtml(html);
+  const server = buildImportedRecipe(html, "https://recipes.example/lemon-chicken");
+  assert.ok(local && server);
+  assert.equal(local.title, server.title);
+  assert.equal(local.description, server.description);
+  assert.deepEqual(Array.from(local.ingredients as { name: string }[], (item) => item.name),
+    server.ingredients.map((item) => [item.amount, item.unit, item.name].filter(Boolean).join(" ")));
+  assert.deepEqual(Array.from(local.steps as { text: string }[], (step) => step.text), server.steps.map((step) => step.text));
+  assert.equal(local.totalTime, "1 hr 15 min");
+  assert.equal(local.totalTime, server.totalTime);
+  assert.equal(local.servings, "4 servings");
+  assert.equal(local.servings, server.servings);
+  assert.equal(local.imageUrl, "https://recipes.example/images/lemon-chicken.jpg");
+  assert.equal(recipePayloadSchema.safeParse(local).success, true);
+});
+
+test("extension formats JSON-LD time and servings like the server", () => {
+  const recipe = (fields: Record<string, unknown>) => extract([{ "@type": "Recipe", name: "Soup", recipeIngredient: ["Salt"], recipeInstructions: "Mix.", ...fields }]);
+  assert.equal(recipe({ totalTime: "PT1H30M", recipeYield: ["6", "6 bowls"] }).totalTime, "1 hr 30 min");
+  assert.equal(recipe({ totalTime: "PT1H30M", recipeYield: ["6", "6 bowls"] }).servings, "6 servings");
+  assert.equal(recipe({ prepTime: "PT10M", cookTime: "PT20M" }).totalTime, "30 min");
+  assert.equal(recipe({ cookTime: "about an hour" }).totalTime, "about an hour");
+  assert.equal(recipe({ recipeYield: "1 loaf" }).servings, "1 loaf");
+  assert.equal(recipe({}).totalTime, "");
+});
+
+test("extension merges recipe parts and reads h-recipe instructions", () => {
+  const html = `<div itemscope itemtype="https://schema.org/Recipe"><h2 itemprop="name">Roast chicken</h2>
+    <ul><li itemprop="recipeIngredient">1 chicken</li></ul><div class="e-instructions"><p>Season the chicken.</p><p>Roast it.</p></div></div>
+    <div itemscope itemtype="https://schema.org/Recipe"><h2 itemprop="name">Bread salad</h2>
+    <ul><li itemprop="recipeIngredient">1 loaf bread</li></ul><div class="e-instructions"><p>Toast the bread.</p></div></div>`;
+  const local = extractHtml(html);
+  assert.deepEqual(Array.from(local.ingredients as { name: string }[], (item) => item.name), ["1 chicken", "1 loaf bread"]);
+  // The server parser's heuristic keeps only the first e-instructions block here; the extension keeps both.
+  assert.deepEqual(Array.from(local.steps as { text: string }[], (step) => step.text), ["Season the chicken.", "Roast it.", "Toast the bread."]);
 });

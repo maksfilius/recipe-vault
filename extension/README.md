@@ -39,7 +39,7 @@ The extension talks to production by default. To point it at `npm run dev`, with
 
 ## Extraction and privacy
 
-Extraction first reads Recipe JSON-LD from the current page, including nested graphs and instruction sections. If no complete structured recipe exists, the extension calls the existing public Keep & Cook import endpoint with the page URL. This fallback shares the existing anonymous rate limits and may fail on blocked or unsupported sites. It does not send the page HTML or account credentials. Page content is rendered as text, never as HTML in the panel.
+Extraction first reads Recipe JSON-LD and schema.org Recipe microdata (with h-recipe `e-instructions` for Jetpack recipes) from the current page, including nested graphs and instruction sections. Time and servings follow the server parser's rules. `node scripts/extension-extract-benchmark.mjs main` measures how many benchmark pages need no server call. If no complete structured recipe exists, the extension calls the existing public Keep & Cook import endpoint with the page URL. This fallback shares the existing anonymous rate limits and may fail on blocked or unsupported sites. It does not send the page HTML or account credentials. Page content is rendered as text, never as HTML in the panel.
 
 Permissions: `activeTab` and `scripting` read the explicitly selected page and open the cooking overlay; `sidePanel` provides the recipe preview; `storage` holds browser-session snapshots for fallback cooking tabs. Persistent host access and the document-start handoff script are limited to `https://keepandcook.com/*`. No Supabase keys or authentication tokens are stored in the extension.
 
