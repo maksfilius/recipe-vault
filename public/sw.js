@@ -82,7 +82,10 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (request.destination === "image") {
+  // Only our photos: same origin and the Storage bucket. A fetch() from this worker obeys the
+  // site's connect-src, so intercepting a recipe site's photo (an editor draft preview) breaks it;
+  // the browser loads those directly under img-src instead.
+  if (request.destination === "image" && (url.origin === self.location.origin || url.pathname.includes("/storage/v1/object/public/recipe-images/"))) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE));
     return;
   }
