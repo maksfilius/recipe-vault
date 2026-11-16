@@ -15,6 +15,7 @@ const allowed = {
   cook_mode_completed: { recipe_origin: ["saved", "preview"], step_count_bucket: ["1-3", "4-7", "8+"] },
   recipe_exported: { format: ["txt", "json", "print"] },
   extension_handoff_completed: { was_authenticated: "boolean" },
+  share_target_received: { kind: ["site", "youtube", "tiktok", "instagram", "none"] },
   extension_handoff_failed: { reason: ["handoff_expired", "invalid_url", "server_error", "unknown"] },
 } as const;
 

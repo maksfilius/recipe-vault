@@ -30,6 +30,8 @@ test("expired drafts are removed and invalid IDs are rejected", () => {
 
 test("auth destination retains only a validated recipe draft path", () => {
   assert.equal(getImportAuthDestination(`/dashboard?importDraft=${id}`), `/dashboard?importDraft=${id}`);
+  const shared = `/dashboard?add=select&url=${encodeURIComponent("https://site.example/soup")}`;
+  assert.equal(getImportAuthDestination(shared), shared);
   for (const next of [null, "https://evil.example", "//evil.example", "/dashboard?importDraft=bad", "/dashboard/../logout", "/dashboard?next=https://evil.example"]) {
     assert.equal(getImportAuthDestination(next), "/dashboard");
   }

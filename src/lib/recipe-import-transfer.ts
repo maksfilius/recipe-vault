@@ -39,7 +39,7 @@ export function getImportAuthDestination(next: string | null | undefined) {
     if (url.pathname === "/dashboard/favorites") return "/dashboard";
     if (url.pathname === "/dashboard/settings") return url.search ? "/dashboard" : url.pathname;
     if (url.pathname !== "/dashboard") return "/dashboard";
-    const allowedParams = new Set(["q", "collections", "tags", "importDraft", "add"]);
+    const allowedParams = new Set(["q", "collections", "tags", "importDraft", "add", "url"]);
     if ([...url.searchParams.keys()].some((key) => !allowedParams.has(key) || url.searchParams.getAll(key).length > 1)) return "/dashboard";
     if (url.searchParams.has("add") && !["manual", "select"].includes(url.searchParams.get("add") ?? "")) return "/dashboard";
     const id = url.searchParams.get("importDraft");
