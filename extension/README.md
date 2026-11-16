@@ -6,6 +6,8 @@
 2. Enable **Developer mode**, choose **Load unpacked**, and select this `extension` directory.
 3. Pin Keep & Cook to the toolbar. Visit a recipe page and click its icon.
 
+The first install (not an update) opens `/extension/welcome` on the website with the same three steps and a sample recipe.
+
 The extension uses Chrome's native side panel. Click the toolbar icon on each new recipe site to grant temporary page access. If the panel stays open while changing tabs, use the toolbar icon again when Chrome requests page permission.
 
 ## Local website

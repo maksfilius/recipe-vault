@@ -1,4 +1,9 @@
-import { libraryUrl } from "./shared.js";
+import { APP_ORIGIN, libraryUrl } from "./shared.js";
+
+// First install only: an update should not open a tab nobody asked for.
+chrome.runtime.onInstalled.addListener(({ reason }) => {
+  if (reason === "install") void chrome.tabs.create({ url: `${APP_ORIGIN}/extension/welcome` });
+});
 
 chrome.action.onClicked.addListener((tab) => {
   chrome.sidePanel.open({ windowId: tab.windowId }).then(() => {

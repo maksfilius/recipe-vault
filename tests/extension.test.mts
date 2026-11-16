@@ -26,8 +26,9 @@ test("toolbar click opens the panel directly inside the user gesture", async () 
   runInNewContext(backgroundScript, {
     console,
     libraryUrl,
+    APP_ORIGIN,
     chrome: {
-      runtime: { onMessage: { addListener() {} } },
+      runtime: { onMessage: { addListener() {} }, onInstalled: { addListener() {} } },
       action: {
         onClicked: { addListener: (listener: typeof click) => { click = listener; } },
         setBadgeText: async () => {},
@@ -49,9 +50,9 @@ test("standalone cooking tabs can save without a content-script sender tab", asy
   let handler: ((message: unknown, sender: unknown, respond: (value: unknown) => void) => void) | undefined;
   let target = "";
   runInNewContext(backgroundScript, {
-    console, libraryUrl,
+    console, libraryUrl, APP_ORIGIN,
     chrome: {
-      runtime: { id: "test", onMessage: { addListener(listener: typeof handler) { handler = listener; } } },
+      runtime: { id: "test", onMessage: { addListener(listener: typeof handler) { handler = listener; } }, onInstalled: { addListener() {} } },
       action: { onClicked: { addListener() {} } },
       sidePanel: { setPanelBehavior: async () => {} },
       tabs: { create: async ({ url }: { url: string }) => { target = url; } },
@@ -205,4 +206,23 @@ test("download preserves Unicode, ingredient quantities, instructions, and attri
   assert.match(output, /2 шт морковь/);
   assert.match(output, /2\. Варить\./);
   assert.match(output, /https:\/\/recipes.example\/soup/);
+});
+
+test("background opens the welcome page on first install only", () => {
+  let installed: ((details: { reason: string }) => void) | undefined;
+  const created: string[] = [];
+  runInNewContext(backgroundScript, {
+    console, libraryUrl, APP_ORIGIN,
+    chrome: {
+      runtime: { onMessage: { addListener() {} }, onInstalled: { addListener(listener: typeof installed) { installed = listener; } } },
+      action: { onClicked: { addListener() {} } },
+      sidePanel: { setPanelBehavior: async () => {} },
+      tabs: { create: async ({ url }: { url: string }) => { created.push(url); } },
+    },
+  });
+  installed?.({ reason: "update" });
+  installed?.({ reason: "chrome_update" });
+  assert.deepEqual(created, []);
+  installed?.({ reason: "install" });
+  assert.deepEqual(created, [`${APP_ORIGIN}/extension/welcome`]);
 });
