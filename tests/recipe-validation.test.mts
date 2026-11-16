@@ -74,3 +74,13 @@ test("normalizes collection ids and free-form tags", () => {
   assert.equal(parsed.totalTime, "30 min");
   assert.equal(parsed.servings, "4 servings");
 });
+
+test("photos added in the editor may be JPEG or PNG data URLs, other data is rejected", () => {
+  const base = { title: "Pasta", description: "Weeknight pasta.", ingredients: [], steps: [] };
+  for (const imageUrl of ["data:image/jpeg;base64,/9j/4AAQ", "data:image/png;base64,iVBORw0KGgo="]) {
+    assert.equal(recipePayloadSchema.safeParse({ ...base, imageUrl }).success, true, imageUrl);
+  }
+  for (const imageUrl of ["data:image/svg+xml;base64,PHN2Zz4=", "data:text/html;base64,PGI+", "http://example.com/a.jpg"]) {
+    assert.equal(recipePayloadSchema.safeParse({ ...base, imageUrl }).success, false, imageUrl);
+  }
+});

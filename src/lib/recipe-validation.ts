@@ -23,7 +23,8 @@ const imageUrlSchema = z
   .max(MAX_IMAGE_DATA_URL_LENGTH, "Recipe image is too large.")
   .refine((value) => {
     if (!value) return true;
-    if (/^data:image\/webp;base64,[a-z0-9+/=]+$/i.test(value)) return true;
+    // webp: anonymous import previews; jpeg/png: photos people add in the editor.
+    if (/^data:image\/(?:webp|jpeg|png);base64,[a-z0-9+/=]+$/i.test(value)) return true;
 
     try {
       return new URL(value).protocol === "https:";

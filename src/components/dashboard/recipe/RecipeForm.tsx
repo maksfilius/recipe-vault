@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
-import { ChevronDown, Plus, X } from "lucide-react";
+import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent, type KeyboardEvent } from "react";
+import { ChevronDown, ImagePlus, Plus, X } from "lucide-react";
 import type { Recipe } from "../../../types/recipe";
 import { Button } from "../../ui/button";
 import {
@@ -31,6 +31,7 @@ export default function RecipeForm({ mode, initialValue, initialSourceUrl, isSav
   const [totalTime, setTotalTime] = useState(() => initialValue?.totalTime ?? "");
   const [servings, setServings] = useState(() => initialValue?.servings ?? "");
   const [description, setDescription] = useState(() => initialValue?.description ?? "");
+  const [imageUrl, setImageUrl] = useState(() => initialValue?.imageUrl);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -39,12 +40,13 @@ export default function RecipeForm({ mode, initialValue, initialSourceUrl, isSav
       ingredientText: ingredients.map((row) => row.value).join("\n"),
       // A step may contain line breaks typed in its box; keep it one step.
       stepText: steps.map((step) => step.value.replace(/\s*\n\s*/g, " ")).join("\n"),
-      sourceUrl, totalTime, servings, description, initialValue,
+      sourceUrl, totalTime, servings, description, imageUrl, initialValue,
     }));
   };
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 space-y-5 pb-1">
+      <PhotoField imageUrl={imageUrl} onChange={setImageUrl} />
       <label className="block space-y-2">
         <span className="block text-sm font-semibold text-foreground">Recipe name</span>
         <input name="title" className={fieldClass} value={title} onChange={(event) => setTitle(event.target.value)} required maxLength={160} autoFocus />
@@ -174,5 +176,63 @@ function ListField({ label, itemLabel, addLabel, placeholder, rows, onChange, mu
         <Plus className="size-4" aria-hidden="true" />{addLabel}
       </button>
     </fieldset>
+  );
+}
+
+// Fits the API's 1.6 MB request limit: JPEG is the one format every browser's canvas can encode
+// (Safari cannot write WebP); the server re-encodes the photo to WebP when the recipe is saved.
+async function preparePhoto(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  canvas.getContext("2d")?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  for (const quality of [0.85, 0.7, 0.55]) {
+    const dataUrl = canvas.toDataURL("image/jpeg", quality);
+    if (dataUrl.length <= 1_400_000) return dataUrl;
+  }
+  throw new Error("This photo is too large. Try a smaller one.");
+}
+
+function PhotoField({ imageUrl, onChange }: { imageUrl?: string; onChange: (imageUrl: string | undefined) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
+  const [isPreparing, setIsPreparing] = useState(false);
+  const choose = () => inputRef.current?.click();
+  const onFile = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setError("");
+    setIsPreparing(true);
+    try { onChange(await preparePhoto(file)); } catch (cause) {
+      setError(cause instanceof Error && cause.message.startsWith("This photo") ? cause.message : "This file could not be read as a photo.");
+    } finally { setIsPreparing(false); }
+  };
+  const actionClass = "inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold hover:bg-muted";
+
+  return (
+    <div className="space-y-2">
+      <span className="block text-sm font-semibold text-foreground">Photo</span>
+      {imageUrl ? (
+        <div className="flex items-center gap-4">
+          {/* eslint-disable-next-line @next/next/no-img-element -- data: and remote draft photos */}
+          <img src={imageUrl} alt="Recipe photo" className="h-24 w-32 shrink-0 rounded-xl border border-border object-cover" />
+          <div className="flex flex-wrap gap-1">
+            <button type="button" onClick={choose} disabled={isPreparing} className={`${actionClass} text-primary`}>Change photo</button>
+            <button type="button" onClick={() => onChange(undefined)} disabled={isPreparing} className={`${actionClass} text-muted-foreground hover:text-foreground`}>Remove</button>
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={choose} disabled={isPreparing}
+          className="flex min-h-24 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border text-sm font-semibold text-primary hover:bg-muted">
+          <ImagePlus className="size-4" aria-hidden="true" />{isPreparing ? "Preparing photo…" : "Add photo"}
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" className="sr-only" tabIndex={-1} aria-hidden="true" onChange={(event) => void onFile(event)} />
+      {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
+    </div>
   );
 }

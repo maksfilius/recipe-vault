@@ -46,3 +46,10 @@ test("editing preserves hidden collections, tags and image", () => {
   assert.equal(values.imageUrl, recipe.imageUrl);
   assert.equal(values.description, undefined);
 });
+
+test("the editor can replace or remove the photo", () => {
+  const recipe: Recipe = { id: "r", title: "Soup", description: "", ingredients: [], steps: [], collections: [], tags: [], imageUrl: "https://example.com/photo.webp" };
+  const base = { title: "Soup", ingredientText: "", stepText: "", sourceUrl: "", totalTime: "", servings: "", description: "", initialValue: recipe };
+  assert.equal(buildRecipeFormValues({ ...base, imageUrl: "data:image/jpeg;base64,/9j/" }).imageUrl, "data:image/jpeg;base64,/9j/");
+  assert.equal(buildRecipeFormValues({ ...base, imageUrl: undefined }).imageUrl, undefined);
+});

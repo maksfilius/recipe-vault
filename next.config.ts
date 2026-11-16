@@ -44,7 +44,8 @@ const nextConfig: NextConfig = {
               "base-uri 'self'",
               "frame-ancestors 'none'",
               "form-action 'self'",
-              ["img-src 'self' data: blob:", supabaseImageOrigin].filter(Boolean).join(" "),
+              // https: lets the editor preview a draft's photo from the recipe site before Save stores a copy.
+              ["img-src 'self' data: blob: https:", supabaseImageOrigin].filter(Boolean).join(" "),
               "font-src 'self' data:",
               scriptSrc,
               "style-src 'self' 'unsafe-inline'",

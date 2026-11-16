@@ -43,6 +43,8 @@ export function buildRecipeFormValues(input: {
   sourceUrl: string;
   totalTime: string;
   servings: string;
+  /** The photo as edited in the form; when the key is absent the initial photo is kept. */
+  imageUrl?: string;
   initialValue?: Pick<Recipe, "collections" | "tags" | "imageUrl">;
 }): RecipeFormValues {
   return {
@@ -52,7 +54,7 @@ export function buildRecipeFormValues(input: {
     steps: stepTextToSteps(input.stepText),
     collectionIds: input.initialValue?.collections.map((collection) => collection.id) ?? [],
     tags: [...(input.initialValue?.tags ?? [])],
-    imageUrl: input.initialValue?.imageUrl,
+    imageUrl: "imageUrl" in input ? input.imageUrl : input.initialValue?.imageUrl,
     sourceUrl: input.sourceUrl.trim() || undefined,
     totalTime: input.totalTime.trim() || undefined,
     servings: input.servings.trim() || undefined,

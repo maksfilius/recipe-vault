@@ -167,7 +167,8 @@ async function downloadRecipeImage(
 }
 
 function decodeRecipeImageDataUrl(source: string, maxInputBytes: number) {
-  const match = source.match(/^data:image\/webp;base64,([a-z0-9+/=]+)$/i);
+  // sharp decodes and re-encodes the bytes, so the declared type is only a first filter.
+  const match = source.match(/^data:image\/(?:webp|jpeg|png);base64,([a-z0-9+/=]+)$/i);
   if (!match) {
     throw new RecipeImageError("The recipe image data is invalid.");
   }
