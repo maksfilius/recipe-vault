@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, PanelRightOpen } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { env } from "@/src/lib/env";
 
 export default function CTA() {
   return (
@@ -13,8 +14,14 @@ export default function CTA() {
               Our Chrome extension opens a readable recipe beside the website. Preview and cook without an account; save it to your private library when you want to keep it.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Button disabled className="min-h-12">Add to Chrome <ArrowRight aria-hidden="true" /></Button>
-              <span className="text-sm text-muted-foreground">Chrome Web Store release coming soon.</span>
+              {env.chromeExtensionUrl ? (
+                <Button asChild className="min-h-12"><a href={env.chromeExtensionUrl} target="_blank" rel="noopener noreferrer">Add to Chrome <ArrowRight aria-hidden="true" /></a></Button>
+              ) : (
+                <>
+                  <Button disabled className="min-h-12">Add to Chrome <ArrowRight aria-hidden="true" /></Button>
+                  <span className="text-sm text-muted-foreground">Chrome Web Store release coming soon.</span>
+                </>
+              )}
             </div>
           </div>
           <div className="overflow-hidden rounded-2xl border border-border bg-card" aria-label="Illustration of the Chrome extension recipe panel">

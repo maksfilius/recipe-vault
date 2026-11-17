@@ -43,6 +43,8 @@ export const env = {
   resendTestToken: process.env.RESEND_TEST_TOKEN?.trim() || null,
   siteUrl: getSiteUrl(),
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || null,
+  // Chrome Web Store listing; until it is set the landing button stays disabled and the library hides the link.
+  chromeExtensionUrl: process.env.NEXT_PUBLIC_CHROME_EXTENSION_URL?.trim() || null,
   productName: "Keep & Cook",
   productDescription:
     "Keep & Cook is a personal recipe organizer that keeps your recipes searchable, structured, and ready when you cook.",

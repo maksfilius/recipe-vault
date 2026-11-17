@@ -6,8 +6,8 @@ import RecipeForm from "./recipe/RecipeForm";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import type { RecipeFormValues } from "@/src/lib/recipe-form-conversion";
+import { env } from "@/src/lib/env";
 
-const extensionInstructions = "https://github.com/maksfilius/recipe-vault/tree/main/extension";
 
 export function EmptyLibrary({
   importUrl, setImportUrl, importError, clearImportError, isImporting, isSaving, isOffline,
@@ -52,12 +52,14 @@ export function EmptyLibrary({
       {importError ? <p id="empty-import-error" className="mt-3 text-sm text-destructive" role="alert">{importError}</p> : null}
       <button type="button" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-primary underline-offset-4 hover:underline disabled:opacity-50"
         disabled={isOffline} onClick={() => setManualOpen(true)}>or write it manually</button>
-      <div className="mt-8 border-t border-border pt-4">
-        <a href={extensionInstructions} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-          Install the Chrome extension <ArrowUpRight className="size-4" aria-hidden="true" />
-        </a>
-        <p className="text-xs text-muted-foreground">Local prototype; follow the installation steps on GitHub.</p>
-      </div>
+      {env.chromeExtensionUrl ? (
+        <div className="mt-8 border-t border-border pt-4">
+          <a href={env.chromeExtensionUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-1.5 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
+            Install the Chrome extension <ArrowUpRight className="size-4" aria-hidden="true" />
+          </a>
+          <p className="text-xs text-muted-foreground">Save recipes from any site in one click.</p>
+        </div>
+      ) : null}
     </section>
   );
 }
