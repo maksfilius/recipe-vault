@@ -21,7 +21,7 @@
 **Description:**
 
 ```
-Recipe pages are long. Keep & Cook shows just the recipe, right beside the page.
+Recipe pages are long. Keep & Cook shows just the recipe, right beside the page, and saves the ones you love to your own recipe library.
 
 Click the Keep & Cook icon on any recipe site and a side panel opens with the ingredients and steps — no life story, no pop-ups, no ads in the way.
 
@@ -38,7 +38,7 @@ Works on most recipe sites that publish structured recipe data, which is the lar
 ```
 
 **Graphics:** `docs/store/`
-- Screenshots 1280×800: `1-panel.jpg`, `2-cook-mode.jpg`, `3-dark.jpg`
+- Screenshots 1280×800: `1-panel.jpg` (панель рецепта), `2-cook-mode.jpg` (режим готовки), `3-library.jpg` (рецепт сохранён в библиотеку)
 - Small promo tile 440×280: `promo-tile-440x280.jpg`
 - Icon 128×128: `extension/icons/icon-128.png`
 
