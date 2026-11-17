@@ -10,7 +10,7 @@
 
 ## Store listing
 
-**Позиционирование.** Расширение — вход в библиотеку Keep & Cook, а не самостоятельная «читалка». Главное обещание: «сохрани рецепт с любого сайта в свою кулинарную книгу». Чистый вид и режим готовки — то, что пользователь получает сразу, без аккаунта. В панели главная кнопка «Save to my recipes», под ней подпись «Free account · your recipes on any device». Будущий Pro в листинге не обещаем: он появится внутри библиотеки, куда листинг и ведёт.
+**Позиционирование.** Расширение — вход в библиотеку Keep & Cook, а не самостоятельная «читалка». Главное обещание: «сохрани рецепт с любого сайта в свою кулинарную книгу». Чистый вид и режим готовки — то, что пользователь получает сразу, без аккаунта. В панели главная кнопка «Save to my recipes», под ней подпись «Saves to your free cookbook at keepandcook.com». Будущий Pro в листинге не обещаем: он появится внутри библиотеки, куда листинг и ведёт.
 
 **Name** (из manifest): Keep & Cook — Recipe Saver & Cookbook
 
@@ -25,26 +25,36 @@
 ```
 Save recipes from any website to your own cookbook.
 
-Found a recipe you want to keep? Click the Keep & Cook icon, then "Save to my recipes". It goes into your free Keep & Cook cookbook, together with every other recipe you have saved, with a link back to the original.
+Keep & Cook has two parts that work together:
+1. This Chrome extension: it works on the recipe page you are visiting.
+2. Your cookbook at keepandcook.com: a free web app where your saved recipes live. It opens in any browser and installs on your phone like an app.
 
-Your cookbook
-• All your recipes in one place, with photos, ingredients and steps.
-• Search them, and sort them into collections like Breakfast or Dinner.
-• Edit any recipe, or add your own family recipes by hand.
-• On your phone too: add Keep & Cook to your home screen. Your recipes are there even offline.
+HOW IT WORKS
+1. On a recipe page, click the Keep & Cook icon. The recipe opens in a side panel.
+2. Click "Save to my recipes". keepandcook.com opens with the recipe ready. Sign in or create a free account, check it and save.
+3. Open your cookbook at keepandcook.com any time, on your computer or your phone.
 
-Right on the recipe page
+IN CHROME: THE EXTENSION (no account needed)
 • A clean side panel with just the ingredients and steps: no life story, no pop-ups, no ads in the way.
-• Cooking mode: large text, one step at a time, step timers, and the screen stays on.
-• Download the recipe as a text file. Reading, cooking and downloading need no account.
+• Tick off ingredients as you gather them.
+• Cooking mode over the page: large text, one step at a time, step timers, and the screen stays on.
+• Download the recipe as a text file.
+• "Save to my recipes" sends it to your cookbook.
 
-Privacy first
-The extension reads a page only when you click its icon on that page. It has no access to the sites you browse otherwise. No analytics, no tracking, no ads.
+AT KEEPANDCOOK.COM: YOUR COOKBOOK (free account)
+• All your saved recipes in one place, with photos, ingredients, steps and a link to the original.
+• Search, and sort recipes into collections like Breakfast or Dinner.
+• Edit any recipe, add family recipes by hand, or paste a recipe link.
+• Cooking mode for every saved recipe.
+• On your phone: add keepandcook.com to your home screen. Your recipes are there even offline.
+
+PRIVACY
+The extension reads a page only when you click its icon on that page. It has no access to the sites you browse otherwise. No analytics, no tracking, no ads. Your cookbook is private to your account.
 
 Works on most recipe sites that publish structured recipe data. If a page has none, Keep & Cook reads that public page for you.
 ```
 
-**Graphics:** `docs/store/`, в этом порядке:
+**Graphics:** `docs/store/`, в этом порядке. Над заголовком каждого кадра метка, где это происходит: «In Chrome · extension» или «At keepandcook.com · your cookbook».
 1. `1-save.jpg`: сайт с рецептом и панель, акцент на «Save to my recipes».
 2. `2-library.jpg`: библиотека на компьютере, «Recipe saved to your library».
 3. `3-phone.jpg`: библиотека и рецепт на телефоне (PWA).

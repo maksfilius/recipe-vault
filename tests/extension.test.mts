@@ -21,7 +21,7 @@ test("side panel keeps only the brand in its header and places retry in the empt
   assert.equal($("#recipe .actions button").first().attr("id"), "save");
   assert.equal($("#recipe .actions button.primary").text().trim(), "Save to my recipes");
   assert.equal($("#recipe .actions button.secondary").text().trim(), "Start cooking →");
-  assert.equal($("#recipe .actions + .save-hint").text().trim(), "Free account · your recipes on any device");
+  assert.equal($("#recipe .actions + .save-hint").text().trim(), "Saves to your free cookbook at keepandcook.com");
   assert.equal($("#method + #download").text().trim(), "Download");
 });
 
