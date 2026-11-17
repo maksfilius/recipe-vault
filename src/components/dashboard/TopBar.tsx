@@ -52,6 +52,12 @@ export default function TopBar({ onSignOut }: TopBarProps) {
     return () => document.removeEventListener("pointerdown", closeOutside);
   }, [menuOpen]);
   useEffect(() => () => window.clearTimeout(searchTimer.current), []);
+  // The phone tab bar's Search tab toggles this panel; a phone has no Escape key to close it.
+  useEffect(() => {
+    const toggle = () => setSearchOpen((open) => !open);
+    window.addEventListener("keep-and-cook:open-search", toggle);
+    return () => window.removeEventListener("keep-and-cook:open-search", toggle);
+  }, []);
 
   const commitSearch = (query: string) => {
     const value = query.trim();
@@ -119,14 +125,14 @@ export default function TopBar({ onSignOut }: TopBarProps) {
           </div>
         </div>
 
-        <button type="button" className="ml-auto inline-flex size-11 shrink-0 items-center justify-center rounded-lg text-foreground hover:bg-muted md:hidden" aria-label={searchOpen ? "Close search" : "Search recipes"} aria-expanded={searchOpen} onClick={() => setSearchOpen((open) => !open)}>
+        <button type="button" className="ml-auto hidden size-11 shrink-0 items-center justify-center rounded-lg sm:inline-flex text-foreground hover:bg-muted md:hidden" aria-label={searchOpen ? "Close search" : "Search recipes"} aria-expanded={searchOpen} onClick={() => setSearchOpen((open) => !open)}>
           {searchOpen ? <X className="size-5" aria-hidden="true" /> : <Search className="size-5" aria-hidden="true" />}
         </button>
-        <button type="button" className="inline-flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary-hover" aria-label="Add recipe" onClick={openAddRecipe}>
+        <button type="button" className="hidden size-11 shrink-0 items-center justify-center rounded-lg sm:inline-flex bg-primary text-primary-foreground hover:bg-primary-hover" aria-label="Add recipe" onClick={openAddRecipe}>
           <Plus className="size-5" aria-hidden="true" />
         </button>
 
-        <div ref={accountRef} className="relative shrink-0" onKeyDown={onAccountKeyDown} onBlur={(event) => {
+        <div ref={accountRef} className="relative hidden shrink-0 sm:block" onKeyDown={onAccountKeyDown} onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
         }}>
           <button ref={accountButtonRef} type="button" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="account-options" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground hover:bg-muted" onClick={() => setMenuOpen((open) => !open)}>

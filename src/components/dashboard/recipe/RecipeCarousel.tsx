@@ -76,12 +76,12 @@ export function RecipeCarousel({ recipes, resetKey, onOpen }: RecipeCarouselProp
   return (
     <section aria-roledescription="carousel" aria-label="Recipes" className="-mx-4">
       <ol ref={scrollerRef} tabIndex={0} onKeyDown={onKeyDown} aria-label="Recipes, use arrow keys to browse"
-        className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-[9%] py-2 [scrollbar-width:none] focus-visible:outline-none [&::-webkit-scrollbar]:hidden">
+        className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-[11vw] py-2 [scrollbar-width:none] focus-visible:outline-none [&::-webkit-scrollbar]:hidden">
         {recipes.map((recipe, slideIndex) => (
           <li key={recipe.id} ref={(node) => { slideRefs.current[slideIndex] = node; }}
               aria-roledescription="slide" aria-label={`${slideIndex + 1} of ${recipes.length}`}
-              className="w-[82%] shrink-0 snap-center transition-[transform,opacity] duration-75 ease-out motion-reduce:transition-none">
-              <RecipeCard recipe={recipe} onClick={() => (slideIndex === indexRef.current ? onOpen(recipe) : scrollToIndex(slideIndex))} />
+              className="w-[78vw] shrink-0 snap-center transition-[transform,opacity] duration-75 ease-out motion-reduce:transition-none">
+              <RecipeCard recipe={recipe} photoClassName="aspect-[4/5]" onClick={() => (slideIndex === indexRef.current ? onOpen(recipe) : scrollToIndex(slideIndex))} />
             </li>
           ))}
       </ol>
