@@ -1,4 +1,5 @@
 import { Clock } from "lucide-react";
+import type { MouseEvent } from "react";
 
 import BrandMark from "../../BrandMark";
 import { Card } from "../../ui/card";
@@ -10,11 +11,11 @@ function sourceHost(url?: string) {
   try { return new URL(url).hostname.replace(/^www\./, ""); } catch { return ""; }
 }
 
-export function RecipeCard({ recipe, onClick, photoClassName = "aspect-[4/3]" }: { recipe: Recipe; onClick: () => void; photoClassName?: string }) {
+export function RecipeCard({ recipe, onClick, photoClassName = "aspect-[4/3]", tabIndex }: { recipe: Recipe; onClick: (event: MouseEvent<HTMLButtonElement>) => void; photoClassName?: string; tabIndex?: number }) {
   const host = sourceHost(recipe.sourceUrl);
   return (
     <Card interactive className="h-full min-w-0">
-      <button type="button" aria-label={`Open recipe: ${recipe.title}`} onClick={onClick}
+      <button type="button" tabIndex={tabIndex} aria-label={`Open recipe: ${recipe.title}`} onClick={onClick}
         className="flex h-full w-full flex-col text-left focus-visible:-outline-offset-4">
         {/* shrink-0: the grid stretches cards to one height, which would otherwise squeeze the photo. */}
         <div className={`flex ${photoClassName} w-full shrink-0 items-center justify-center overflow-hidden bg-muted`}>

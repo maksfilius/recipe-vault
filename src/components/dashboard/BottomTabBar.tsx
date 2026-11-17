@@ -26,7 +26,8 @@ export default function BottomTabBar() {
   return (
     <nav aria-label="Main" className="shrink-0 border-t border-border bg-card pb-[env(safe-area-inset-bottom)] sm:hidden">
       <div className="mx-auto flex max-w-md items-stretch px-2">
-        <Link href="/dashboard" aria-current={onDashboard ? "page" : undefined} className={`${tabClass} ${tone(onDashboard)}`}>
+        <Link href="/dashboard" aria-current={onDashboard ? "page" : undefined} className={`${tabClass} ${tone(onDashboard)}`}
+          onClick={() => window.dispatchEvent(new Event("keep-and-cook:show-library"))}>
           <BookOpen className="size-5" aria-hidden="true" />Recipes
         </Link>
         <button type="button" onClick={openSearch} className={`${tabClass} ${tone(false)}`}>

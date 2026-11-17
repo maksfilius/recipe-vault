@@ -7,18 +7,13 @@ import TopBar from "./TopBar";
 import BottomTabBar from "./BottomTabBar";
 import { supabase } from "@/src/lib/supabase-client";
 import { clearOfflineRecipeData } from "@/src/lib/offline-recipes";
+import { signOutThisDevice } from "@/src/lib/sign-out";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Failed to sign out", error);
-      return;
-    }
-    await clearOfflineRecipeData();
-    router.replace("/login");
+    if (await signOutThisDevice(supabase.auth, clearOfflineRecipeData)) router.replace("/login");
   };
 
   return (

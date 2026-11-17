@@ -20,6 +20,7 @@ import { Input } from "@/src/components/ui/input";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import { getAnalyticsConsent, setAnalyticsConsent, trackAnalytics } from "@/src/lib/analytics";
 import { clearOfflineRecipeData } from "@/src/lib/offline-recipes";
+import { signOutThisDevice } from "@/src/lib/sign-out";
 import { buildRecipeExport } from "@/src/lib/recipe-export";
 import { mapRowToCollection, mapRowToRecipe, type CollectionRow, type RecipeRow } from "@/src/lib/recipes";
 import type { RecipeCollection } from "@/src/types/recipe";
@@ -354,11 +355,18 @@ export default function SettingsClient({ accountDeletionEnabled, supportEmail }:
         <div>
           <h2 className="text-lg font-semibold text-foreground">Sessions</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Revoke refresh tokens for your other devices without signing out here.
+            Sign out on this device, or end the sessions on your other devices.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {/* The only sign-out on phones: the header account menu is hidden there. */}
+          <Button type="button" variant="secondary" onClick={() => void signOutThisDevice(supabase.auth, clearOfflineRecipeData).then((ok) => {
+            if (ok) router.replace("/login");
+            else setNotice({ type: "error", message: "Could not sign out. Check your connection and try again." });
+          })}>
+            Sign out
+          </Button>
           <Button
             type="button"
             variant="ghost"

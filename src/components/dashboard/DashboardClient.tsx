@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { RecipeCard, RecipeCardSkeleton } from "./recipe/RecipeCard";
 import { RecipeDetails } from "./recipe/RecipeDetails";
@@ -26,10 +26,22 @@ export default function Dashboard() {
 
   // Phones get a carousel, wider screens the grid; empty, loading and error states are shared.
   const showRecipes = !isLoading && !loadError && filteredRecipes.length > 0;
+  // Opening a recipe unmounts the carousel; this brings the user back to the same card.
+  // The ref follows every swipe without re-rendering; the state is read only when the carousel mounts.
+  const carouselIndex = useRef(0);
+  const [returnIndex, setReturnIndex] = useState(0);
   const openRecipe = (recipe: Recipe) => {
     trackAnalytics("recipe_opened", { entry_point: searchTerm.trim() ? "search" : "dashboard" });
+    setReturnIndex(carouselIndex.current);
     setSelectedRecipe(recipe);
   };
+
+  // The phone tab bar's Recipes tab returns to the library from an opened recipe.
+  useEffect(() => {
+    const showLibrary = () => setSelectedRecipe(null);
+    window.addEventListener("keep-and-cook:show-library", showLibrary);
+    return () => window.removeEventListener("keep-and-cook:show-library", showLibrary);
+  }, [setSelectedRecipe]);
 
   useEffect(() => {
     window.addEventListener("keep-and-cook:add-recipe", handleAddRecipe);
@@ -56,7 +68,7 @@ export default function Dashboard() {
         <section className="mx-auto max-w-7xl min-w-0 pb-8">
           {showRecipes ? (
             <div className="sm:hidden">
-              <RecipeCarousel recipes={filteredRecipes} resetKey={searchTerm} onOpen={openRecipe} />
+              <RecipeCarousel recipes={filteredRecipes} resetKey={searchTerm} initialIndex={returnIndex} onIndexChange={(index) => { carouselIndex.current = index; }} onOpen={openRecipe} />
             </div>
           ) : null}
           <div className={`${showRecipes ? "hidden sm:grid" : "grid"} grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4`}>
