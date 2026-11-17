@@ -17,8 +17,11 @@ test("side panel keeps only the brand in its header and places retry in the empt
   assert.equal($(".panel-header").children().length, 1);
   assert.equal($("#panel-state #refresh").length, 1);
   assert.equal($("#recipe .actions button").length, 2);
-  assert.equal($("#recipe .actions button.primary").text().trim(), "Start cooking →");
-  assert.equal($("#recipe .actions button.secondary").text().trim(), "Save");
+  // Saving leads to the library, so it is the first, primary action.
+  assert.equal($("#recipe .actions button").first().attr("id"), "save");
+  assert.equal($("#recipe .actions button.primary").text().trim(), "Save to my recipes");
+  assert.equal($("#recipe .actions button.secondary").text().trim(), "Start cooking →");
+  assert.equal($("#recipe .actions + .save-hint").text().trim(), "Free account · your recipes on any device");
   assert.equal($("#method + #download").text().trim(), "Download");
 });
 

@@ -10,9 +10,11 @@
 
 ## Store listing
 
-**Name** (из manifest): Keep & Cook — Recipe Companion
+**Позиционирование.** Расширение — вход в библиотеку Keep & Cook, а не самостоятельная «читалка». Главное обещание: «сохрани рецепт с любого сайта в свою кулинарную книгу». Чистый вид и режим готовки — то, что пользователь получает сразу, без аккаунта. В панели главная кнопка «Save to my recipes», под ней подпись «Free account · your recipes on any device». Будущий Pro в листинге не обещаем: он появится внутри библиотеки, куда листинг и ведёт.
 
-**Summary** (из manifest, ≤132): Read, cook, download, and keep recipes from the page you are visiting.
+**Name** (из manifest): Keep & Cook — Recipe Saver & Cookbook
+
+**Summary** (из manifest, ≤132): Save recipes from any website to your own cookbook. Clean recipe view and step-by-step cooking mode, free.
 
 **Category:** Lifestyle → Household (если появится Food & Drink — она).
 
@@ -21,26 +23,36 @@
 **Description:**
 
 ```
-Recipe pages are long. Keep & Cook shows just the recipe, right beside the page, and saves the ones you love to your own recipe library.
+Save recipes from any website to your own cookbook.
 
-Click the Keep & Cook icon on any recipe site and a side panel opens with the ingredients and steps — no life story, no pop-ups, no ads in the way.
+Found a recipe you want to keep? Click the Keep & Cook icon, then "Save to my recipes". It goes into your free Keep & Cook cookbook, together with every other recipe you have saved, with a link back to the original.
 
-• Read: ingredients and steps in a clean side panel, next to the original page.
-• Check off: tick ingredients as you gather them.
-• Cook: a full-window cooking view with large text, one step at a time, step timers, and the screen kept on.
-• Download: save the recipe as a plain text file. No account needed.
-• Keep: send the recipe to your free Keep & Cook library (keepandcook.com) to review, edit and save. Your library works on your phone as an app, even offline.
+Your cookbook
+• All your recipes in one place, with photos, ingredients and steps.
+• Search them, and sort them into collections like Breakfast or Dinner.
+• Edit any recipe, or add your own family recipes by hand.
+• On your phone too: add Keep & Cook to your home screen. Your recipes are there even offline.
+
+Right on the recipe page
+• A clean side panel with just the ingredients and steps: no life story, no pop-ups, no ads in the way.
+• Cooking mode: large text, one step at a time, step timers, and the screen stays on.
+• Download the recipe as a text file. Reading, cooking and downloading need no account.
 
 Privacy first
-The extension reads a page only when you click its icon on that page. It has no access to the sites you browse otherwise. No analytics, no tracking, no ads. Reading, cooking and downloading work without an account.
+The extension reads a page only when you click its icon on that page. It has no access to the sites you browse otherwise. No analytics, no tracking, no ads.
 
-Works on most recipe sites that publish structured recipe data, which is the large majority. If a page has none, the extension asks Keep & Cook to read that public page for you.
+Works on most recipe sites that publish structured recipe data. If a page has none, Keep & Cook reads that public page for you.
 ```
 
-**Graphics:** `docs/store/`
-- Screenshots 1280×800: `1-panel.jpg` (панель рецепта), `2-cook-mode.jpg` (режим готовки), `3-library.jpg` (рецепт сохранён в библиотеку)
-- Small promo tile 440×280: `promo-tile-440x280.jpg`
-- Icon 128×128: `extension/icons/icon-128.png`
+**Graphics:** `docs/store/`, в этом порядке:
+1. `1-save.jpg`: сайт с рецептом и панель, акцент на «Save to my recipes».
+2. `2-library.jpg`: библиотека на компьютере, «Recipe saved to your library».
+3. `3-phone.jpg`: библиотека и рецепт на телефоне (PWA).
+4. `4-cook-mode.jpg`: режим готовки.
+- Small promo tile 440×280: `promo-tile-440x280.jpg`.
+- Icon 128×128: `extension/icons/icon-128.png`.
+
+Фото еды на скриншотах взяты с Unsplash (лицензия Unsplash, коммерческое использование без указания автора): GyV6SL_fKsI, Bs_4ce9_w0I, 7ClANzfw6iU, gWkvURhoMlA, w0JzqJZYX_E, gZ7JK_wpFrY, HsSNbTSCdSs. Сайт «The Weeknight Table» и адреса `*.example` вымышлены.
 
 **Official URL / Homepage:** https://keepandcook.com
 **Support URL:** https://keepandcook.com/privacy (раздел Contact) или support-адрес

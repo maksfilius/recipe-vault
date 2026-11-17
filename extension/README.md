@@ -28,7 +28,7 @@ The extension talks to production by default. To point it at `npm run dev`, with
 
 ## Workflow
 
-- The side panel header contains only the logo. The recipe card has **Start cooking** and **Save** actions, with a small **Download** link below the method. `Read this page` appears in the empty and error states. Save opens the website for review and closes the panel; it does not claim cloud saving is complete.
+- The side panel header contains only the logo. The recipe card has **Save to my recipes** (primary, with a "Free account" hint) and **Start cooking** actions, with a small **Download** link below the method. `Read this page` appears in the empty and error states. Save opens the website for review and closes the panel; it does not claim cloud saving is complete.
 - Read ingredients and instructions alongside the original website. Check off ingredients.
 - **Start cooking** opens a dialog over the entire source webpage, outside the side panel. It does not use browser fullscreen. If injection fails, a standalone extension tab opens with the same interface and actions. The panel closes after successful injection; **Close** or Escape restores the source webpage.
 - Navigation stays at the bottom of the viewport. Large instruction text fills the remaining space. Long steps are split into parts sized to the window, with **Continue step** before **Next step**. Arrow keys navigate. Ingredients open in a separate drawer. Screen wake lock is best effort.

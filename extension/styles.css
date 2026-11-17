@@ -54,6 +54,8 @@ h2 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .02em; }
 .primary:hover { border-color: hsl(var(--primary-hover)); background: hsl(var(--primary-hover)); }
 .secondary { border: 1px solid hsl(var(--border)); color: hsl(var(--foreground)); background: hsl(var(--card)); }
 .secondary:hover { background: hsl(var(--muted)); }
+#save { justify-content: center; }
+.save-hint { margin: 8px 0 0; color: hsl(var(--muted-foreground)); font-size: 12px; }
 .save-feedback { margin-top: 14px; padding: 12px 14px; border: 1px solid hsl(var(--border)); border-radius: 10px; background: hsl(var(--muted) / .45); color: hsl(var(--foreground)); font-size: 12px; line-height: 1.45; }
 .save-feedback a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
 .recipe-section { margin-top: 27px; padding-top: 24px; border-top: 1px solid hsl(var(--border)); }
