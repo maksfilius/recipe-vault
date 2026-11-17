@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, useSyncExternalStore, type ChangeEvent, ty
 import BrandMark from "@/src/components/BrandMark";
 import { Input } from "@/src/components/ui/input";
 import { readThemePreference, saveThemePreference, type ThemePreference } from "@/src/lib/theme-preference";
+import { shouldCloseMenuOnBlur } from "@/src/lib/menu-blur";
 
 type TopBarProps = { onSignOut: () => Promise<void> };
 const themeChoices: { value: ThemePreference; label: string }[] = [
@@ -115,7 +116,7 @@ export default function TopBar({ onSignOut }: TopBarProps) {
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center gap-2 px-4 sm:gap-3 sm:px-6">
         <Link href="/dashboard" aria-label="Keep & Cook, recipes" className="flex min-h-11 shrink-0 items-center gap-2 rounded-lg text-foreground no-underline">
           <span className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true"><BrandMark className="size-6" /></span>
-          <span className="hidden whitespace-nowrap text-base font-bold tracking-tight sm:inline">Keep &amp; Cook</span>
+          <span className="whitespace-nowrap text-base font-bold tracking-tight">Keep &amp; Cook</span>
         </Link>
 
         <div className={`${searchOpen ? "absolute inset-x-0 top-full flex border-b border-border bg-card px-4 py-3 shadow-sm" : "hidden"} min-w-0 flex-1 md:static md:ml-auto md:flex md:max-w-xl md:border-0 md:bg-transparent md:p-0 md:shadow-none`}>
@@ -133,7 +134,7 @@ export default function TopBar({ onSignOut }: TopBarProps) {
         </button>
 
         <div ref={accountRef} className="relative hidden shrink-0 sm:block" onKeyDown={onAccountKeyDown} onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
+          if (shouldCloseMenuOnBlur(event.currentTarget, event.relatedTarget)) setMenuOpen(false);
         }}>
           <button ref={accountButtonRef} type="button" aria-haspopup="dialog" aria-expanded={menuOpen} aria-controls="account-options" className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground hover:bg-muted" onClick={() => setMenuOpen((open) => !open)}>
             <span className="hidden sm:inline">Account</span><span className="sm:hidden">Me</span><ChevronDown className="size-4" aria-hidden="true" />

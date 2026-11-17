@@ -9,6 +9,7 @@ import { requestAppFullscreen } from "@/src/lib/fullscreen";
 import { formatServingsLabel, getVisibleRecipeDescription } from "@/src/lib/recipe-details";
 import { formatSourceUrl } from "@/src/lib/utils";
 import { trackAnalytics } from "@/src/lib/analytics";
+import { shouldCloseMenuOnBlur } from "@/src/lib/menu-blur";
 
 type RecipeDetailsProps = {
   recipe: Recipe;
@@ -77,7 +78,7 @@ export function RecipeDetails({ recipe, onBack, onEdit, onDelete, showActions = 
         </Button>
         {showActions && (onEdit || onDelete) ? (
           <div ref={actionsRef} className="relative" onKeyDown={onActionsKeyDown} onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) setActionsOpen(false);
+            if (shouldCloseMenuOnBlur(event.currentTarget, event.relatedTarget)) setActionsOpen(false);
           }}>
             <Button ref={actionsButtonRef} type="button" variant="ghost" size="icon" aria-label="More recipe actions" aria-haspopup="menu" aria-expanded={actionsOpen} aria-controls="recipe-actions" onClick={() => setActionsOpen((open) => !open)}>
               <MoreHorizontal aria-hidden />
