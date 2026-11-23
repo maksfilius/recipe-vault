@@ -181,12 +181,12 @@ export default function Hero() {
 
                   {ingredients.length > 0 && (
                     <section aria-labelledby="hero-ingredients" className="mt-6">
-                      <h3 id="hero-ingredients" className="flex items-baseline justify-between gap-3 border-b border-border pb-2 text-sm font-semibold text-foreground">
+                      <h3 id="hero-ingredients" className="flex items-baseline justify-between gap-3 pb-2 text-sm font-semibold text-foreground">
                         Ingredients <span className="font-normal text-muted-foreground">{ingredients.length}</span>
                       </h3>
                       <ul className="text-sm leading-6 text-foreground">
                         {shownIngredients.map((line, index) => (
-                          <li key={`${index}-${line}`} className="border-b border-border py-2 [overflow-wrap:anywhere]">{line}</li>
+                          <li key={`${index}-${line}`} className="py-1.5 [overflow-wrap:anywhere]">{line}</li>
                         ))}
                       </ul>
                     </section>
@@ -194,12 +194,12 @@ export default function Hero() {
 
                   {steps.length > 0 && (
                     <section aria-labelledby="hero-steps" className="mt-6">
-                      <h3 id="hero-steps" className="flex items-baseline justify-between gap-3 border-b border-border pb-2 text-sm font-semibold text-foreground">
+                      <h3 id="hero-steps" className="flex items-baseline justify-between gap-3 pb-2 text-sm font-semibold text-foreground">
                         Steps <span className="font-normal text-muted-foreground">{steps.length}</span>
                       </h3>
                       <ol className="text-sm leading-6 text-foreground">
                         {shownSteps.map((text, index) => (
-                          <li key={`${index}-${text.slice(0, 24)}`} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 border-b border-border py-3">
+                          <li key={`${index}-${text.slice(0, 24)}`} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 py-2">
                             <span aria-hidden="true" className="font-semibold text-primary">{index + 1}</span>
                             <p className={expanded ? "[overflow-wrap:anywhere]" : "line-clamp-4 [overflow-wrap:anywhere]"}>{text}</p>
                           </li>
@@ -215,7 +215,7 @@ export default function Hero() {
                     </button>
                   )}
 
-                  <div className="mt-5 border-t border-border pt-5">
+                  <div className="mt-6">
                     <Button asChild size="lg" className="w-full sm:w-auto"><Link href="/dashboard" onClick={keepDraft}>Save to my free cookbook <ArrowRight aria-hidden="true" /></Link></Button>
                     <p className="mt-3 text-xs leading-5 text-muted-foreground">Sign in or create a free account, then review the recipe before it’s saved.</p>
                   </div>

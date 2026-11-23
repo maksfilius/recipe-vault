@@ -68,9 +68,9 @@ export default function InstallPage() {
             <div key={id} id={id} className="scroll-mt-24">
               <h2 className="font-display text-4xl leading-[1.12] tracking-[-0.025em] text-foreground">{name}</h2>
               <p className="mt-3 text-muted-foreground">In {browser}</p>
-              <ol className="mt-8 border-t border-border">
+              <ol className="mt-8">
                 {steps.map(({ text, icon: Icon }, index) => (
-                  <li key={text} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 border-b border-border py-5">
+                  <li key={text} className="grid grid-cols-[2.5rem_minmax(0,1fr)] items-baseline gap-x-4 py-5">
                     <span aria-hidden="true" className="font-display text-2xl text-primary">{index + 1}</span>
                     <p className="flex flex-wrap items-center gap-x-2 leading-7 text-foreground">
                       {text}

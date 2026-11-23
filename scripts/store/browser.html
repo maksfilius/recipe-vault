@@ -1,0 +1,82 @@
+<!doctype html>
+<!-- A desktop Chrome window drawn around two live pages: the recipe blog (host-page.html) and the real
+     extension side panel (extension/sidepanel.html, chrome.* stubbed by capture-browser.mjs).
+     Served from the repo root: http://127.0.0.1:8765/scripts/store/browser.html -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keep &amp; Cook in Chrome</title>
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #dfe3e8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; color: #1f1f1f; }
+  svg { width: 20px; height: 20px; fill: none; stroke: #474747; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+  .window { display: grid; grid-template-rows: 42px 46px minmax(0, 1fr); height: 100%; }
+
+  .tabs { display: flex; align-items: flex-end; gap: 6px; padding: 0 12px; }
+  .lights { display: flex; gap: 8px; align-self: center; margin-right: 14px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+  .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
+  .tab { display: flex; align-items: center; gap: 9px; width: 260px; height: 34px; padding: 0 12px; border-radius: 10px 10px 0 0; background: #fff; font-size: 12.5px; }
+  .tab span:not(.favicon) { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .favicon { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 4px; background: #2b2b2b; color: #fff; font: italic 11px Georgia, serif; }
+  .tab svg { width: 14px; height: 14px; }
+  .plus { align-self: center; margin-left: 4px; }
+
+  .toolbar { display: flex; align-items: center; gap: 14px; padding: 0 14px; background: #fff; border-bottom: 1px solid #e3e3e3; }
+  .omnibox { display: flex; flex: 1; align-items: center; gap: 10px; height: 34px; padding: 0 14px; border-radius: 17px; background: #eef1f4; font-size: 14px; color: #474747; }
+  .omnibox b { font-weight: 400; color: #1f1f1f; }
+  .omnibox .star { margin-left: auto; }
+  .ext { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e8eaed; }
+  .ext img { width: 18px; height: 18px; }
+  .avatar { width: 26px; height: 26px; border-radius: 50%; background: #8a6d5a; }
+
+  .content { display: grid; grid-template-columns: minmax(0, 1fr) 400px; min-height: 0; background: #fff; }
+  .content > iframe { width: 100%; height: 100%; border: 0; }
+  .side { display: grid; grid-template-rows: 44px minmax(0, 1fr); min-height: 0; border-left: 1px solid #d3d6da; }
+  .side-header { display: flex; align-items: center; gap: 10px; padding: 0 10px 0 16px; background: #fff; font-size: 13px; font-weight: 600; border-bottom: 1px solid #e3e3e3; }
+  .side-header img { width: 16px; height: 16px; }
+  .side-header .chevron { width: 14px; height: 14px; }
+  .side-header .end { margin-left: auto; display: flex; gap: 14px; }
+  .side-header .end svg { width: 17px; height: 17px; }
+  .side iframe { width: 100%; height: 100%; border: 0; }
+</style>
+</head>
+<body>
+  <div class="window">
+    <div class="tabs">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="tab"><span class="favicon">S</span><span>Lemon &amp; herb roast chicken – Sunday Suppers</span><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></div>
+      <svg class="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    </div>
+    <div class="toolbar">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+      <svg viewBox="0 0 24 24" style="opacity: .45"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>
+      <div class="omnibox">
+        <svg viewBox="0 0 24 24" style="width: 17px; height: 17px"><path d="M4 8h10m4 0h2M4 16h2m4 0h10"/><circle cx="16" cy="8" r="2"/><circle cx="8" cy="16" r="2"/></svg>
+        <span><b>sundaysuppers.example</b>/lemon-herb-roast-chicken</span>
+        <svg class="star" viewBox="0 0 24 24"><path d="m12 4 2.4 5 5.6.7-4.1 3.8 1 5.5-4.9-2.7-4.9 2.7 1-5.5L4 9.7 9.6 9z"/></svg>
+      </div>
+      <span class="ext" title="Keep &amp; Cook"><img src="/extension/icons/icon-32.png" alt=""></span>
+      <svg viewBox="0 0 24 24"><path d="M9 4h4v3a2 2 0 1 0 4 0V4h3v6h-3a2 2 0 1 0 0 4h3v6H4V4h5z"/></svg>
+      <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M14 5v14"/></svg>
+      <span class="avatar"></span>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r=".8"/><circle cx="12" cy="12" r=".8"/><circle cx="12" cy="18.5" r=".8"/></svg>
+    </div>
+    <div class="content">
+      <iframe src="host-page.html" title="Recipe page"></iframe>
+      <div class="side">
+        <div class="side-header">
+          <img src="/extension/icons/icon-32.png" alt=""><span>Keep &amp; Cook</span>
+          <svg class="chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+          <span class="end">
+            <svg viewBox="0 0 24 24"><path d="M9 4h6l-1 6 3 3H7l3-3zM12 13v7"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          </span>
+        </div>
+        <iframe src="/extension/sidepanel.html" title="Keep &amp; Cook side panel"></iframe>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

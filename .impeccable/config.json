@@ -83,6 +83,33 @@
         ],
         "createdAt": "2026-11-23T17:01:43.314Z",
         "reason": "User confirmed: brief asked to apply the current warm cream and terracotta brand style; cream is the approved --background token (docs/design-direction.md)"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "scripts/store/frames.html"
+        ],
+        "createdAt": "2026-11-23T20:26:39.096Z",
+        "reason": "Tile .crop boxes hold a raster crop of the real panel capture (its own card padding is inside the image); no live text sits against the box edges"
+      },
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "scripts/store/host-page.html"
+        ],
+        "createdAt": "2026-11-23T20:53:56.908Z",
+        "reason": "Made-up third-party recipe blog rendered only inside the marketing browser capture; grey ad placeholders imitate typical blog clutter and are never served as a page"
+      },
+      {
+        "rule": "cramped-padding",
+        "value": "*",
+        "files": [
+          "scripts/store/browser.html"
+        ],
+        "createdAt": "2026-11-23T21:04:15.095Z",
+        "reason": "Drawn Chrome window frame for the marketing capture: the flagged boxes are iframe hosts and browser toolbar/side-panel bars sized like Chrome's own UI; checked in the rendered capture, no text is flush against an edge"
       }
     ]
   }

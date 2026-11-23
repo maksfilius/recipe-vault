@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import AddToChrome from "@/src/components/landing/AddToChrome";
-import { Screen, screens } from "@/src/components/landing/Screen";
+import { BrowserScreen, Screen, screens } from "@/src/components/landing/Screen";
 import { marketingMetadata } from "@/src/lib/page-metadata";
 
 export const metadata = marketingMetadata({
@@ -29,17 +29,15 @@ export default function ChromeExtensionPage() {
   return (
     <>
       <section aria-labelledby="extension-page-title" className="border-b border-border bg-background px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)] lg:gap-20">
-          <div className="max-w-xl">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
             <h1 id="extension-page-title" className="font-display text-balance text-[clamp(2.75rem,5vw,4.5rem)] leading-[1.05] tracking-[-0.035em] text-foreground">Read, cook and save recipes in Chrome.</h1>
-            <p className="mt-7 max-w-[34rem] text-lg leading-8 text-muted-foreground sm:text-xl">
+            <p className="mt-7 max-w-[38rem] text-lg leading-8 text-muted-foreground sm:text-xl">
               Keep &amp; Cook puts the recipe beside the page, without the life story and the pop-ups. Reading, cooking and downloading are free and need no account.
             </p>
             <div className="mt-8"><AddToChrome /></div>
           </div>
-          <div className="mx-auto h-[43rem] w-full max-w-[20rem] overflow-hidden rounded-2xl border border-border">
-            <Screen screen={screens.extensionPanel} priority className="rounded-none border-0" />
-          </div>
+          <BrowserScreen priority className="mt-14" />
         </div>
       </section>
 
@@ -47,9 +45,9 @@ export default function ChromeExtensionPage() {
         <div className="mx-auto max-w-6xl">
           <h2 id="extension-features-title" className="max-w-2xl font-display text-balance text-4xl leading-[1.12] tracking-[-0.025em] text-foreground sm:text-5xl">What it does on a recipe page.</h2>
           <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,.85fr)_minmax(0,1.15fr)] lg:gap-16">
-            <dl className="border-t border-border">
+            <dl>
               {features.map(([title, detail]) => (
-                <div key={title} className="border-b border-border py-6">
+                <div key={title} className="py-6">
                   <dt className="font-display text-2xl text-foreground">{title}</dt>
                   <dd className="mt-2 leading-7 text-muted-foreground">{detail}</dd>
                 </div>
@@ -64,9 +62,9 @@ export default function ChromeExtensionPage() {
         <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:gap-20">
           <div>
             <h2 id="extension-start-title" className="font-display text-balance text-4xl leading-[1.12] tracking-[-0.025em] text-foreground sm:text-5xl">Get started in a minute.</h2>
-            <ol className="mt-10 border-t border-border">
+            <ol className="mt-10">
               {steps.map(([title, detail], index) => (
-                <li key={title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 border-b border-border py-6">
+                <li key={title} className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-x-4 py-6">
                   <span aria-hidden="true" className="font-display text-2xl text-primary">{index + 1}</span>
                   <div>
                     <h3 className="text-lg font-semibold text-foreground">{title}</h3>

@@ -21,9 +21,9 @@ export default function CookbookSection() {
           <Screen screen={screens.libraryDesktop} />
           <PhoneScreen screen={screens.cookPhone} className="absolute bottom-0 right-0 w-[30%] max-w-64 sm:w-[24%]" />
         </div>
-        <dl className="mt-14 grid gap-x-10 border-t border-border sm:grid-cols-2 lg:grid-cols-4">
+        <dl className="mt-14 grid gap-x-10 sm:grid-cols-2 lg:grid-cols-4">
           {facts.map(([title, detail]) => (
-            <div key={title} className="border-b border-border py-6 lg:border-b-0">
+            <div key={title} className="py-6">
               <dt className="font-display text-xl text-foreground">{title}</dt>
               <dd className="mt-2 leading-7 text-muted-foreground">{detail}</dd>
             </div>
