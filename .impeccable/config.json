@@ -1,0 +1,71 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "broken-image",
+        "value": "*",
+        "files": [
+          "extension/sidepanel.html"
+        ],
+        "createdAt": "2026-11-10T12:41:46.720Z",
+        "reason": "The existing img is hidden until panel.js assigns a validated recipe image URL and onload reveals it; onerror hides it."
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "src/app/globals.css"
+        ],
+        "createdAt": "2026-11-10T16:09:16.043Z",
+        "reason": "D-01 design direction and PRODUCT.md intentionally select self-hosted Fraunces only for display headings; body and navigation use the system sans stack."
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "extension/sidepanel.html"
+        ],
+        "createdAt": "2026-11-11T21:25:39.132Z",
+        "reason": "D-01 approves self-hosted Fraunces for display headings in the extension; body and controls use the system sans stack."
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "extension/cooking.html"
+        ],
+        "createdAt": "2026-11-11T21:25:42.776Z",
+        "reason": "D-01 approves self-hosted Fraunces for display headings in the extension; body and controls use the system sans stack."
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "extension/styles.css"
+        ],
+        "createdAt": "2026-11-11T21:26:20.796Z",
+        "reason": "D-01 approves self-hosted Fraunces for display headings in the extension; body and controls use the system sans stack."
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "extension/reader.css"
+        ],
+        "createdAt": "2026-11-11T21:26:23.792Z",
+        "reason": "D-01 approves self-hosted Fraunces for display headings in the extension; body and controls use the system sans stack."
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "tests/fixtures/microdata-recipe.html"
+        ],
+        "createdAt": "2026-11-16T17:07:22.182Z",
+        "reason": "Claude: unstyled parser test fixture, never rendered to users"
+      }
+    ]
+  }
+}

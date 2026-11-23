@@ -44,3 +44,6 @@ next-env.d.ts
 # JetBrains / WebStorm
 .idea/
 *.iml
+# local agent tool state
+.impeccable/config.local.json
+.impeccable/hook.cache.json
