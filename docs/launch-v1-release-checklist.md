@@ -185,7 +185,7 @@ The parsing API and database schema are unchanged. The only parser change is P1-
 
 **Not ready to publish.** The code, listing copy, store graphics and website are prepared and pass all local checks. Still open before tagging `extension-v0.2.1`:
 - P0-2: set the production support email.
-- P0-4: check Supabase Auth URL configuration.
+- P0-4: check Supabase Auth URL configuration. Google sign-in adds `/auth/callback`; the full owner setup (Google Cloud, Supabase provider, Redirect URLs, `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED`) is in `docs/google-sign-in.md`.
 - P0-5: run and record section 5 on the packed build.
 
 The website changes are on `main` but not deployed. After the store approves the listing, set `NEXT_PUBLIC_CHROME_EXTENSION_URL` and redeploy to turn on "Add to Chrome".

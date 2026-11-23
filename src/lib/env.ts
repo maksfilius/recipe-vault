@@ -45,6 +45,8 @@ export const env = {
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || null,
   // Chrome Web Store listing; until it is set the landing button stays disabled and the library hides the link.
   chromeExtensionUrl: process.env.NEXT_PUBLIC_CHROME_EXTENSION_URL?.trim() || null,
+  // "true" once the Google provider is set up in Supabase (docs/google-sign-in.md); hides the button until then.
+  googleAuthEnabled: process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === "true",
   productName: "Keep & Cook",
   productDescription:
     "Save recipes from any website, cook step by step without the clutter, and keep them in a free personal cookbook.",

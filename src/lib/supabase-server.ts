@@ -23,8 +23,12 @@ export async function createServerSupabaseClient() {
       getAll() {
         return cookieStore.getAll();
       },
-      setAll() {
-        // Server components cannot write cookies. Middleware handles refresh persistence.
+      setAll(cookiesToSet) {
+        // Route handlers (the OAuth callback) write the session here. Server components cannot write
+        // cookies and throw; middleware persists refreshed sessions for them.
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+        } catch { /* Called from a server component. */ }
       },
     },
   });
