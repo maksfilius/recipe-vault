@@ -47,7 +47,7 @@ export const env = {
   chromeExtensionUrl: process.env.NEXT_PUBLIC_CHROME_EXTENSION_URL?.trim() || null,
   productName: "Keep & Cook",
   productDescription:
-    "Keep & Cook is a personal recipe organizer that keeps your recipes searchable, structured, and ready when you cook.",
+    "Save recipes from any website, cook step by step without the clutter, and keep them in a free personal cookbook.",
 };
 
 export function isAccountDeletionEnabled() {

@@ -7,13 +7,14 @@ export default function Footer() {
       <div className="mx-auto grid max-w-6xl gap-10 sm:grid-cols-[minmax(0,2fr)_repeat(2,minmax(0,1fr))]">
         <div>
           <p className="font-display text-2xl text-foreground">Keep &amp; Cook</p>
-          <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">A clear place for the recipes you actually cook.</p>
+          <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">A free personal cookbook for the recipes you actually cook.</p>
         </div>
         <div>
           <p className="text-sm font-semibold text-foreground">Explore</p>
           <div className="mt-3 flex flex-col gap-3 text-sm text-muted-foreground">
-            <a href="#try-it" className="w-fit hover:text-foreground hover:underline">Try a recipe link</a>
-            <a href="#extension" className="w-fit hover:text-foreground hover:underline">Chrome extension</a>
+            <Link href="/#try-it" className="w-fit hover:text-foreground hover:underline">Try a recipe link</Link>
+            <Link href="/chrome-extension" className="w-fit hover:text-foreground hover:underline">Chrome extension</Link>
+            <Link href="/install" className="w-fit hover:text-foreground hover:underline">Install on your phone</Link>
             <Link href="/login" className="w-fit hover:text-foreground hover:underline">Sign in</Link>
           </div>
         </div>

@@ -2,43 +2,17 @@ import type { MetadataRoute } from "next";
 
 import { env } from "@/src/lib/env";
 
+// Public pages only; the library and auth recovery screens are not search landing pages.
+const pages: [path: string, changeFrequency: "weekly" | "monthly" | "yearly", priority: number][] = [
+  ["", "weekly", 1],
+  ["/chrome-extension", "monthly", 0.9],
+  ["/install", "monthly", 0.8],
+  ["/register", "monthly", 0.5],
+  ["/login", "monthly", 0.4],
+  ["/privacy", "yearly", 0.2],
+  ["/terms", "yearly", 0.2],
+];
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [
-    {
-      url: env.siteUrl,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${env.siteUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${env.siteUrl}/register`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
-    {
-      url: `${env.siteUrl}/forgot-password`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.4,
-    },
-    {
-      url: `${env.siteUrl}/privacy`,
-      lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-    {
-      url: `${env.siteUrl}/terms`,
-      lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
-  ];
+  return pages.map(([path, changeFrequency, priority]) => ({ url: `${env.siteUrl}${path}`, lastModified: new Date(), changeFrequency, priority }));
 }

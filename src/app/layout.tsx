@@ -34,11 +34,10 @@ export const metadata: Metadata = {
     "recipe storage app",
     "personal recipe app",
     "digital cookbook",
-    "recipe dashboard",
-    "meal planning recipes",
     "save recipes online",
     "personal cookbook",
-    "kitchen dashboard",
+    "recipe saver chrome extension",
+    "cooking mode",
   ],
   openGraph: {
     title: env.productName,

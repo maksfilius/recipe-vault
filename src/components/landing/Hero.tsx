@@ -88,16 +88,16 @@ export default function Hero() {
       <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-16">
         <div className="max-w-xl">
           <h1 className="font-display text-balance text-[clamp(3.25rem,6vw,5.5rem)] leading-[1.04] tracking-[-0.035em] text-foreground">
-            Keep the recipe. Skip the clutter.
+            Save recipes. Cook without distractions.
           </h1>
           <p className="mt-7 max-w-[34rem] text-lg leading-8 text-muted-foreground sm:text-xl">
-            Turn a recipe link into clear ingredients and steps. Preview it for free, then save the recipes you want to cook again.
+            Turn any recipe page into clear ingredients and steps, cook from it one step at a time, and keep the ones you love in a free personal cookbook.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <a href="#try-it" className="inline-flex min-h-11 items-center gap-2 font-semibold text-primary underline-offset-4 hover:underline">
               Try a recipe link <ArrowRight aria-hidden="true" size={18} />
             </a>
-            <Link href="/register" className="inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-4 hover:underline">Create your cookbook</Link>
+            <Link href="/register" className="inline-flex min-h-11 items-center font-semibold text-foreground underline-offset-4 hover:underline">Create your free cookbook</Link>
           </div>
         </div>
         <div id="try-it" className="scroll-mt-24 overflow-hidden rounded-2xl border border-border bg-card">

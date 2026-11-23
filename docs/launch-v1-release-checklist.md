@@ -80,7 +80,8 @@ Earlier verification docs (`d14-verification.md`, `m0x-verification.md`, `design
 | P1-3 | Shared rate limit unverified in production. Without the Upstash env, limits are per instance (in-memory). | `src/lib/rate-limit.ts`, W-02 | Owner checks the Vercel env. |
 | P1-4 | No error monitoring. | W-09 | Sentry or equivalent, owner DSN. |
 | P1-5 | PostHog key and intake unverified in production. The extension has no analytics, so install, extraction and the panel Save click cannot be measured. | `analytics.ts`, privacy page "The extension does not use analytics" | Phase 5. |
-| P1-6 | Store screenshot 1 shows the real panel over a fictional fixture site ("The Weeknight Table", Unsplash photos). | `docs/chrome-web-store.md` | Decide in Phase 3 whether a fixture page counts as a "real screenshot". The extension UI in it is real. |
+| P1-6 | ~~Store screenshot 1 shows the real panel over a fictional fixture site.~~ **Resolved in Phase 3:** new frames show only real Keep & Cook UI with a local demo cookbook, with no host site. | `docs/chrome-web-store.md` | — |
+| P1-8 | The store icon `extension/icons/icon-128.png` is opaque across all 128×128 px. The store guidance is 96×96 artwork with 16 px transparent padding. | Measured in Phase 3 | Regenerate the 128 icon with padding before tagging 0.2.1. This changes the extension package. |
 | P1-7 | Release mechanics: a fix in `extension/` needs a version bump and a new tag, and pack must run on that tagged commit. | `scripts/pack-extension.mjs` | Follow the section 4 steps. |
 
 ### P2
@@ -103,8 +104,8 @@ Earlier verification docs (`d14-verification.md`, `m0x-verification.md`, `design
 | Single purpose | Written. ✅ |
 | Privacy policy | Has an Extension section that matches the code (page URL sent only when no structured data is found, fragment handoff, no analytics). ❌ No contact address (P0-2). |
 | Data disclosure | "Website content" only. Matches `panel.js` (URL to the import API) and the handoff. ✅ |
-| Listing text | ❌ Collections claim (P0-3). Title and summary to be aligned with the new positioning. |
-| Screenshots / tile | Sizes are correct. Content decision pending (P1-6, Phase 3). |
+| Listing text | ✅ Rewritten in Phase 2 (P0-3), with no unavailable features. |
+| Screenshots / tile | ✅ Phase 3: four 1280×800 frames and a 440×280 tile, real UI only. Icon padding: P1-8. |
 | Support / website URL | `https://keepandcook.com`. Support depends on P0-2. |
 | Package | Builds from the tag. A new version is needed for P0-1 and P1-1. |
 
@@ -144,6 +145,34 @@ Remaining after Phase 2:
 - On `/dashboard` the failure notice is the existing toast, which auto-hides after 3.2 s. The sign-in pages show a persistent alert.
 - P0-2, P0-4 and P0-5 still need the owner. P1-3…P1-6 and the P2 items are unchanged.
 
-## 7. Release readiness
+## 7. Phase 3–4: store graphics and website (2026-11-23)
 
-**Not ready.** The code-side P0 (P0-1) is fixed and covered by tests, and the listing copy is corrected (P0-3, not published). Before tagging `extension-v0.2.1`: set the production support email (P0-2), check Supabase Auth URL configuration (P0-4), and run and record section 5 on the packed build (P0-5).
+**Store graphics.** `docs/store/1-read.png`, `2-cook.png`, `3-save.png` and `4-devices.png` are 1280×800, plus `promo-tile-440x280.png`. All are 24-bit PNG with no alpha. They are built from real captures:
+- Extension pages run unchanged with stubbed `chrome.*` APIs.
+- Web screens come from the app signed in to a demo account on a local Supabase.
+
+The old JPGs with the fictional host site are removed. Scripts live in `scripts/store/`, and reproduction steps are in `chrome-web-store.md`. They were checked against the current Chrome Web Store docs (sizes, full bleed, no misleading content, 132-character summary), and the store icon padding gap was found (P1-8).
+
+**Website.** All `(marketing)` pages share a layout (header and footer).
+- **Home:** new headline "Save recipes. Cook without distractions." The URL demo is unchanged. New sections cover the three ways to save (link, Chrome, by hand), the extension (with a real panel screenshot instead of the illustration), and the cookbook on every device (laptop and phone cooking mode).
+- **New pages:** `/chrome-extension` (features, setup steps, where it works, privacy) and `/install` (iPhone/Safari and Android/Chrome steps, what works offline).
+- **Metadata:** each page has its own title, description, canonical URL and Open Graph tags. The sitemap lists `/`, `/chrome-extension`, `/install`, `/register`, `/login`, `/privacy` and `/terms`.
+- **Removed:** the unused `Features.tsx` (it claimed collections and tags), and "meal planning" from the site keywords.
+- **Store button:** "Add to Chrome" is disabled, with "Coming soon to the Chrome Web Store", until `NEXT_PUBLIC_CHROME_EXTENSION_URL` is set.
+
+**Verified:**
+- lint ✅, typecheck ✅, unit tests ✅ 131/131, `npm run build` ✅ (`/chrome-extension` and `/install` are static).
+- On the local dev server, all internal links and images return 200, and each page has one `h1` and a canonical tag.
+- Full-page captures at 1440 and 390 px in light and the default dark theme show no horizontal overflow. Before: `docs/screenshots/launch-before-*`. After: `docs/screenshots/launch-after-*`.
+
+**Not verified:** keyboard and screen-reader pass, a real iPhone or Android install following `/install`, and production deployment.
+
+## 8. Release readiness
+
+**Not ready to publish.** The code, listing copy, store graphics and website are prepared and pass all local checks. Still open before tagging `extension-v0.2.1`:
+- P0-2: set the production support email.
+- P0-4: check Supabase Auth URL configuration.
+- P0-5: run and record section 5 on the packed build.
+- P1-8: store icon padding.
+
+The website changes are on `main` but not deployed. After the store approves the listing, set `NEXT_PUBLIC_CHROME_EXTENSION_URL` and redeploy to turn on "Add to Chrome".
