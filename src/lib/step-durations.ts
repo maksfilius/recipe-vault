@@ -34,7 +34,8 @@ function buildPattern() {
   const units = UNIT_GROUPS.map(({ pattern }) => pattern).join("|");
 
   // A range keeps only its lower bound: checking the food early is safer than
-  // late. The trailing guard stops "5 г" or "через" from matching a unit.
+  // late. The trailing guard stops a Cyrillic gram unit ("5 g") or the Russian
+  // word for "in" ("cherez") from matching a unit.
   return new RegExp(
     String.raw`(${NUMBER})\s*(?:[-–—]|\bto\b|\bдо\b)?\s*(?:${NUMBER})?\s*(${units})(?![\p{L}\d])`,
     "giu",

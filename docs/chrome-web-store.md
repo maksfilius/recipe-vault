@@ -4,17 +4,17 @@
 
 ## Сборка
 
-1. `git tag extension-v0.2.0 && npm run pack:extension` (на коммите в main, `extension/` без изменений).
-2. Load unpacked `dist/extension/` → ручная проверка из `extension/README.md`.
-3. Загрузить `dist/keep-and-cook-extension-0.2.0.zip`.
+1. Версия в `extension/manifest.json`: **0.2.1** (исправления P0-1 и P1-1 из [launch-v1-release-checklist.md](launch-v1-release-checklist.md)). Тег ставится **только** на коммит, прошедший ручную проверку из раздела 5 чек-листа: `git tag extension-v0.2.1 && npm run pack:extension`.
+2. Load unpacked `dist/extension/` → ручная проверка из раздела 5 чек-листа.
+3. Загрузить `dist/keep-and-cook-extension-0.2.1.zip`.
 
 ## Store listing
 
-**Позиционирование.** Расширение — вход в библиотеку Keep & Cook, а не самостоятельная «читалка». Главное обещание: «сохрани рецепт с любого сайта в свою кулинарную книгу». Чистый вид и режим готовки — то, что пользователь получает сразу, без аккаунта. В панели главная кнопка «Save to my recipes», под ней подпись «Saves to your free cookbook at keepandcook.com». Будущий Pro в листинге не обещаем: он появится внутри библиотеки, куда листинг и ведёт.
+**Позиционирование.** Расширение полезно само по себе и без аккаунта: читать рецепт без лишнего, готовить по шагам, скачать. Аккаунт нужен только чтобы сохранить рецепт в бесплатную библиотеку на keepandcook.com. В листинге только то, что работает сейчас: без коллекций, избранного, тегов (скрыты в минимальном UI), без ChatGPT, YouTube, AI и Pro.
 
-**Name** (из manifest): Keep & Cook — Recipe Saver & Cookbook
+**Name** (из manifest, ≤75): Keep & Cook — Recipe Saver & Reader
 
-**Summary** (из manifest, ≤132): Save recipes from any website to your own cookbook. Clean recipe view and step-by-step cooking mode, free.
+**Summary** (из manifest, ≤132; 101 символ): Read recipes without clutter, cook step by step, and save your favorites to a free personal cookbook.
 
 **Category:** Lifestyle → Household (если появится Food & Drink — она).
 
@@ -23,32 +23,29 @@
 **Description:**
 
 ```
-Save recipes from any website to your own cookbook.
+Read recipes without clutter, cook step by step, and save your favorites to a free personal cookbook.
 
-Keep & Cook is two things: this Chrome extension, which works on the recipe page you are reading, and your free cookbook at keepandcook.com, where saved recipes live. Here is how they fit together.
+READ THE RECIPE, NOT THE CLUTTER (no account needed)
+On a recipe page, click the Keep & Cook icon. A side panel opens next to the page with the photo, ingredients and steps. Tick off ingredients as you gather them, or download the recipe as a text file.
 
-STEP 1. Open a recipe in Chrome (extension, no account needed)
-On any recipe page, click the Keep & Cook icon. A side panel opens next to the page with just the ingredients and steps: no life story, no pop-ups, no ads in the way. Tick off ingredients as you gather them, or download the recipe as a text file.
+COOK STEP BY STEP (no account needed)
+Click "Start cooking" and the recipe fills the window in large, readable text, one step at a time. Start a timer when a step mentions a time, open the ingredient list whenever you need it, and keep your screen on while you cook. Close cooking mode and you are back on the original page. If a site does not allow the cooking view on top of its page, it opens in a new tab instead.
 
-STEP 2. Save it (extension → keepandcook.com)
-Click "Save to my recipes". keepandcook.com opens in a new tab with the recipe ready. Sign in or create a free account, check the recipe, edit it if you like, and save.
+SAVE RECIPES FOR LATER (free account)
+Click "Save to my recipes". keepandcook.com opens in a new tab with the recipe ready to review. Sign in or create a free account, check or edit the recipe, and save it. Nothing is saved until you choose Save. If the recipe is already in your cookbook, Keep & Cook opens the saved copy instead of making a second one.
 
-STEP 3. Find it in your cookbook (keepandcook.com, free account)
-All your saved recipes are in one place, with photos, ingredients, steps and a link to the original. Search them and sort them into collections like Breakfast or Dinner. You can also add family recipes by hand or paste a recipe link.
-
-STEP 4. Take it to the kitchen (keepandcook.com on your phone)
-Open keepandcook.com on your phone and add it to your home screen. It works like an app, and your recipes are there even offline.
-
-STEP 5. Cook step by step (in the extension or in your cookbook)
-Cooking mode shows large text, one step at a time, with step timers, and keeps the screen on. Start it right on the recipe page from the extension, or from any recipe in your cookbook.
+YOUR RECIPES, WHEREVER YOU COOK
+Your cookbook at keepandcook.com keeps every saved recipe with its photo, ingredients, steps and a link to the original page. Search your recipes, add family recipes by hand, or paste a recipe link to import it. On your phone, add keepandcook.com to your home screen: it opens like an app, recipes you have already loaded stay readable offline, and the same cooking mode with timers is there in the kitchen. You can download all your recipes from Settings at any time.
 
 PRIVACY
-The extension reads a page only when you click its icon on that page. It has no access to the sites you browse otherwise. No analytics, no tracking, no ads. Your cookbook is private to your account.
+The extension reads a page only when you click its icon on that page. It looks for the recipe in the page itself; if the page has no recipe data, it sends only that page's address to the Keep & Cook import service, which reads the public page. The extension has no analytics, no ads and no access to the sites you browse otherwise. Your cookbook is private to your account.
 
-Works on most recipe sites that publish structured recipe data. If a page has none, Keep & Cook reads that public page for you.
+Works on most recipe sites that publish structured recipe data. If a page has no recipe Keep & Cook can read, the panel says so, and you can add the recipe by hand on keepandcook.com.
 ```
 
-**Graphics:** `docs/store/`, в этом порядке (совпадает с шагами описания):
+Проверка утверждений (код на 23.11.2026): панель, чекбоксы, Download — `sidepanel.html`, `panel.js`; шаги, таймеры, ингредиенты, wake lock, запасная вкладка — `reader.js`, `cooking.html`; review перед Save и «уже в библиотеке» — `useDashboardImport.ts`, `useDashboardActions.ts`; поиск — `TopBar.tsx`; ручное добавление и импорт по ссылке — `RecipeForm.tsx`, `/api/recipes/import`; PWA и офлайн-чтение — `manifest.ts`, `offline-recipes.ts`, `sw.js`; экспорт — `SettingsClient.tsx`. Не упоминать: коллекции, избранное, теги, Android share target (не проверен на устройстве), синхронизацию офлайн-правок (их нет).
+
+**Graphics:** пересобираются в Phase 3 под четыре заголовка описания (Read / Cook / Save / Wherever you cook) реальными снимками. Текущие файлы `docs/store/` (до Phase 3; размеры 1280×800 и 440×280 проверены):
 1. `1-save.jpg`: сайт с рецептом и панель, акцент на «Save to my recipes».
 2. `2-library.jpg`: библиотека на компьютере, «Recipe saved to your library».
 3. `3-phone.jpg`: библиотека и рецепт на телефоне (PWA).
@@ -59,7 +56,7 @@ Works on most recipe sites that publish structured recipe data. If a page has no
 Фото еды на скриншотах взяты с Unsplash (лицензия Unsplash, коммерческое использование без указания автора): GyV6SL_fKsI, Bs_4ce9_w0I, 7ClANzfw6iU, gWkvURhoMlA, w0JzqJZYX_E, gZ7JK_wpFrY, HsSNbTSCdSs. Сайт «The Weeknight Table» и адреса `*.example` вымышлены.
 
 **Official URL / Homepage:** https://keepandcook.com
-**Support URL:** https://keepandcook.com/privacy (раздел Contact) или support-адрес
+**Support URL:** https://keepandcook.com/privacy (раздел Contact). Блокер P0-2: на проде не задан `NEXT_PUBLIC_SUPPORT_EMAIL`, раздел Contact пока без адреса.
 
 ## Privacy practices
 

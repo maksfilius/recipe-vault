@@ -4,10 +4,13 @@
   // Tells the dashboard (src/lib/pending-recipe-import.ts) that this draft came from the extension.
   const sourceKey = "keep-and-cook:pending-recipe-source";
   const recoveryKey = "keep-and-cook:extension-auth-recovery";
+  // Read by src/lib/pending-recipe-import.ts: login and the dashboard explain a failed transfer.
+  const errorKey = "keep-and-cook:pending-recipe-error";
   const validate = (value) => {
     if (!value || typeof value !== "object") throw new Error("Invalid recipe.");
     if (typeof value.title !== "string" || !value.title.trim() || value.title.length > 160) throw new Error("Invalid recipe title.");
-    if (typeof value.description !== "string" || !value.description.trim() || value.description.length > 5000) throw new Error("Invalid recipe description.");
+    // Optional, as in recipePayloadSchema: many recipe pages have no description.
+    if (value.description !== undefined && (typeof value.description !== "string" || value.description.length > 5000)) throw new Error("Invalid recipe description.");
     if (!/^https?:$/.test(new URL(value.sourceUrl).protocol)) throw new Error("Invalid source URL.");
     if (!Array.isArray(value.ingredients) || !value.ingredients.length || value.ingredients.length > 100 || value.ingredients.some((item) => !item || typeof item.id !== "string" || typeof item.name !== "string" || item.name.length > 200)) throw new Error("Invalid ingredients.");
     if (!Array.isArray(value.steps) || !value.steps.length || value.steps.length > 100 || value.steps.some((item) => !item || typeof item.id !== "string" || typeof item.text !== "string" || item.text.length > 5000)) throw new Error("Invalid steps.");
@@ -50,5 +53,13 @@
       }
       localStorage.removeItem(recoveryKey);
     }
-  } catch (error) { console.error("Keep & Cook recipe transfer failed", error); }
+  } catch (error) {
+    console.error("Keep & Cook recipe transfer failed", error);
+    if (location.hash.startsWith(marker)) {
+      try {
+        sessionStorage.setItem(errorKey, "1");
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch {}
+    }
+  }
 })();

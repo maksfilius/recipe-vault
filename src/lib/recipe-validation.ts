@@ -2,6 +2,13 @@ import { z } from "zod";
 
 const MAX_IMAGE_DATA_URL_LENGTH = 1_500_000;
 
+// One recipe, one source_url: "#comments" or "#wprm-recipe-container-1" must not make a second copy.
+// String slice rather than URL.href, so the rest of the address stays byte-identical to rows saved before.
+export function withoutUrlFragment(value: string) {
+  const index = value.indexOf("#");
+  return index === -1 ? value : value.slice(0, index);
+}
+
 const sourceUrlSchema = z
   .string()
   .trim()
@@ -15,7 +22,8 @@ const sourceUrlSchema = z
     } catch {
       return false;
     }
-  }, "Use a valid http or https URL.");
+  }, "Use a valid http or https URL.")
+  .transform(withoutUrlFragment);
 
 const imageUrlSchema = z
   .string()

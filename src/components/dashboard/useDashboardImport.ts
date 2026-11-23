@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { PENDING_RECIPE_IMPORT_STORAGE_KEY, PENDING_RECIPE_SOURCE_STORAGE_KEY, readPendingRecipeSource } from "@/src/lib/pending-recipe-import";
+import { HANDOFF_FAILED_MESSAGE, PENDING_RECIPE_IMPORT_STORAGE_KEY, PENDING_RECIPE_SOURCE_STORAGE_KEY, readPendingRecipeSource, takePendingRecipeError } from "@/src/lib/pending-recipe-import";
 import { recipePayloadSchema } from "@/src/lib/recipe-validation";
 import type { RecipeCollection } from "@/src/types/recipe";
 import type { RecipeFormInitialValue } from "./recipe/RecipeForm";
@@ -36,6 +36,11 @@ export function useDashboardImport({
 
   useEffect(() => {
     if (isLoading || !userId || hasRestoredImport.current) return;
+    if (takePendingRecipeError()) {
+      trackAnalytics("extension_handoff_failed", { reason: "unknown" });
+      setNotice({ type: "error", message: HANDOFF_FAILED_MESSAGE });
+      return;
+    }
     let storedImport: string | null = null;
     try { storedImport = window.sessionStorage.getItem(PENDING_RECIPE_IMPORT_STORAGE_KEY); } catch { return; }
     if (!storedImport) return;
@@ -46,7 +51,7 @@ export function useDashboardImport({
       const parsedImport = recipePayloadSchema.safeParse(JSON.parse(storedImport));
       if (!parsedImport.success) {
         if (source) trackAnalytics("extension_handoff_failed", { reason: "invalid_url" });
-        setNotice({ type: "error", message: "The recipe preview expired. Import the link again." });
+        setNotice({ type: "error", message: source ? HANDOFF_FAILED_MESSAGE : "The recipe preview expired. Import the link again." });
         return;
       }
       setEditingRecipe(createDraftRecipe(parsedImport.data, collections));

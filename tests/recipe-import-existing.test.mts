@@ -47,3 +47,14 @@ test("a unique-key race can recover the saved recipe from its source URL", async
   assert.equal(recipe?.id, "saved-recipe");
   assert.equal(recipe?.sourceUrl, sourceUrl);
 });
+
+test("the same page with a fragment is the recipe already saved (launch P1-1)", async () => {
+  const looked: string[] = [];
+  const result = await prepareRecipeImport(`${sourceUrl}#wprm-recipe-container-12`, async (url) => { looked.push(url); return savedRow; }, async () => {
+    throw new Error("a fragment variant must not import a second copy");
+  });
+  assert.deepEqual(looked, [sourceUrl]);
+  assert.equal(result.kind, "existing");
+  const onSave = await resolveExistingRecipe(`${sourceUrl}#comments`, null, async (url) => url === sourceUrl ? savedRow : null);
+  assert.equal(onSave?.id, "saved-recipe");
+});

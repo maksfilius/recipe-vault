@@ -118,7 +118,8 @@
       description: text(recipe.description).slice(0, 5000) || `Recipe from ${location.hostname}`,
       ingredients: ingredients.slice(0, 100).map((name, index) => ({ id: `ingredient-${index}`, name: name.slice(0, 200) })),
       steps: steps.slice(0, 100).map((step, index) => ({ id: `step-${index}`, text: step.slice(0, 5000) })),
-      sourceUrl: location.href,
+      // Same address the server import stores (it drops the fragment), so the duplicate check matches.
+      sourceUrl: location.href.split("#")[0],
       imageUrl,
       totalTime: totalTime(recipe),
       servings: servings(recipe.recipeYield),

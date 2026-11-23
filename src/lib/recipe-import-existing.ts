@@ -1,5 +1,6 @@
 
 import { mapRowToRecipe, type RecipeRow } from "./recipes.ts";
+import { withoutUrlFragment } from "./recipe-validation.ts";
 import type { Recipe } from "../types/recipe.ts";
 
 export async function resolveExistingRecipe(
@@ -7,7 +8,7 @@ export async function resolveExistingRecipe(
   currentRecipeId: string | null,
   findSavedRow: (sourceUrl: string) => Promise<RecipeRow | null>,
 ): Promise<Recipe | null> {
-  const savedRow = await findSavedRow(sourceUrl);
+  const savedRow = await findSavedRow(withoutUrlFragment(sourceUrl));
   if (!savedRow || savedRow.id === currentRecipeId) return null;
   return mapRowToRecipe(savedRow);
 }

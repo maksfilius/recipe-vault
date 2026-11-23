@@ -292,3 +292,8 @@ test("save link keeps an https photo for the website to download, but not a data
   assert.equal(payload(libraryUrl({ ...recipe, imageUrl: "https://images.recipes.example/slaw.jpg" })).imageUrl, "https://images.recipes.example/slaw.jpg");
   assert.equal(payload(libraryUrl({ ...recipe, imageUrl: "data:image/webp;base64,AAAA" })).imageUrl, undefined);
 });
+
+test("extension source URL drops the page fragment like the server import", () => {
+  const html = readFileSync(new URL("./fixtures/microdata-recipe.html", import.meta.url), "utf8");
+  assert.equal(extractHtml(html, "https://recipes.example/lemon-chicken?x=1#wprm-recipe-container-12").sourceUrl, "https://recipes.example/lemon-chicken?x=1");
+});

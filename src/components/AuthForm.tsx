@@ -12,7 +12,7 @@ import { getAuthRedirectUrl } from "@/src/lib/auth";
 import { identifyAnalytics, rememberPendingSignup, trackAnalytics } from "@/src/lib/analytics";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import { getImportAuthDestination } from "@/src/lib/auth-destination";
-import { PENDING_RECIPE_IMPORT_STORAGE_KEY, readPendingRecipeSource } from "@/src/lib/pending-recipe-import";
+import { HANDOFF_FAILED_MESSAGE, PENDING_RECIPE_IMPORT_STORAGE_KEY, readPendingRecipeSource, takePendingRecipeError } from "@/src/lib/pending-recipe-import";
 import { supabase } from "@/src/lib/supabase-client";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -46,8 +46,10 @@ export default function AuthForm({ type }: AuthFormProps) {
   const [notice, setNotice] = useState("");
   // extension/library-handoff.js and the landing preview stage the draft before this page hydrates.
   const [hasPendingDraft, setHasPendingDraft] = useState(false);
+  const [handoffFailed, setHandoffFailed] = useState(false);
   useEffect(() => {
     try { setHasPendingDraft(Boolean(window.sessionStorage.getItem(PENDING_RECIPE_IMPORT_STORAGE_KEY))); } catch { /* No draft to mention. */ }
+    if (takePendingRecipeError()) setHandoffFailed(true);
   }, []);
   const form = useForm<LoginValues | RegisterValues>({
     resolver: zodResolver(type === "login" ? loginSchema : registerSchema),
@@ -110,6 +112,7 @@ export default function AuthForm({ type }: AuthFormProps) {
             : "Save recipes and make them easy to find again."}
       </p>
       {hasPendingDraft ? <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">Your recipe draft is waiting. Sign in, then review and save it.</p> : null}
+      {handoffFailed ? <p className="mt-4 rounded-xl border border-destructive bg-card px-4 py-3 text-sm leading-6 text-destructive" role="alert">{HANDOFF_FAILED_MESSAGE}</p> : null}
 
       {registeredEmail ? (
         <div className="mt-7" role="status" aria-live="polite">

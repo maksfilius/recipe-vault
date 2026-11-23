@@ -84,3 +84,8 @@ test("photos added in the editor may be JPEG or PNG data URLs, other data is rej
     assert.equal(recipePayloadSchema.safeParse({ ...base, imageUrl }).success, false, imageUrl);
   }
 });
+
+test("saved source URLs drop the fragment and keep the rest byte-for-byte", () => {
+  const parsed = recipePayloadSchema.parse({ title: "Pasta", sourceUrl: "https://Example.com/r?id=1#comments", ingredients: [], steps: [] });
+  assert.equal(parsed.sourceUrl, "https://Example.com/r?id=1");
+});
