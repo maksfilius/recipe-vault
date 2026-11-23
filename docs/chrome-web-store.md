@@ -45,15 +45,30 @@ Works on most recipe sites that publish structured recipe data. If a page has no
 
 Проверка утверждений (код на 23.11.2026): панель, чекбоксы, Download — `sidepanel.html`, `panel.js`; шаги, таймеры, ингредиенты, wake lock, запасная вкладка — `reader.js`, `cooking.html`; review перед Save и «уже в библиотеке» — `useDashboardImport.ts`, `useDashboardActions.ts`; поиск — `TopBar.tsx`; ручное добавление и импорт по ссылке — `RecipeForm.tsx`, `/api/recipes/import`; PWA и офлайн-чтение — `manifest.ts`, `offline-recipes.ts`, `sw.js`; экспорт — `SettingsClient.tsx`. Не упоминать: коллекции, избранное, теги, Android share target (не проверен на устройстве), синхронизацию офлайн-правок (их нет).
 
-**Graphics:** пересобираются в Phase 3 под четыре заголовка описания (Read / Cook / Save / Wherever you cook) реальными снимками. Текущие файлы `docs/store/` (до Phase 3; размеры 1280×800 и 440×280 проверены):
-1. `1-save.jpg`: сайт с рецептом и панель, акцент на «Save to my recipes».
-2. `2-library.jpg`: библиотека на компьютере, «Recipe saved to your library».
-3. `3-phone.jpg`: библиотека и рецепт на телефоне (PWA).
-4. `4-cook-mode.jpg`: режим готовки.
-- Small promo tile 440×280: `promo-tile-440x280.jpg`.
+**Graphics** (`docs/store/`, 24-bit PNG без альфа-канала, порядок загрузки = порядок блоков описания):
+1. `1-read.png` 1280×800 — «Read recipes without clutter»: настоящая боковая панель с рецептом, два ингредиента отмечены.
+2. `2-cook.png` 1280×800 — «Cook step by step»: режим готовки расширения, шаг 3 из 4, запущен таймер на 1 час.
+3. `3-save.png` 1280×800 — «Save recipes to your library»: настоящий диалог проверки рецепта на сайте после Save из расширения.
+4. `4-devices.png` 1280×800 — «Your recipes on any device»: библиотека на ноутбуке и рецепт на телефоне.
+- Small promo tile 440×280: `promo-tile-440x280.png` (знак, название и панель; текста минимум, как просит стор).
 - Icon 128×128: `extension/icons/icon-128.png`.
 
-Фото еды на скриншотах взяты с Unsplash (лицензия Unsplash, коммерческое использование без указания автора): GyV6SL_fKsI, Bs_4ce9_w0I, 7ClANzfw6iU, gWkvURhoMlA, w0JzqJZYX_E, gZ7JK_wpFrY, HsSNbTSCdSs. Сайт «The Weeknight Table» и адреса `*.example` вымышлены.
+Откуда снимки. Весь интерфейс на кадрах — настоящий: страницы расширения (`sidepanel.html`, `cooking.html`) работают без изменений, подменены только `chrome.*` API, чтобы отдать им демо-рецепт. Веб-экраны сняты из приложения, вошедшего в демо-аккаунт локального Supabase. Выдуманных сайтов, адресной строки браузера, отзывов и значков нет. Ссылки на источник в демо-рецептах — `example.com`, два рецепта добавлены «вручную», без источника. Тексты рецептов наши. Фото с Unsplash (бесплатное коммерческое использование без указания автора): Bs_4ce9_w0I, 7ClANzfw6iU, gWkvURhoMlA, HsSNbTSCdSs, gZ7JK_wpFrY, w0JzqJZYX_E. Описание: `scripts/store/demo-recipes.mjs`.
+
+Пересборка (всё локально, прод не трогается):
+1. `npx supabase start`, затем `KC_SERVICE_ROLE_KEY=<локальный service_role> node scripts/store/seed-demo-library.mjs` (скрипт откажется работать с нелокальным URL).
+2. `NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 NEXT_PUBLIC_SUPABASE_ANON_KEY=<локальный anon> NEXT_PUBLIC_SITE_URL=http://localhost:3100 npx next dev -p 3100`.
+3. `python3 -m http.server 8765 --bind 127.0.0.1` из корня репозитория.
+4. Chrome с `--remote-debugging-port=9230` (можно `--headless=new`).
+5. `node scripts/store/capture-screens.mjs` → `public/screens/*.webp` (их же использует лендинг), затем `node scripts/store/compose-store-assets.mjs` → `docs/store/*.png`. Кадры собираются из `scripts/store/frames.html`.
+
+Проверка по документации Chrome Web Store (developer.chrome.com/docs/webstore: images, cws-dashboard-listing, best-listing, listing-requirements, cws-dashboard-privacy; прочитано 23.11.2026):
+- Скриншоты: 1280×800, от 1 до 5, без скруглений и полей по краю (full bleed). У нас 4 кадра 1280×800, фон доходит до краёв. ✅
+- Promo tile 440×280 PNG/JPEG, «избегать текста». ✅ Marquee 1400×560 нужен только для витрины — не делали.
+- Иконка 128×128 PNG, рисунок ~96×96 с полями 16 px. Текущая `icon-128.png` непрозрачна на всех 128×128 (измерено), полей нет. ⚠️ Стор поместит её в рамку со скруглением 12 px, но рекомендация не выполнена. Исправление меняет пакет расширения, поэтому вынесено отдельно: перегенерировать 128 через `scripts/generate-icons.mjs` с рисунком 96×96 и прозрачными полями, до тега 0.2.1.
+- Summary ≤132 символа — 101. ✅ Описание начинается с короткой фразы о том, что делает расширение. ✅
+- Метаданные и картинки не должны вводить в заблуждение и показывать недоступное. Коллекций, избранного, AI, YouTube, Pro, отзывов и значков нет ни в тексте, ни на кадрах. ✅
+- Single purpose, обоснование каждого разрешения, политика конфиденциальности, совпадающая с раскрытием данных, — ниже. Политика есть, но на проде без контактного адреса (P0-2). ⚠️
 
 **Official URL / Homepage:** https://keepandcook.com
 **Support URL:** https://keepandcook.com/privacy (раздел Contact). Блокер P0-2: на проде не задан `NEXT_PUBLIC_SUPPORT_EMAIL`, раздел Contact пока без адреса.

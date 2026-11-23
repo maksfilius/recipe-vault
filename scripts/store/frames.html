@@ -1,0 +1,105 @@
+<!doctype html>
+<!-- Chrome Web Store frames built only from real captures in public/screens/ (capture-screens.mjs).
+     Served from the repo root: http://127.0.0.1:8765/scripts/store/frames.html?frame=read|cook|save|devices|tile -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Keep &amp; Cook store frames</title>
+<style>
+  @font-face { font-family: "Fraunces"; src: url("/public/fonts/Fraunces-Variable.woff2") format("woff2"); font-weight: 100 900; }
+  :root {
+    --background: #f3ebe2; --card: #fffdfa; --foreground: #261e2c; --muted-foreground: #685a4e;
+    --border: #c9b9a8; --primary: #b34414;
+    --shadow: 0 18px 40px -18px rgb(70 40 20 / 0.35), 0 2px 6px rgb(70 40 20 / 0.08);
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 1280px; height: 800px; overflow: hidden; background: var(--background); color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+  .frame { position: relative; width: 1280px; height: 800px; overflow: hidden; display: none; }
+  body[data-frame="read"] #read, body[data-frame="cook"] #cook, body[data-frame="save"] #save, body[data-frame="devices"] #devices { display: block; }
+  .brand { display: flex; align-items: center; gap: 14px; font-weight: 650; font-size: 22px; }
+  .brand img { width: 48px; height: 48px; border-radius: 12px; }
+  h1 { font-family: "Fraunces", Georgia, serif; font-weight: 560; letter-spacing: -0.025em; line-height: 1.06; text-wrap: balance; }
+  p.lede { color: var(--muted-foreground); font-size: 22px; line-height: 1.5; text-wrap: pretty; }
+  .shot { position: absolute; display: block; border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow); background: var(--card); object-fit: cover; object-position: top left; }
+
+  /* Side-by-side frames: text left, screen right, bleeding off the bottom edge. */
+  .side .copy { position: absolute; left: 80px; top: 92px; width: 520px; }
+  .side h1 { margin-top: 64px; font-size: 68px; }
+  .side p.lede { margin-top: 26px; max-width: 470px; }
+  .side ul { list-style: none; padding: 0; margin-top: 34px; display: grid; gap: 14px; font-size: 19px; }
+  .side li { display: flex; gap: 12px; align-items: baseline; }
+  .side li::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 3px; background: var(--primary); transform: translateY(-2px); }
+
+  /* Wide frames: heading band on top, screen below. */
+  .wide .copy { position: absolute; left: 80px; top: 58px; right: 80px; display: grid; grid-template-columns: auto 1fr; column-gap: 28px; align-items: start; }
+  .wide .copy .brand { grid-row: span 2; padding-top: 6px; }
+  .wide .copy .brand span { display: none; }
+  .wide h1 { font-size: 56px; }
+  .wide p.lede { margin-top: 12px; font-size: 21px; }
+
+  #read .shot { left: 744px; top: 56px; width: 440px; height: 1144px; }
+  #cook .shot { left: 80px; top: 214px; width: 1120px; height: 653px; }
+  /* Only the review dialog (x 257–1023, from y 16 of the 1280×1100 capture), at 0.8 scale, bleeding off the bottom. */
+  #save .shot { left: 620px; top: 80px; width: 612px; height: 760px; overflow: hidden; border: 0; }
+  #save .shot img { display: block; width: 1024px; height: 880px; margin: -13px 0 0 -206px; }
+  #devices .laptop { left: 80px; top: 214px; width: 900px; height: 563px; }
+  #devices .phone { left: 900px; top: 170px; width: 300px; height: 649px; border: 9px solid var(--foreground); border-radius: 44px; }
+
+  /* Small promo tile, 440×280: brand and one real screen, almost no text. */
+  body[data-frame="tile"], body[data-frame="tile"] html { width: 440px; height: 280px; }
+  #tile { width: 440px; height: 280px; }
+  body[data-frame="tile"] #tile { display: block; }
+  #tile .brand { position: absolute; left: 30px; top: 98px; flex-direction: column; align-items: flex-start; gap: 16px; }
+  #tile .brand img { width: 60px; height: 60px; border-radius: 14px; }
+  #tile .brand span { font-family: "Fraunces", Georgia, serif; font-size: 34px; font-weight: 560; letter-spacing: -0.02em; line-height: 1; }
+  #tile .shot { left: 248px; top: 26px; width: 220px; height: 572px; border-radius: 14px; }
+</style>
+</head>
+<body>
+  <section class="frame side" id="read">
+    <div class="copy">
+      <div class="brand"><img src="/extension/icons/icon-128.png" alt=""><span>Keep &amp; Cook</span></div>
+      <h1>Read recipes without clutter</h1>
+      <p class="lede">Click the icon on a recipe page. Ingredients and steps open right beside it.</p>
+      <ul><li>Tick off ingredients as you go</li><li>Download the recipe as text</li><li>No account needed</li></ul>
+    </div>
+    <img class="shot" src="/public/screens/extension-panel.webp" alt="">
+  </section>
+
+  <section class="frame wide" id="cook">
+    <div class="copy">
+      <div class="brand"><img src="/extension/icons/icon-128.png" alt=""><span>Keep &amp; Cook</span></div>
+      <h1>Cook step by step</h1>
+      <p class="lede">Large text, one step at a time, timers from the recipe, and the screen stays on.</p>
+    </div>
+    <img class="shot" src="/public/screens/extension-cooking.webp" alt="">
+  </section>
+
+  <section class="frame side" id="save">
+    <div class="copy">
+      <div class="brand"><img src="/extension/icons/icon-128.png" alt=""><span>Keep &amp; Cook</span></div>
+      <h1>Save recipes to your library</h1>
+      <p class="lede">Click Save, check the recipe on keepandcook.com, and keep it in your free personal cookbook.</p>
+      <ul><li>Nothing is saved until you choose Save</li><li>Edit anything before it’s kept</li><li>Free account</li></ul>
+    </div>
+    <div class="shot"><img src="/public/screens/review-desktop.webp" alt=""></div>
+  </section>
+
+  <section class="frame wide" id="devices">
+    <div class="copy">
+      <div class="brand"><img src="/extension/icons/icon-128.png" alt=""><span>Keep &amp; Cook</span></div>
+      <h1>Your recipes on any device</h1>
+      <p class="lede">Search your cookbook on the laptop, add it to your phone’s home screen for the kitchen.</p>
+    </div>
+    <img class="shot laptop" src="/public/screens/library-desktop.webp" alt="">
+    <img class="shot phone" src="/public/screens/recipe-phone.webp" alt="">
+  </section>
+
+  <section class="frame" id="tile">
+    <div class="brand"><img src="/extension/icons/icon-128.png" alt=""><span>Keep &amp; Cook</span></div>
+    <img class="shot" src="/public/screens/extension-panel.webp" alt="">
+  </section>
+  <script>document.body.dataset.frame = new URLSearchParams(location.search).get("frame") || "read";</script>
+</body>
+</html>

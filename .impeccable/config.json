@@ -65,6 +65,24 @@
         ],
         "createdAt": "2026-11-16T17:07:22.182Z",
         "reason": "Claude: unstyled parser test fixture, never rendered to users"
+      },
+      {
+        "rule": "overused-font",
+        "value": "fraunces",
+        "files": [
+          "scripts/store/frames.html"
+        ],
+        "createdAt": "2026-11-23T17:01:43.282Z",
+        "reason": "D-01 design direction approves self-hosted Fraunces for display headings; store frames reuse the brand type"
+      },
+      {
+        "rule": "cream-palette",
+        "value": "*",
+        "files": [
+          "scripts/store/frames.html"
+        ],
+        "createdAt": "2026-11-23T17:01:43.314Z",
+        "reason": "User confirmed: brief asked to apply the current warm cream and terracotta brand style; cream is the approved --background token (docs/design-direction.md)"
       }
     ]
   }
