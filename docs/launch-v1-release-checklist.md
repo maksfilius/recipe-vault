@@ -81,7 +81,8 @@ Earlier verification docs (`d14-verification.md`, `m0x-verification.md`, `design
 | P1-4 | No error monitoring. | W-09 | Sentry or equivalent, owner DSN. |
 | P1-5 | PostHog key and intake unverified in production. The extension has no analytics, so install, extraction and the panel Save click cannot be measured. | `analytics.ts`, privacy page "The extension does not use analytics" | Phase 5. |
 | P1-6 | ~~Store screenshot 1 shows the real panel over a fictional fixture site.~~ **Resolved in Phase 3:** new frames show only real Keep & Cook UI with a local demo cookbook, with no host site. | `docs/chrome-web-store.md` | — |
-| P1-8 | The store icon `extension/icons/icon-128.png` is opaque across all 128×128 px. The store guidance is 96×96 artwork with 16 px transparent padding. | Measured in Phase 3 | Regenerate the 128 icon with padding before tagging 0.2.1. This changes the extension package. |
+| P1-8 | ~~The store icon is opaque across all 128×128 px.~~ **Fixed:** `icon-128.png` is now a 96×96 tile with 16 px transparent padding. The panel header uses the unchanged full-bleed `mark-128.png`. | `scripts/generate-icons.mjs` | — |
+| P1-9 | ~~ISO durations given in seconds (`PT5400S`, e.g. thekitchn.com) were shown and saved raw.~~ **Fixed** in the server parser and `extension/extract.js`, so they now read "1 hr 30 min". | `recipe-import-parser.ts`, `extract.js` | Tests in `recipe-import-parser.test.mts` and `extension.test.mts` |
 | P1-7 | Release mechanics: a fix in `extension/` needs a version bump and a new tag, and pack must run on that tagged commit. | `scripts/pack-extension.mjs` | Follow the section 4 steps. |
 
 ### P2
@@ -167,12 +168,24 @@ The old JPGs with the fictional host site are removed. Scripts live in `scripts/
 
 **Not verified:** keyboard and screen-reader pass, a real iPhone or Android install following `/install`, and production deployment.
 
+## 7a. Landing demo result (2026-11-23)
+
+`src/components/landing/Hero.tsx`: a successful preview now shows the photo (when present), title, time and servings, a link to the original, the first 6 ingredients and the first 3 steps (long steps clamped to 4 lines). "Show full recipe" expands everything, and "Save to my free cookbook" is the primary action. The draft transfer is unchanged: `keepDraft()` writes the draft to sessionStorage, then the user goes to `/dashboard`, through login if needed, and lands in the review editor. "Try an example" loads `SAMPLE_RECIPE_URL` (`src/lib/sample-recipe.ts`, shared with the extension welcome page). Missing photo, time, servings, ingredients or steps simply don't appear, and the missing-content note explains what's absent.
+
+Checked with `scripts/store/capture-hero-import.mjs` against a running app:
+- The example loads 9 ingredients and 7 steps, and expanding shows all of them.
+- The Save link goes to `/dashboard`.
+- There is no horizontal overflow at 1440 or 390 px, collapsed or expanded.
+- `https://example.com/` shows "We couldn’t find a complete recipe on this page."
+- Screenshots: `docs/screenshots/hero-import-{light,dark}-{desktop,mobile,mobile-expanded,mobile-error}.png`.
+
+The parsing API and database schema are unchanged. The only parser change is P1-9.
+
 ## 8. Release readiness
 
 **Not ready to publish.** The code, listing copy, store graphics and website are prepared and pass all local checks. Still open before tagging `extension-v0.2.1`:
 - P0-2: set the production support email.
 - P0-4: check Supabase Auth URL configuration.
 - P0-5: run and record section 5 on the packed build.
-- P1-8: store icon padding.
 
 The website changes are on `main` but not deployed. After the store approves the listing, set `NEXT_PUBLIC_CHROME_EXTENSION_URL` and redeploy to turn on "Add to Chrome".

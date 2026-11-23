@@ -2,13 +2,23 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Link2, LoaderCircle, Utensils } from "lucide-react";
+import { ArrowRight, ExternalLink, Link2, LoaderCircle, Utensils } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { PENDING_RECIPE_IMPORT_STORAGE_KEY } from "@/src/lib/pending-recipe-import";
 import { trackAnalytics } from "@/src/lib/analytics";
 import { getImportSourceKind } from "@/src/lib/analytics-events";
+import { SAMPLE_RECIPE_URL } from "@/src/lib/sample-recipe";
 import type { ImportedRecipe } from "@/src/types/recipe";
+
+// The preview shows the start of the recipe; "Show full recipe" reveals the rest.
+const PREVIEW_INGREDIENTS = 6;
+const PREVIEW_STEPS = 3;
+const LONG_STEP = 240;
+
+function ingredientLine({ amount, unit, name }: ImportedRecipe["ingredients"][number]) {
+  return [amount, unit, name].map((part) => part?.trim()).filter(Boolean).join(" ");
+}
 
 function sourceHost(sourceUrl: string) {
   try { return new URL(sourceUrl).hostname.replace(/^www\./, ""); }
@@ -22,11 +32,13 @@ export default function Hero() {
   const [recipe, setRecipe] = useState<ImportedRecipe | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => () => activeRequest.current?.abort(), []);
 
-  async function previewRecipe() {
-    const submittedUrl = url.trim();
+  async function previewRecipe(urlOverride?: string) {
+    const submittedUrl = (urlOverride ?? url).trim();
     if (!submittedUrl) {
       setError("Paste a recipe link to start.");
       inputRef.current?.focus();
@@ -38,6 +50,8 @@ export default function Hero() {
     setLoading(true);
     setError("");
     setRecipe(null);
+    setExpanded(false);
+    setImageFailed(false);
     trackAnalytics("url_import_started", { source_kind: getImportSourceKind(submittedUrl) });
     try {
       const response = await fetch("/api/recipes/import", {
@@ -66,6 +80,11 @@ export default function Hero() {
     }
   }
 
+  function tryExample() {
+    setUrl(SAMPLE_RECIPE_URL);
+    void previewRecipe(SAMPLE_RECIPE_URL);
+  }
+
   function keepDraft() {
     if (!recipe) return;
     for (const draft of [recipe, { ...recipe, imageUrl: undefined }]) {
@@ -82,6 +101,13 @@ export default function Hero() {
     recipe.ingredients.length === 0 ? "ingredients" : null,
     recipe.steps.length === 0 ? "steps" : null,
   ].filter(Boolean) : [];
+  const ingredients = recipe?.ingredients.map(ingredientLine).filter(Boolean) ?? [];
+  const steps = recipe?.steps.map((step) => step.text.trim()).filter(Boolean) ?? [];
+  const canExpand = ingredients.length > PREVIEW_INGREDIENTS || steps.length > PREVIEW_STEPS
+    || steps.slice(0, PREVIEW_STEPS).some((step) => step.length > LONG_STEP);
+  const shownIngredients = expanded ? ingredients : ingredients.slice(0, PREVIEW_INGREDIENTS);
+  const shownSteps = expanded ? steps : steps.slice(0, PREVIEW_STEPS);
+  const meta = recipe ? [recipe.totalTime, recipe.servings].map((part) => part?.trim()).filter(Boolean) : [];
 
   return (
     <section id="hero" className="scroll-mt-20 border-b border-border bg-background px-5 pb-16 pt-32 sm:px-8 sm:pb-24 sm:pt-40">
@@ -122,6 +148,13 @@ export default function Hero() {
                 </Button>
               </div>
               {error && <p id="hero-import-error" role="alert" className="mt-3 text-sm font-medium text-destructive">{error}</p>}
+              <p className="mt-3 text-sm text-muted-foreground">
+                No link handy?{" "}
+                <button type="button" onClick={tryExample} disabled={loading}
+                  className="inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-muted-foreground">
+                  Try an example
+                </button>
+              </p>
             </form>
             <div className="mt-6 min-h-56" aria-busy={loading}>
               {loading ? (
@@ -130,18 +163,61 @@ export default function Hero() {
                   <Skeleton className="h-5 w-24" /><Skeleton className="h-8 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-2/3" />
                 </div>
               ) : recipe ? (
-                <article className="border-t border-border pt-6">
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">Preview · {sourceHost(recipe.sourceUrl)}</p>
-                  <h2 className="mt-2 font-display text-3xl leading-tight text-foreground">{recipe.title}</h2>
-                  {recipe.description && <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">{recipe.description}</p>}
-                  <p className="mt-4 text-sm text-foreground">{[
-                    recipe.totalTime, recipe.servings,
-                    `${recipe.ingredients.length} ingredients`, `${recipe.steps.length} steps`,
-                  ].filter(Boolean).join(" · ")}</p>
-                  {missing.length > 0 && <p className="mt-3 text-sm text-muted-foreground">We couldn’t find {missing.join(" or ")}. Review the draft before saving.</p>}
-                  <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground">Review the full draft before saving.</p>
-                    <Button asChild size="sm"><Link href="/dashboard" onClick={keepDraft}>Open recipe <ArrowRight aria-hidden="true" /></Link></Button>
+                <article id="hero-recipe-preview" aria-labelledby="hero-recipe-title" className="min-w-0 border-t border-border pt-6">
+                  {recipe.imageUrl && !imageFailed && (
+                    // eslint-disable-next-line @next/next/no-img-element -- a data: preview or an external https photo
+                    <img src={recipe.imageUrl} alt="" onError={() => setImageFailed(true)} referrerPolicy="no-referrer"
+                      className="mb-5 aspect-[16/9] w-full rounded-xl border border-border bg-muted object-cover" />
+                  )}
+                  <h2 id="hero-recipe-title" className="font-display text-3xl leading-tight text-foreground [overflow-wrap:anywhere]">{recipe.title}</h2>
+                  {meta.length > 0 && <p className="mt-2 text-sm font-medium text-foreground">{meta.join(" · ")}</p>}
+                  <a href={recipe.sourceUrl} target="_blank" rel="noopener noreferrer"
+                    className="mt-2 inline-flex min-h-11 max-w-full items-center gap-1.5 text-sm font-semibold text-primary underline-offset-4 hover:underline">
+                    <span className="truncate">Original on {sourceHost(recipe.sourceUrl)}</span>
+                    <ExternalLink aria-hidden="true" size={15} className="shrink-0" />
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </a>
+                  {missing.length > 0 && <p className="mt-3 text-sm text-muted-foreground">We couldn’t find {missing.join(" or ")}. You can add them before saving.</p>}
+
+                  {ingredients.length > 0 && (
+                    <section aria-labelledby="hero-ingredients" className="mt-6">
+                      <h3 id="hero-ingredients" className="flex items-baseline justify-between gap-3 border-b border-border pb-2 text-sm font-semibold text-foreground">
+                        Ingredients <span className="font-normal text-muted-foreground">{ingredients.length}</span>
+                      </h3>
+                      <ul className="text-sm leading-6 text-foreground">
+                        {shownIngredients.map((line, index) => (
+                          <li key={`${index}-${line}`} className="border-b border-border py-2 [overflow-wrap:anywhere]">{line}</li>
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  {steps.length > 0 && (
+                    <section aria-labelledby="hero-steps" className="mt-6">
+                      <h3 id="hero-steps" className="flex items-baseline justify-between gap-3 border-b border-border pb-2 text-sm font-semibold text-foreground">
+                        Steps <span className="font-normal text-muted-foreground">{steps.length}</span>
+                      </h3>
+                      <ol className="text-sm leading-6 text-foreground">
+                        {shownSteps.map((text, index) => (
+                          <li key={`${index}-${text.slice(0, 24)}`} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 border-b border-border py-3">
+                            <span aria-hidden="true" className="font-semibold text-primary">{index + 1}</span>
+                            <p className={expanded ? "[overflow-wrap:anywhere]" : "line-clamp-4 [overflow-wrap:anywhere]"}>{text}</p>
+                          </li>
+                        ))}
+                      </ol>
+                    </section>
+                  )}
+
+                  {canExpand && (
+                    <button type="button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls="hero-recipe-preview"
+                      className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary underline-offset-4 hover:underline">
+                      {expanded ? "Show less" : `Show full recipe (${ingredients.length} ingredients, ${steps.length} steps)`}
+                    </button>
+                  )}
+
+                  <div className="mt-5 border-t border-border pt-5">
+                    <Button asChild size="lg" className="w-full sm:w-auto"><Link href="/dashboard" onClick={keepDraft}>Save to my free cookbook <ArrowRight aria-hidden="true" /></Link></Button>
+                    <p className="mt-3 text-xs leading-5 text-muted-foreground">Sign in or create a free account, then review the recipe before it’s saved.</p>
                   </div>
                 </article>
               ) : (

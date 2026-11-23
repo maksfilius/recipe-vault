@@ -536,3 +536,9 @@ test("pairs quantity and name fields from custom ingredient markup", () => {
   assert.equal(recipe?.suggestedCollection, "Snacks");
   assert.equal(recipe?.totalTime, "45 min");
 });
+
+test("durations given only in seconds read as hours and minutes (thekitchn PT5400S)", () => {
+  const html = (totalTime: string) => `<script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Roast chicken", totalTime, recipeIngredient: ["1 chicken"], recipeInstructions: ["Roast."] })}</script>`;
+  assert.equal(buildImportedRecipe(html("PT5400S"), "https://example.com/r")?.totalTime, "1 hr 30 min");
+  assert.equal(buildImportedRecipe(html("PT1H30M0S"), "https://example.com/r")?.totalTime, "1 hr 30 min");
+});

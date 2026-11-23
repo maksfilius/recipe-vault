@@ -297,3 +297,9 @@ test("extension source URL drops the page fragment like the server import", () =
   const html = readFileSync(new URL("./fixtures/microdata-recipe.html", import.meta.url), "utf8");
   assert.equal(extractHtml(html, "https://recipes.example/lemon-chicken?x=1#wprm-recipe-container-12").sourceUrl, "https://recipes.example/lemon-chicken?x=1");
 });
+
+test("extension reads second-only durations the way the server parser does", () => {
+  const html = `<script type="application/ld+json">${JSON.stringify({ "@type": "Recipe", name: "Roast chicken", totalTime: "PT5400S", recipeIngredient: ["1 chicken"], recipeInstructions: ["Roast."] })}</script>`;
+  assert.equal(extractHtml(html).totalTime, buildImportedRecipe(html, "https://recipes.example/lemon-chicken")?.totalTime);
+  assert.equal(extractHtml(html).totalTime, "1 hr 30 min");
+});

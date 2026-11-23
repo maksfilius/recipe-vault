@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
+import { SAMPLE_RECIPE_URL } from "@/src/lib/sample-recipe";
 
 export const metadata: Metadata = {
   title: "Welcome to the Keep & Cook extension",
   description: "Open a recipe page, click the Keep & Cook icon, and cook from a clean recipe.",
 };
 
-// A recipe that the benchmark reads completely, so the first try works.
-const SAMPLE_RECIPE_URL = "https://www.thekitchn.com/roast-chicken-recipe-23847070";
 
 const steps = [
   ["Pin the icon", "Open the puzzle-piece menu in the Chrome toolbar and pin Keep & Cook."],

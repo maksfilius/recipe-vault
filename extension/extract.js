@@ -64,10 +64,10 @@
   }
   // Same rules as formatDuration/combineDurations/formatServings in src/lib/recipe-import-parser.ts.
   const minutes = (raw) => {
-    const match = text(raw).match(/^P(?:(\d+(?:[.,]\d+)?)D)?(?:T(?:(\d+(?:[.,]\d+)?)H)?(?:(\d+(?:[.,]\d+)?)M)?)?$/i);
+    const match = text(raw).match(/^P(?:(\d+(?:[.,]\d+)?)D)?(?:T(?:(\d+(?:[.,]\d+)?)H)?(?:(\d+(?:[.,]\d+)?)M)?(?:(\d+(?:[.,]\d+)?)S)?)?$/i);
     if (!match) return null;
-    const [days, hours, mins] = match.slice(1).map((part) => Number((part ?? "0").replace(",", ".")));
-    return days * 1440 + hours * 60 + mins;
+    const [days, hours, mins, secs] = match.slice(1).map((part) => Number((part ?? "0").replace(",", ".")));
+    return days * 1440 + hours * 60 + mins + secs / 60;
   };
   const formatMinutes = (total) => {
     const days = Math.floor(total / 1440);

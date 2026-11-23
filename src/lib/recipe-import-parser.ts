@@ -544,7 +544,7 @@ function extractImageUrl(
 
 function parseIsoDurationMinutes(raw: string) {
   const isoMatch = raw.match(
-    /^P(?:(\d+(?:[.,]\d+)?)D)?(?:T(?:(\d+(?:[.,]\d+)?)H)?(?:(\d+(?:[.,]\d+)?)M)?)?$/i,
+    /^P(?:(\d+(?:[.,]\d+)?)D)?(?:T(?:(\d+(?:[.,]\d+)?)H)?(?:(\d+(?:[.,]\d+)?)M)?(?:(\d+(?:[.,]\d+)?)S)?)?$/i,
   );
 
   if (!isoMatch) return null;
@@ -552,8 +552,10 @@ function parseIsoDurationMinutes(raw: string) {
   const days = Number((isoMatch[1] ?? "0").replace(",", "."));
   const hours = Number((isoMatch[2] ?? "0").replace(",", "."));
   const minutes = Number((isoMatch[3] ?? "0").replace(",", "."));
+  // Some sites publish only seconds ("PT5400S").
+  const seconds = Number((isoMatch[4] ?? "0").replace(",", "."));
 
-  return days * 24 * 60 + hours * 60 + minutes;
+  return days * 24 * 60 + hours * 60 + minutes + seconds / 60;
 }
 
 function formatDurationMinutes(value: number) {
