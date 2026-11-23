@@ -46,14 +46,20 @@
   #devices .laptop { left: 80px; top: 214px; width: 900px; height: 563px; }
   #devices .phone { left: 900px; top: 170px; width: 300px; height: 649px; border: 9px solid var(--foreground); border-radius: 44px; }
 
-  /* Small promo tile, 440×280: brand and one real screen, almost no text. */
-  body[data-frame="tile"], body[data-frame="tile"] html { width: 440px; height: 280px; }
-  #tile { width: 440px; height: 280px; }
+  /* Small promo tile, 440×280: terracotta, brand, a short line, and a card built from four real slices
+     of the side panel (panel-tall.webp, same capture as extension-panel.webp but taller; y in panel CSS px):
+     title, the Save button alone, Ingredients with two items, and the first Method step. The source link,
+     time, description and Start cooking are left out. */
+  body[data-frame="tile"] { width: 440px; height: 280px; }
   body[data-frame="tile"] #tile { display: block; }
-  #tile .brand { position: absolute; left: 30px; top: 98px; flex-direction: column; align-items: flex-start; gap: 16px; }
-  #tile .brand img { width: 60px; height: 60px; border-radius: 14px; }
-  #tile .brand span { font-family: "Fraunces", Georgia, serif; font-size: 34px; font-weight: 560; letter-spacing: -0.02em; line-height: 1; }
-  #tile .shot { left: 248px; top: 26px; width: 220px; height: 572px; border-radius: 14px; }
+  #tile { width: 440px; height: 280px; background: var(--primary); color: #fff9f2; }
+  #tile .brand { position: absolute; left: 28px; top: 28px; gap: 10px; font-size: 15px; }
+  #tile .brand img { width: 34px; height: 34px; border-radius: 9px; box-shadow: 0 0 0 1.5px rgb(255 249 242 / 0.7); }
+  #tile h1 { position: absolute; left: 28px; bottom: 30px; font-size: 34px; line-height: 1.02; letter-spacing: -0.03em; }
+  #tile .card { --s: 0.66; position: absolute; left: 184px; top: 18px; width: calc(var(--s) * 368px); padding: 12px 0 8px;
+    border-radius: 14px; background: var(--card); box-shadow: 0 20px 40px -12px rgb(60 20 5 / 0.55); overflow: hidden; }
+  .slice { position: relative; overflow: hidden; height: calc(var(--s) * var(--h) * 1px); width: calc(var(--s) * var(--w, 368) * 1px); }
+  .slice img { position: absolute; left: calc(var(--s) * -16px); top: calc(var(--s) * var(--y) * -1px); width: calc(var(--s) * 400px); }
 </style>
 </head>
 <body>
@@ -98,7 +104,13 @@
 
   <section class="frame" id="tile">
     <div class="brand"><img src="/extension/icons/mark-128.png" alt=""><span>Keep &amp; Cook</span></div>
-    <img class="shot" src="/public/screens/extension-panel.webp" alt="">
+    <h1>Read.<br>Cook.<br>Save.</h1>
+    <div class="card">
+      <div class="slice" style="--y: 366; --h: 66"><img src="/scripts/store/panel-tall.webp" alt=""></div>
+      <div class="slice" style="--y: 573; --h: 58; --w: 184"><img src="/scripts/store/panel-tall.webp" alt=""></div>
+      <div class="slice" style="--y: 698; --h: 114"><img src="/scripts/store/panel-tall.webp" alt=""></div>
+      <div class="slice" style="--y: 1076; --h: 102"><img src="/scripts/store/panel-tall.webp" alt=""></div>
+    </div>
   </section>
   <script>document.body.dataset.frame = new URLSearchParams(location.search).get("frame") || "read";</script>
 </body>

@@ -44,6 +44,11 @@ await page.beforeLoad(`globalThis.chrome = {
 await page.open(`${statics}/extension/sidepanel.html`, "document.getElementById('panel-state').dataset.state === 'found' && document.getElementById('photo').complete && !document.getElementById('photo').hidden");
 await page.evaluate("[...document.querySelectorAll('#ingredients input')].slice(0, 2).forEach((box) => box.click()); true");
 await save("extension-panel");
+// Same panel, taller and unticked, for the promo tile in frames.html (needs the Method section).
+await page.viewport(400, 1700);
+await page.open(`${statics}/extension/sidepanel.html`, "document.getElementById('panel-state').dataset.state === 'found' && document.getElementById('photo').complete && !document.getElementById('photo').hidden");
+await writeFile(new URL("./panel-tall.webp", import.meta.url), await sharp(await page.png()).webp({ quality: 90 }).toBuffer());
+process.stdout.write("scripts/store/panel-tall.webp\n");
 
 // 2. Cooking view, in the extension's own cooking tab (same reader as the in-page overlay).
 await page.viewport(1200, 700, 2, false);
