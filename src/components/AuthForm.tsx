@@ -8,13 +8,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { getAuthRedirectUrl } from "@/src/lib/auth";
 import { identifyAnalytics, rememberPendingSignup, trackAnalytics } from "@/src/lib/analytics";
 import { getFriendlyAuthErrorMessage } from "@/src/lib/auth-errors";
 import { getImportAuthDestination } from "@/src/lib/auth-destination";
 import { env } from "@/src/lib/env";
 import { getOAuthErrorCode, getOAuthRedirectTo, OAUTH_ERROR_MESSAGES } from "@/src/lib/oauth";
-import { HANDOFF_FAILED_MESSAGE, PENDING_RECIPE_IMPORT_STORAGE_KEY, readPendingRecipeSource, takePendingRecipeError } from "@/src/lib/pending-recipe-import";
+import { bindPendingRecipeToAccount, HANDOFF_FAILED_MESSAGE, PENDING_RECIPE_IMPORT_STORAGE_KEY, readPendingRecipeSource, takePendingRecipeError, type PendingRecipeBinding } from "@/src/lib/pending-recipe-import";
 import { supabase } from "@/src/lib/supabase-client";
 import { Button } from "./ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "./ui/form";
@@ -37,6 +36,10 @@ const registerSchema = loginSchema.extend({
 type LoginValues = z.infer<typeof loginSchema>;
 type RegisterValues = z.infer<typeof registerSchema>;
 
+function safeStorage(get: () => Storage) {
+  try { return get(); } catch { return undefined; }
+}
+
 export default function AuthForm({ type }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,10 +48,11 @@ export default function AuthForm({ type }: AuthFormProps) {
   const isSharedLink = new URLSearchParams(destination.split("?")[1] ?? "").has("url");
   const [isLoading, setIsLoading] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
-  const [notice, setNotice] = useState(() => {
-    const oauthError = getOAuthErrorCode(searchParams.get("auth_error"));
-    return oauthError ? OAUTH_ERROR_MESSAGES[oauthError] : "";
-  });
+  const [binding, setBinding] = useState<PendingRecipeBinding>({ kind: "none" });
+  const authError = getOAuthErrorCode(searchParams.get("auth_error"));
+  const [notice, setNotice] = useState(() => authError ? OAUTH_ERROR_MESSAGES[authError] : "");
+  // "Your email is confirmed" is good news, not an error.
+  const [noticeIsInfo, setNoticeIsInfo] = useState(authError === "confirmed");
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   // extension/library-handoff.js and the landing preview stage the draft before this page hydrates.
   const [hasPendingDraft, setHasPendingDraft] = useState(false);
@@ -57,6 +61,29 @@ export default function AuthForm({ type }: AuthFormProps) {
     try { setHasPendingDraft(Boolean(window.sessionStorage.getItem(PENDING_RECIPE_IMPORT_STORAGE_KEY))); } catch { /* No draft to mention. */ }
     if (takePendingRecipeError()) setHandoffFailed(true);
   }, []);
+  // Waiting for email confirmation: once the account is signed in (the link was opened in another tab of
+  // this browser), this tab continues on its own instead of asking to sign in again.
+  useEffect(() => {
+    if (!registeredEmail) return;
+    let done = false;
+    const continueIfSignedIn = async () => {
+      if (done || document.visibilityState !== "visible") return;
+      const { data } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+      if (!data.user || done) return;
+      done = true;
+      router.replace(destination);
+    };
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => { if (event === "SIGNED_IN") void continueIfSignedIn(); });
+    window.addEventListener("focus", continueIfSignedIn);
+    document.addEventListener("visibilitychange", continueIfSignedIn);
+    return () => {
+      done = true;
+      listener.subscription.unsubscribe();
+      window.removeEventListener("focus", continueIfSignedIn);
+      document.removeEventListener("visibilitychange", continueIfSignedIn);
+    };
+  }, [registeredEmail, destination, router]);
+
   const form = useForm<LoginValues | RegisterValues>({
     resolver: zodResolver(type === "login" ? loginSchema : registerSchema),
     defaultValues: { email: "", password: "", ...(type === "register" ? { username: "", repeatPassword: "" } : {}) },
@@ -65,6 +92,7 @@ export default function AuthForm({ type }: AuthFormProps) {
   // The pending recipe stays in this tab's sessionStorage while Google and Supabase redirect back to it.
   const continueWithGoogle = async () => {
     setNotice("");
+    setNoticeIsInfo(false);
     setIsGoogleLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
@@ -88,13 +116,15 @@ export default function AuthForm({ type }: AuthFormProps) {
     if (type === "register") trackAnalytics("signup_started", { entry_point: entryPoint });
     setIsLoading(true);
     setNotice("");
+    setNoticeIsInfo(false);
     try {
       if (type === "register") {
         const registration = values as RegisterValues;
         const { data, error } = await supabase.auth.signUp({
           email: registration.email,
           password: registration.password,
-          options: { data: { username: registration.username }, emailRedirectTo: getAuthRedirectUrl(destination) },
+          // The link goes through /auth/callback, which signs the user in on the server in whichever tab opens it.
+          options: { data: { username: registration.username }, emailRedirectTo: getOAuthRedirectTo(window.location.origin, destination, "email") },
         });
         if (error) {
           form.setError("email", { message: getFriendlyAuthErrorMessage(error.message) });
@@ -102,6 +132,12 @@ export default function AuthForm({ type }: AuthFormProps) {
         }
         if (!data.session) {
           if (data.user) rememberPendingSignup(data.user.id, entryPoint);
+          // A user without identities is Supabase's stand-in for an address that already has an account;
+          // its id is not real, so the recipe stays staged in this tab for a normal sign-in.
+          if (data.user?.identities?.length) {
+            const storages = { session: safeStorage(() => window.sessionStorage), local: safeStorage(() => window.localStorage) };
+            setBinding(bindPendingRecipeToAccount(data.user.id, storages));
+          }
           setRegisteredEmail(registration.email);
           form.reset();
           return;
@@ -133,26 +169,39 @@ export default function AuthForm({ type }: AuthFormProps) {
       </h1>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">
         {registeredEmail
-          ? "Confirm your address to finish creating your account."
+          ? <>We sent a confirmation link to <span className="break-words font-semibold text-foreground">{registeredEmail}</span>.</>
           : type === "login"
             ? "Sign in to open your recipe collection."
             : "Save recipes and make them easy to find again."}
       </p>
-      {hasPendingDraft ? <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">Your recipe draft is waiting. Sign in, then review and save it.</p> : null}
+      {hasPendingDraft && !registeredEmail ? (
+        <p className="mt-4 rounded-xl border border-border bg-muted px-4 py-3 text-sm leading-6">
+          {type === "register" ? "Your recipe is waiting. Create your account, then review and save it." : "Your recipe draft is waiting. Sign in, then review and save it."}
+        </p>
+      ) : null}
       {handoffFailed ? <p className="mt-4 rounded-xl border border-destructive bg-card px-4 py-3 text-sm leading-6 text-destructive" role="alert">{HANDOFF_FAILED_MESSAGE}</p> : null}
 
       {registeredEmail ? (
         <div className="mt-7" role="status" aria-live="polite">
           <CheckCircle2 className="h-8 w-8 text-primary" aria-hidden />
-          <p className="mt-4 text-sm leading-6 text-muted-foreground">We sent a confirmation link to <span className="break-words font-semibold text-foreground">{registeredEmail}</span>.</p>
-          <Button asChild className="mt-6 w-full"><Link href={`/login${authQuery}`}>Go to sign in</Link></Button>
+          <p className="mt-4 text-sm leading-6">
+            {binding.kind === "bound"
+              ? <>Open the link in this browser. You’ll be signed in and <span className="font-semibold">{binding.title}</span> will open, ready to review and save. You can close this tab.</>
+              : binding.kind === "kept-in-tab"
+                ? <>Keep this tab open: <span className="font-semibold">{binding.title}</span> is waiting here. After you open the link, come back to this tab to review and save it.</>
+                : "Open the link in this browser to finish creating your account. You’ll be signed in automatically."}
+          </p>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">No email after a few minutes? Check your spam folder.</p>
+          <Button asChild variant="ghost" className="mt-6 w-full"><Link href={`/login${authQuery}`}>Already confirmed? Sign in</Link></Button>
         </div>
       ) : (
         <>
           {searchParams.get("reset") === "success" && type === "login" ? (
             <p className="mt-5 rounded-xl border border-border bg-muted px-4 py-3 text-sm" role="status">Password updated. Sign in with your new password.</p>
           ) : null}
-          {notice ? <p className="mt-5 rounded-xl border border-destructive bg-card px-4 py-3 text-sm text-destructive" role="alert">{notice}</p> : null}
+          {notice ? (noticeIsInfo
+            ? <p className="mt-5 rounded-xl border border-border bg-muted px-4 py-3 text-sm" role="status">{notice}</p>
+            : <p className="mt-5 rounded-xl border border-destructive bg-card px-4 py-3 text-sm text-destructive" role="alert">{notice}</p>) : null}
           {env.googleAuthEnabled ? (
             <>
               <Button type="button" variant="ghost" className="mt-7 w-full" onClick={continueWithGoogle} disabled={isGoogleLoading || isLoading}>

@@ -63,8 +63,8 @@ Earlier verification docs (`d14-verification.md`, `m0x-verification.md`, `design
 - Fix: rewrite the description (Phase 3). The listing name and summary in `manifest.json` also differ from the target positioning ("Recipe Saver & Cookbook" vs "Recipe Saver & Reader"). That is decided in Phase 3 and ships in 0.2.1 together with P0-1.
 
 **P0-4. Production Supabase Auth config is unverified (journey 3).**
-- Source: `AuthForm.tsx` sends `emailRedirectTo: <origin>/dashboard`. The repo's `supabase/config.toml` is local only (`site_url = 127.0.0.1`, `enable_confirmations = false`). There is no `/auth/callback` route: the PKCE `?code=` exchange relies on the browser client on `/dashboard`.
-- Risk: if `https://keepandcook.com/dashboard` (or `https://keepandcook.com/**`) is missing from Redirect URLs, Supabase sends the user to the Site URL instead. `library-handoff.js` restores the 7-day draft copy only on a full load of `/dashboard`, so the draft would not reappear in the new tab.
+- Source (updated 24.11): `AuthForm.tsx` sends `emailRedirectTo: <origin>/auth/callback?flow=email`; the callback exchanges the PKCE code on the server in whichever tab opens the link. Before this, the link went to `/dashboard?code=…`, whose server guard redirected to `/login` before the browser could exchange the code (reproduced locally with confirmations on). At sign-up the staged recipe is moved into the new account's draft (`bindPendingRecipeToAccount`), so the confirming tab opens it without the extension. The repo's `supabase/config.toml` stays local only (`enable_confirmations = false`).
+- Risk: if `https://keepandcook.com/auth/callback` (or `https://keepandcook.com/**`) is missing from Redirect URLs, Supabase sends the user to the Site URL instead and the new tab is not signed in. The recipe is not lost (it is the account's draft) and appears after a manual sign-in.
 - Fix (owner, read-only check): Supabase Dashboard → Auth → URL Configuration (Site URL `https://keepandcook.com`, redirect allow-list), and confirm that "Confirm email" is on as intended. Record the result here.
 
 **P0-5. No end-to-end run of journeys 1–8 on the packed build against production.**

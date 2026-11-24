@@ -8,7 +8,7 @@ import type { RecipeFormInitialValue } from "./recipe/RecipeForm";
 import { createDraftRecipe } from "@/src/lib/create-draft-recipe";
 import { trackAnalytics } from "@/src/lib/analytics";
 
-export { createDraftRecipe } from "@/src/lib/create-draft-recipe";
+export { createDraftRecipe, draftRecipeToValues } from "@/src/lib/create-draft-recipe";
 
 export type DraftRecipe = RecipeFormInitialValue;
 export type DraftRecipeInput = Parameters<typeof createDraftRecipe>[0];
@@ -17,15 +17,6 @@ type Notice = { type: "success" | "error"; message: string };
 
 export function isDraftImportedRecipe(recipe: DraftRecipe | null) {
   return Boolean(recipe?.id.startsWith("draft-import-"));
-}
-
-export function draftRecipeToValues(recipe: DraftRecipe): ImportDraft["values"] {
-  return {
-    title: recipe.title, description: recipe.description, ingredients: recipe.ingredients, steps: recipe.steps,
-    collectionIds: recipe.collections.map((collection) => collection.id), tags: recipe.tags,
-    sourceUrl: recipe.sourceUrl, imageUrl: recipe.imageUrl, totalTime: recipe.totalTime, servings: recipe.servings,
-    suggestedCollection: recipe.suggestedCollection,
-  };
 }
 
 export function browserLocalStorage() {

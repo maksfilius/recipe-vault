@@ -12,7 +12,7 @@ import { supabase } from "@/src/lib/supabase-client";
 import { trackAnalytics } from "@/src/lib/analytics";
 import { getImportSourceKind } from "@/src/lib/analytics-events";
 import type { ImportedRecipe, Recipe } from "@/src/types/recipe";
-import { clearImportDraft, writeImportDraft, type ImportDraft } from "@/src/lib/import-draft";
+import { clearImportDraft, isImportDraftsKey, readImportDrafts, updateImportDraft, writeImportDraft, type ImportDraft } from "@/src/lib/import-draft";
 import {
   useDashboardImport, browserLocalStorage, createDraftRecipe, draftRecipeToValues, isDraftImportedRecipe,
   type DraftRecipe, type DraftRecipeInput, type AddRecipeMode,
@@ -67,6 +67,17 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
   };
   /** Opens a new import in the editor; false when the browser could not store it as a draft. */
   const startImportDraft = (payload: DraftRecipeInput, source: "extension" | null) => {
+    // The same recipe arriving again (Save clicked twice, a second tab, a staged copy left over after
+    // sign-up moved it into the account) reopens its draft, with the user's edits, instead of a duplicate.
+    const sameSource = payload?.sourceUrl
+      ? readImportDrafts(browserLocalStorage(), userId).find((draft) => draft.values.sourceUrl === payload.sourceUrl)
+      : undefined;
+    if (sameSource) {
+      const reopened = { ...sameSource, open: true, savedAt: Date.now() };
+      const stored = persistDraft(reopened);
+      openDraft(reopened);
+      return stored;
+    }
     const recipe = createDraftRecipe(payload, collections);
     const draft: ImportDraft = { id: recipe.id, values: draftRecipeToValues(recipe), source, open: true, savedAt: Date.now() };
     const stored = persistDraft(draft);
@@ -84,13 +95,34 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
     setImportDrafts((current) => current.filter((item) => item.id !== id));
     return clearImportDraft(browserLocalStorage(), userId, id);
   };
+  // Writes an edit to a draft that is already stored. A draft saved or discarded in another tab is not
+  // brought back: this tab lets it go. While storage is failing there is nothing stored to update, so
+  // it keeps trying a plain write.
+  const updateDraft = (draft: ImportDraft): "updated" | "gone" | "failed" => {
+    if (draftStorageFailed) return persistDraft(draft) ? "updated" : "failed";
+    const result = updateImportDraft(browserLocalStorage(), userId, draft);
+    if (result === "gone") {
+      if (activeDraft.current?.id === draft.id) activeDraft.current = null;
+      setImportDrafts((current) => current.filter((item) => item.id !== draft.id));
+    } else {
+      setImportDrafts((current) => [draft, ...current.filter((item) => item.id !== draft.id)]);
+      setDraftStorageFailed(result === "failed");
+    }
+    return result;
+  };
+  const GONE_ELSEWHERE = "This recipe was saved or discarded in another tab.";
   const handleDraftChange = (values: RecipeFormValues) => {
     const draft = activeDraft.current;
     if (!draft) return;
     const next = { ...draft, values: { ...values, suggestedCollection: draft.values.suggestedCollection }, savedAt: Date.now() };
     activeDraft.current = next;
-    const stored = persistDraft(next);
-    if (!stored && !draftStorageFailed) setNotice({ type: "error", message: "This browser can’t keep a draft of your changes. Save the recipe before you leave this page." });
+    const result = updateDraft(next);
+    if (result === "gone") {
+      closeEditor();
+      setNotice({ type: "success", message: GONE_ELSEWHERE });
+    } else if (result === "failed" && !draftStorageFailed) {
+      setNotice({ type: "error", message: "This browser can’t keep a draft of your changes. Save the recipe before you leave this page." });
+    }
   };
   const continueEditing = (id: string) => {
     const draft = importDrafts.find((item) => item.id === id);
@@ -100,9 +132,34 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
       return;
     }
     const next = { ...draft, open: true, savedAt: Date.now() };
-    persistDraft(next);
+    if (updateDraft(next) === "gone") {
+      setNotice({ type: "success", message: GONE_ELSEWHERE });
+      return;
+    }
     openDraft(next);
   };
+  // The draft shown in the editor right now, for the storage listener below.
+  const openEditorId = useRef<string | null>(null);
+  useEffect(() => { openEditorId.current = isDialogOpen ? editingRecipe?.id ?? null : null; }, [isDialogOpen, editingRecipe]);
+  // Another tab saved, discarded or added a draft for this account: follow it here.
+  useEffect(() => {
+    if (!userId) return;
+    const onStorage = (event: StorageEvent) => {
+      if (!isImportDraftsKey(event.key, userId)) return;
+      const drafts = readImportDrafts(browserLocalStorage(), userId);
+      setImportDrafts(drafts);
+      const active = activeDraft.current;
+      if (active && !draftStorageFailed && !drafts.some((draft) => draft.id === active.id)) {
+        activeDraft.current = null;
+        if (openEditorId.current === active.id) {
+          closeEditor();
+          setNotice({ type: "success", message: GONE_ELSEWHERE });
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, [userId, draftStorageFailed]);
 
   // Runs once per page load (guarded inside); the callbacks read current state when it runs.
   useDashboardImport({ isLoading, userId, setNotice, startImportDraft, restoreImportDrafts });
@@ -178,16 +235,18 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
 
   const keepDraft = () => {
     const draft = activeDraft.current;
-    let stored = false;
+    let result: "updated" | "gone" | "failed" = "failed";
     if (draft) {
       // Stays the active draft until the form unmounts, so its last edits are still written.
       activeDraft.current = { ...draft, open: false };
-      stored = persistDraft(activeDraft.current);
+      result = updateDraft(activeDraft.current);
     }
     closeEditor();
-    setNotice(stored
+    setNotice(result === "updated"
       ? { type: "success", message: "Draft kept. Pick it up again with Continue editing." }
-      : { type: "error", message: "This browser can’t store the draft. It stays only until you leave this page." });
+      : result === "gone"
+        ? { type: "success", message: GONE_ELSEWHERE }
+        : { type: "error", message: "This browser can’t store the draft. It stays only until you leave this page." });
   };
 
   const discardDraft = () => {

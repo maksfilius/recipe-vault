@@ -42,7 +42,7 @@ goes into the repository or into Vercel: the Google Client Secret lives only in 
 1. **Authentication → URL Configuration**
    - Site URL: `https://keepandcook.com`
    - Redirect URLs (add all):
-     - `https://keepandcook.com/**`
+     - `https://keepandcook.com/**`  (covers `/auth/callback`, which email sign-up confirmation links also use)
      - `http://localhost:3001/**` (local development)
      - Vercel previews, if you test there: `https://*-<vercel-team>.vercel.app/**`
 2. **Authentication → Sign In / Providers → Google:** enable, paste Client ID and Client Secret,

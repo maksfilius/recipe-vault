@@ -1,6 +1,8 @@
 import type { ImportedRecipe, RecipeCollection } from "../types/recipe.ts";
 import type { RecipeFormInitialValue } from "../components/dashboard/recipe/RecipeForm";
 
+import type { ImportDraft } from "./import-draft.ts";
+
 type DraftRecipeInput = Partial<ImportedRecipe> & { collectionIds?: string[] };
 
 export function createDraftRecipe(partial: DraftRecipeInput | undefined, collections: RecipeCollection[]): RecipeFormInitialValue {
@@ -23,5 +25,14 @@ export function createDraftRecipe(partial: DraftRecipeInput | undefined, collect
     totalTime: partial?.totalTime,
     servings: partial?.servings,
     suggestedCollection: partial?.suggestedCollection,
+  };
+}
+
+export function draftRecipeToValues(recipe: RecipeFormInitialValue): ImportDraft["values"] {
+  return {
+    title: recipe.title, description: recipe.description, ingredients: recipe.ingredients, steps: recipe.steps,
+    collectionIds: recipe.collections.map((collection) => collection.id), tags: recipe.tags,
+    sourceUrl: recipe.sourceUrl, imageUrl: recipe.imageUrl, totalTime: recipe.totalTime, servings: recipe.servings,
+    suggestedCollection: recipe.suggestedCollection,
   };
 }

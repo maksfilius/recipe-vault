@@ -76,3 +76,17 @@ test("storage failures are reported, never treated as success", () => {
   assert.equal(clearImportDraft(blocked, "user-a", "draft-import-one"), false);
   assert.equal(writeImportDraft(undefined, "user-a", draft("one")), false);
 });
+
+test("an edit never brings back a draft saved or discarded in another tab", async () => {
+  const { updateImportDraft } = await import("../src/lib/import-draft.ts");
+  const storage = memoryStorage();
+  writeImportDraft(storage, "user-a", draft("one"));
+  const edited = draft("one", { values: { ...draft("one").values, title: "Edited" } });
+  assert.equal(updateImportDraft(storage, "user-a", edited), "updated");
+  assert.equal(readImportDrafts(storage, "user-a", now)[0].values.title, "Edited");
+  clearImportDraft(storage, "user-a", "draft-import-one", now); // saved in the other tab
+  assert.equal(updateImportDraft(storage, "user-a", edited), "gone");
+  assert.deepEqual(readImportDrafts(storage, "user-a", now), []);
+  const blocked = { getItem: () => { throw new Error("blocked"); }, setItem: () => {}, removeItem: () => {} };
+  assert.equal(updateImportDraft(blocked, "user-a", edited), "failed");
+});

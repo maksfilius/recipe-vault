@@ -49,8 +49,10 @@ const draftSchema = z.object({
 const keyFor = (userId: string) => `${KEY_PREFIX}${userId}`;
 
 function load(storage: DraftStorage, userId: string, now: number): ImportDraft[] {
+  // A storage read error propagates (callers report "failed"); only unparsable content counts as empty.
+  const raw = storage.getItem(keyFor(userId));
   let stored: unknown;
-  try { stored = JSON.parse(storage.getItem(keyFor(userId)) ?? "[]"); } catch { stored = []; }
+  try { stored = JSON.parse(raw ?? "[]"); } catch { stored = []; }
   if (!Array.isArray(stored)) return [];
   return stored.flatMap((item) => {
     const parsed = draftSchema.safeParse(item);
@@ -84,6 +86,24 @@ export function writeImportDraft(storage: DraftStorage | undefined, userId: stri
   } catch {
     return false;
   }
+}
+
+/** Rewrites a draft only while it is still stored, so one saved or discarded in another tab stays gone. */
+export function updateImportDraft(storage: DraftStorage | undefined, userId: string, draft: ImportDraft): "updated" | "gone" | "failed" {
+  if (!storage || !userId) return "failed";
+  try {
+    const drafts = load(storage, userId, draft.savedAt);
+    if (!drafts.some((item) => item.id === draft.id)) return "gone";
+    store(storage, userId, [draft, ...drafts.filter((item) => item.id !== draft.id)]);
+    return "updated";
+  } catch {
+    return "failed";
+  }
+}
+
+/** True for a storage event about this account's drafts (another tab changed them). */
+export function isImportDraftsKey(key: string | null, userId: string) {
+  return key === keyFor(userId);
 }
 
 /** Returns false when the browser refused the change, so the caller does not claim it was removed. */
