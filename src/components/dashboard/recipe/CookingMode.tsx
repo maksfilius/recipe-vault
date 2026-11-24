@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { createPortal } from "react-dom";
-import { Check, ChevronLeft, ChevronRight, ListChecks, Timer, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, ListChecks, Timer, Volume2, X } from "lucide-react";
 
 import { Button } from "../../ui/button";
 import { paginateStepText, remapPageIndex } from "@/src/lib/cooking-step-pages";
+import { createAlarmContext, playAlarm } from "@/src/lib/alarm-sound";
 import { exitAppFullscreen } from "@/src/lib/fullscreen";
 import { findStepDurations, formatCountdown } from "@/src/lib/step-durations";
 import type { Recipe } from "@/src/types/recipe";
@@ -63,28 +64,12 @@ function useScreenWakeLock() {
 function useAlarmSound() {
   const contextRef = useRef<AudioContext | null>(null);
   const prime = useCallback(() => {
-    const AudioContextClass = window.AudioContext ?? (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!AudioContextClass) return;
-    contextRef.current ??= new AudioContextClass();
-    void contextRef.current.resume().catch(() => undefined);
+    contextRef.current ??= createAlarmContext();
+    void contextRef.current?.resume().catch(() => undefined);
   }, []);
   const play = useCallback(() => {
-    const context = contextRef.current;
-    if (!context) return;
-    const now = context.currentTime;
-    const gain = context.createGain();
-    gain.connect(context.destination);
-    [0, 0.32].forEach((offset) => {
-      const oscillator = context.createOscillator();
-      oscillator.type = "sine";
-      oscillator.frequency.value = 880;
-      oscillator.connect(gain);
-      oscillator.start(now + offset);
-      oscillator.stop(now + offset + 0.22);
-    });
-    gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.62);
+    navigator.vibrate?.([200, 100, 200, 100, 200]);
+    return playAlarm(contextRef.current);
   }, []);
   useEffect(() => () => { void contextRef.current?.close().catch(() => undefined); }, []);
   return { prime, play };
@@ -108,6 +93,7 @@ export function CookingMode({ recipe, onExit }: CookingModeProps) {
   const [isIngredientsOpen, setIsIngredientsOpen] = useState(false);
   const [timers, setTimers] = useState<RunningTimer[]>([]);
   const [now, setNow] = useState(() => Date.now());
+  const [soundBlocked, setSoundBlocked] = useState(false);
   const alreadyRung = useRef(new Set<string>());
   const dialogRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -191,8 +177,7 @@ export function CookingMode({ recipe, onExit }: CookingModeProps) {
     const due = timers.filter((timer) => timer.endsAt <= now && !alreadyRung.current.has(timer.id));
     if (!due.length) return;
     due.forEach((timer) => alreadyRung.current.add(timer.id));
-    play();
-    navigator.vibrate?.([200, 100, 200]);
+    void play();
   }, [now, timers, play]);
 
   const goPrevious = useCallback(() => {
@@ -255,6 +240,11 @@ export function CookingMode({ recipe, onExit }: CookingModeProps) {
       endsAt: Date.now() + seconds * 1_000,
       stepIndex,
     }]);
+  }
+
+  async function testSound() {
+    prime();
+    setSoundBlocked(!(await play()));
   }
 
   function dismissTimer(id: string) {
@@ -331,7 +321,11 @@ export function CookingMode({ recipe, onExit }: CookingModeProps) {
                     <Timer aria-hidden="true" />{suggestion.label}
                   </Button>
                 ))}
+                <Button type="button" variant="ghost" size="sm" onClick={() => void testSound()}>
+                  <Volume2 aria-hidden="true" />Test sound
+                </Button>
               </div>
+              <p role="status" className="mt-2 text-xs text-muted-foreground empty:hidden">{soundBlocked ? "Sound is blocked or not supported here. Timers still show Done." : ""}</p>
             </div>
           )}
         </div>

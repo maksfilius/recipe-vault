@@ -183,26 +183,9 @@ globalThis.keepAndCookOpenReader = (recipe, css) => {
       void audioContext.resume().catch(() => undefined);
     } catch { audioContext = undefined; }
   }
-  function ring() {
-    if (audioContext) {
-      try {
-        const now = audioContext.currentTime;
-        const gain = audioContext.createGain();
-        gain.connect(audioContext.destination);
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(0.25, now + 0.02);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.62);
-        for (const offset of [0, 0.32]) {
-          const oscillator = audioContext.createOscillator();
-          oscillator.type = "sine";
-          oscillator.frequency.value = 880;
-          oscillator.connect(gain);
-          oscillator.start(now + offset);
-          oscillator.stop(now + offset + 0.22);
-        }
-      } catch { /* Audio is best effort. */ }
-    }
-    navigator.vibrate?.([200, 100, 200]);
+  async function ring() {
+    navigator.vibrate?.([200, 100, 200, 100, 200]);
+    return utils.alarm(audioContext);
   }
   function tickTimers() {
     const now = Date.now();
@@ -241,7 +224,7 @@ globalThis.keepAndCookOpenReader = (recipe, css) => {
       nodes.drawerChip.remove();
       timerNodes.delete(id);
     }
-    if (hasNewAlarm) ring();
+    if (hasNewAlarm) void ring();
     if (!timers.length && timerInterval) { clearInterval(timerInterval); timerInterval = undefined; }
   }
   function renderSuggestions() {
@@ -259,6 +242,11 @@ globalThis.keepAndCookOpenReader = (recipe, css) => {
         timerInterval ??= setInterval(tickTimers, 500);
       }, "secondary"));
     }
+    const test = button("Test sound", async () => {
+      primeAudio();
+      status.textContent = await ring() ? "" : "Sound is blocked or not supported here. Timers still show Done.";
+    }, "ghost");
+    buttons.append(test);
     suggestions.append(buttons);
   }
 
