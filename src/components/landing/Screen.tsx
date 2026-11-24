@@ -37,13 +37,18 @@ export function BrowserScreen({ className, priority = false }: { className?: str
   );
 }
 
-// A phone-shaped frame around a phone capture. The bezel is the light theme's ink in both themes (a phone
-// does not turn cream in dark mode), with a hairline so it still separates from a dark page.
+// A phone-shaped frame around a phone capture. Bezel and corners are in container units of the frame's
+// own width, so a small phone on a narrow screen keeps a phone's proportions instead of a thick pill.
+// The bezel is the light theme's ink in both themes, with a hairline to separate it from a dark page.
 export function PhoneScreen({ screen, className }: Omit<ScreenProps, "priority">) {
   return (
-    <div className={cn("overflow-hidden rounded-[2.25rem] border-[7px] border-[hsl(268_20%_14%)] bg-card shadow-[0_0_0_1px_hsl(var(--border)),0_24px_48px_-20px_rgb(0_0_0/0.45)]", className)}>
-      {/* eslint-disable-next-line @next/next/no-img-element -- static captures, already sized and compressed */}
-      <img src={screen.src} alt={screen.alt} width={screen.width} height={screen.height} loading="lazy" decoding="async" className="block h-auto w-full" />
+    <div className={cn("@container", className)}>
+      <div className="rounded-[15cqw] bg-[hsl(268_20%_14%)] p-[3.2cqw] shadow-[0_0_0_1px_hsl(var(--border)),0_24px_48px_-20px_rgb(0_0_0/0.45)]">
+        <div className="overflow-hidden rounded-[11.8cqw] bg-card">
+          {/* eslint-disable-next-line @next/next/no-img-element -- static captures, already sized and compressed */}
+          <img src={screen.src} alt={screen.alt} width={screen.width} height={screen.height} loading="lazy" decoding="async" className="block h-auto w-full" />
+        </div>
+      </div>
     </div>
   );
 }
