@@ -19,11 +19,13 @@ type RecipeFormProps = {
   initialSourceUrl?: string;
   isSaving?: boolean;
   onSubmit: (values: RecipeFormValues) => void;
+  /** Called shortly after each edit, and right away when the form closes or the page is hidden. */
+  onValuesChange?: (values: RecipeFormValues) => void;
 };
 
 const fieldClass = "w-full min-h-11 rounded-xl border border-border bg-background px-4 py-3 text-base text-foreground placeholder:text-muted-foreground";
 
-export default function RecipeForm({ mode, initialValue, initialSourceUrl, isSaving = false, onSubmit }: RecipeFormProps) {
+export default function RecipeForm({ mode, initialValue, initialSourceUrl, isSaving = false, onSubmit, onValuesChange }: RecipeFormProps) {
   const [title, setTitle] = useState(() => initialValue?.title ?? "");
   const [ingredients, setIngredients] = useState(() => toRows(ingredientsToText(initialValue?.ingredients ?? [])));
   const [steps, setSteps] = useState(() => toRows(stepsToText(initialValue?.steps ?? [])));
@@ -33,16 +35,37 @@ export default function RecipeForm({ mode, initialValue, initialSourceUrl, isSav
   const [description, setDescription] = useState(() => initialValue?.description ?? "");
   const [imageUrl, setImageUrl] = useState(() => initialValue?.imageUrl);
 
+  const currentValues = () => buildRecipeFormValues({
+    title,
+    ingredientText: ingredients.map((row) => row.value).join("\n"),
+    // A step may contain line breaks typed in its box; keep it one step.
+    stepText: steps.map((step) => step.value.replace(/\s*\n\s*/g, " ")).join("\n"),
+    sourceUrl, totalTime, servings, description, imageUrl, initialValue,
+  });
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    onSubmit(buildRecipeFormValues({
-      title,
-      ingredientText: ingredients.map((row) => row.value).join("\n"),
-      // A step may contain line breaks typed in its box; keep it one step.
-      stepText: steps.map((step) => step.value.replace(/\s*\n\s*/g, " ")).join("\n"),
-      sourceUrl, totalTime, servings, description, imageUrl, initialValue,
-    }));
+    onSubmit(currentValues());
   };
+
+  // Draft autosave: report edits after a short pause, and flush a pending report when the form
+  // unmounts (editor closed) or the page is hidden (reload, tab closed) so the last keystrokes are kept.
+  const onValuesChangeRef = useRef(onValuesChange);
+  const pendingReport = useRef<(() => void) | null>(null);
+  useEffect(() => { onValuesChangeRef.current = onValuesChange; });
+  useEffect(() => {
+    if (!onValuesChangeRef.current) return;
+    const values = currentValues();
+    pendingReport.current = () => { pendingReport.current = null; onValuesChangeRef.current?.(values); };
+    const timeout = window.setTimeout(() => pendingReport.current?.(), 250);
+    return () => window.clearTimeout(timeout);
+    // currentValues reads exactly these fields.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, ingredients, steps, sourceUrl, totalTime, servings, description, imageUrl]);
+  useEffect(() => {
+    const flush = () => pendingReport.current?.();
+    window.addEventListener("pagehide", flush);
+    return () => { window.removeEventListener("pagehide", flush); flush(); };
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="min-w-0 space-y-5 pb-1">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
 import RecipeForm from "./recipe/RecipeForm";
 import { Button } from "@/src/components/ui/button";
@@ -17,10 +18,22 @@ export function DashboardDialogs({ actions }: {
     isImportingRecipe, importError, isSavingRecipe, handleImportRecipe, handleFormSubmit,
     handleDialogOpenChange,
     recipeToDelete, setRecipeToDelete, handleDeleteRecipe,
+    closePrompt, setClosePrompt, keepDraft, discardDraft, handleDraftChange, draftStorageFailed,
   } = actions;
+  const isImportDraft = isDraftImportedRecipe(editingRecipe);
+  // Focus lands on the safe choice of each step (Keep draft, then Cancel), never on Discard.
+  const keepDraftRef = useRef<HTMLButtonElement>(null);
+  const cancelDiscardRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!closePrompt) return;
+    const frame = requestAnimationFrame(() => (closePrompt === "discard" ? cancelDiscardRef : keepDraftRef).current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [closePrompt]);
   return <>
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className={addRecipeMode === "manual" ? "sm:max-w-3xl" : "sm:max-w-2xl"}>
+        <DialogContent className={addRecipeMode === "manual" ? "sm:max-w-3xl" : "sm:max-w-2xl"}
+          // A stray click beside an unsaved import must not throw it away; Escape and × ask first.
+          onInteractOutside={isImportDraft ? (event) => event.preventDefault() : undefined}>
           <DialogHeader>
             <DialogTitle>
               {editingRecipe
@@ -70,9 +83,43 @@ export function DashboardDialogs({ actions }: {
                 initialSourceUrl={!editingRecipe ? importUrl : undefined}
                 isSaving={isSavingRecipe}
                 onSubmit={(values) => void handleFormSubmit(values)}
+                onValuesChange={isImportDraft ? handleDraftChange : undefined}
               />
             </>
           ) : null}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={Boolean(closePrompt)} onOpenChange={(open) => !open && setClosePrompt(null)}>
+        <DialogContent className="sm:max-w-md" showCloseButton={false} onOpenAutoFocus={(event) => event.preventDefault()}>
+          {closePrompt === "discard" ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Discard this recipe?</DialogTitle>
+                <DialogDescription>The imported recipe and your changes will be deleted. This can’t be undone.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button ref={cancelDiscardRef} variant="ghost" onClick={() => setClosePrompt("choose")}>Cancel</Button>
+                <Button variant="destructive" onClick={discardDraft}>Discard recipe</Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Keep this recipe as a draft?</DialogTitle>
+                <DialogDescription>
+                  {draftStorageFailed
+                    ? "It isn’t in your library yet, and this browser can’t store drafts: a kept draft lasts only until you leave this page."
+                    : "It isn’t in your library yet. Keep it to finish later with Continue editing, or discard it."}
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="ghost" className="sm:mr-auto" onClick={() => setClosePrompt("discard")}>Discard…</Button>
+                <Button variant="secondary" onClick={() => setClosePrompt(null)}>Keep editing</Button>
+                <Button ref={keepDraftRef} onClick={keepDraft}>Keep draft</Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
 

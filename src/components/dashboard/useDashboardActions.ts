@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { RecipeFormValues } from "@/src/lib/recipe-form-conversion";
 import { recipePayloadSchema } from "@/src/lib/recipe-validation";
@@ -12,7 +12,11 @@ import { supabase } from "@/src/lib/supabase-client";
 import { trackAnalytics } from "@/src/lib/analytics";
 import { getImportSourceKind } from "@/src/lib/analytics-events";
 import type { ImportedRecipe, Recipe } from "@/src/types/recipe";
-import { useDashboardImport, createDraftRecipe, isDraftImportedRecipe, type DraftRecipe, type AddRecipeMode } from "./useDashboardImport";
+import { clearImportDraft, writeImportDraft, type ImportDraft } from "@/src/lib/import-draft";
+import {
+  useDashboardImport, browserLocalStorage, createDraftRecipe, draftRecipeToValues, isDraftImportedRecipe,
+  type DraftRecipe, type DraftRecipeInput, type AddRecipeMode,
+} from "./useDashboardImport";
 import type { useDashboardData } from "./useDashboardData";
 
 type Notice = { type: "success" | "error"; message: string };
@@ -40,8 +44,68 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
   const [draftSource, setDraftSource] = useState<"extension" | null>(null);
   const [isSavingRecipe, setIsSavingRecipe] = useState(false);
   const [importError, setImportError] = useState("");
+  // Unsaved imports kept for this account (src/lib/import-draft.ts), the one open in the editor, and the
+  // Keep / Discard question asked when the editor of an import is closed.
+  const [importDrafts, setImportDrafts] = useState<ImportDraft[]>([]);
+  const activeDraft = useRef<ImportDraft | null>(null);
+  const [draftStorageFailed, setDraftStorageFailed] = useState(false);
+  const [closePrompt, setClosePrompt] = useState<null | "choose" | "discard">(null);
 
-  useDashboardImport({ isLoading, userId, collections, setNotice, setEditingRecipe, setAddRecipeMode, setIsDialogOpen, setDraftSource });
+  const persistDraft = (draft: ImportDraft) => {
+    const stored = writeImportDraft(browserLocalStorage(), userId, draft);
+    setImportDrafts((current) => [draft, ...current.filter((item) => item.id !== draft.id)]);
+    setDraftStorageFailed(!stored);
+    return stored;
+  };
+  const openDraft = (draft: ImportDraft) => {
+    activeDraft.current = draft;
+    setEditingRecipe({ ...createDraftRecipe(draft.values, collections), id: draft.id });
+    setDraftSource(draft.source);
+    setAddRecipeMode("manual");
+    setImportError("");
+    setIsDialogOpen(true);
+  };
+  /** Opens a new import in the editor; false when the browser could not store it as a draft. */
+  const startImportDraft = (payload: DraftRecipeInput, source: "extension" | null) => {
+    const recipe = createDraftRecipe(payload, collections);
+    const draft: ImportDraft = { id: recipe.id, values: draftRecipeToValues(recipe), source, open: true, savedAt: Date.now() };
+    const stored = persistDraft(draft);
+    openDraft(draft);
+    return stored;
+  };
+  const restoreImportDrafts = (drafts: ImportDraft[]) => {
+    setImportDrafts(drafts);
+    const open = drafts.find((draft) => draft.open);
+    if (open) openDraft(open);
+  };
+  // Saved, matched to a recipe already in the library, or discarded: the draft must not come back.
+  const finishDraft = (id: string) => {
+    if (activeDraft.current?.id === id) activeDraft.current = null;
+    setImportDrafts((current) => current.filter((item) => item.id !== id));
+    return clearImportDraft(browserLocalStorage(), userId, id);
+  };
+  const handleDraftChange = (values: RecipeFormValues) => {
+    const draft = activeDraft.current;
+    if (!draft) return;
+    const next = { ...draft, values: { ...values, suggestedCollection: draft.values.suggestedCollection }, savedAt: Date.now() };
+    activeDraft.current = next;
+    const stored = persistDraft(next);
+    if (!stored && !draftStorageFailed) setNotice({ type: "error", message: "This browser can’t keep a draft of your changes. Save the recipe before you leave this page." });
+  };
+  const continueEditing = (id: string) => {
+    const draft = importDrafts.find((item) => item.id === id);
+    if (!draft) return;
+    if (isOfflineMode) {
+      setNotice({ type: "error", message: "Reconnect before saving a recipe." });
+      return;
+    }
+    const next = { ...draft, open: true, savedAt: Date.now() };
+    persistDraft(next);
+    openDraft(next);
+  };
+
+  // Runs once per page load (guarded inside); the callbacks read current state when it runs.
+  useDashboardImport({ isLoading, userId, setNotice, startImportDraft, restoreImportDrafts });
   useEffect(() => {
     if (isLoading) return;
     const url = new URL(window.location.href);
@@ -94,15 +158,44 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
     setIsDialogOpen(true);
   };
 
+  const closeEditor = () => {
+    setIsDialogOpen(false);
+    setClosePrompt(null);
+    setAddRecipeMode("select");
+    setImportUrl("");
+    setImportError("");
+    setEditingRecipe(null);
+    setDraftSource(null);
+  };
+
+  // An unsaved import never closes silently: Escape and the close button ask to keep or discard it
+  // (clicks outside are ignored in DashboardDialogs). Other editors close as before.
   const handleDialogOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) {
-      setAddRecipeMode("select");
-      setImportUrl("");
-      setImportError("");
-      setEditingRecipe(null);
-      setDraftSource(null);
+    if (open) setIsDialogOpen(true);
+    else if (isDraftImportedRecipe(editingRecipe)) setClosePrompt("choose");
+    else closeEditor();
+  };
+
+  const keepDraft = () => {
+    const draft = activeDraft.current;
+    let stored = false;
+    if (draft) {
+      // Stays the active draft until the form unmounts, so its last edits are still written.
+      activeDraft.current = { ...draft, open: false };
+      stored = persistDraft(activeDraft.current);
     }
+    closeEditor();
+    setNotice(stored
+      ? { type: "success", message: "Draft kept. Pick it up again with Continue editing." }
+      : { type: "error", message: "This browser can’t store the draft. It stays only until you leave this page." });
+  };
+
+  const discardDraft = () => {
+    const removed = activeDraft.current ? finishDraft(activeDraft.current.id) : true;
+    closeEditor();
+    setNotice(removed
+      ? { type: "success", message: "Draft discarded." }
+      : { type: "error", message: "The draft could not be removed from this browser." });
   };
 
   const openExistingRecipe = (recipe: Recipe) => {
@@ -112,7 +205,8 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
     setFirstCookHintRecipeId(null);
     setSelectedRecipe(recipe);
     trackAnalytics("recipe_opened", { entry_point: "other" });
-    handleDialogOpenChange(false);
+    if (editingRecipe && isDraftImportedRecipe(editingRecipe)) finishDraft(editingRecipe.id);
+    closeEditor();
     setNotice({ type: "success", message: "This recipe is already in your library." });
   };
 
@@ -230,7 +324,8 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
       setSelectedRecipe(saved);
       trackAnalytics("recipe_opened", { entry_point: "after_save" });
       setNotice({ type: "success", message: `${isUpdate ? "Recipe updated." : "Recipe created."}${photoSkipped ? " The photo could not be saved." : ""}` });
-      handleDialogOpenChange(false);
+      if (editingRecipe && isDraftImportedRecipe(editingRecipe)) finishDraft(editingRecipe.id);
+      closeEditor();
     } catch {
       setNotice({ type: "error", message: "Failed to save recipe. Check your connection and try again." });
     } finally {
@@ -290,12 +385,12 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
         return;
       }
 
-      const draft = createDraftRecipe({ ...decision.recipe, sourceUrl: decision.recipe.sourceUrl ?? normalizedUrl }, collections);
-      setEditingRecipe(draft);
-      setAddRecipeMode("manual");
-      setIsDialogOpen(true);
-      setNotice({ type: "success", message: "Recipe imported. Review and save it." });
-      trackAnalytics("import_preview_shown", { source_kind: getImportSourceKind(normalizedUrl), has_ingredients: draft.ingredients.length > 0, has_steps: draft.steps.length > 0, has_image: Boolean(draft.imageUrl) });
+      const payload = { ...decision.recipe, sourceUrl: decision.recipe.sourceUrl ?? normalizedUrl };
+      const stored = startImportDraft(payload, null);
+      setNotice(stored
+        ? { type: "success", message: "Recipe imported. Review and save it." }
+        : { type: "error", message: "Recipe imported, but this browser can’t keep a draft. Save it before you leave this page." });
+      trackAnalytics("import_preview_shown", { source_kind: getImportSourceKind(normalizedUrl), has_ingredients: Boolean(payload.ingredients?.length), has_steps: Boolean(payload.steps?.length), has_image: Boolean(payload.imageUrl) });
     } catch (error) {
       trackAnalytics("import_failed", { source: "url", reason: "unknown" });
       setImportError(error instanceof Error ? error.message : "Could not import this recipe. Try again.");
@@ -311,5 +406,6 @@ export function useDashboardActions({ data }: { data: ReturnType<typeof useDashb
     importUrl, setImportUrl, isImportingRecipe, importError, setImportError, isSavingRecipe,
     handleAddRecipe, handleEditRecipe, handleDialogOpenChange, handleDeleteRecipe,
     handleFormSubmit, handleImportRecipe,
+    importDrafts, closePrompt, setClosePrompt, keepDraft, discardDraft, continueEditing, handleDraftChange, draftStorageFailed,
   };
 }

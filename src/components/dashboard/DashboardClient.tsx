@@ -57,6 +57,20 @@ export default function Dashboard() {
         </div>
       ) : null}
 
+      {actions.importDrafts.length > 0 ? (
+        <section aria-label="Unsaved recipes" className="mx-auto mb-4 max-w-7xl space-y-2">
+          {actions.importDrafts.map((draft) => (
+            <div key={draft.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card px-4 py-3">
+              <p className="min-w-0 flex-1 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{draft.values.title.trim() || "Untitled recipe"}</span>
+                {" "}isn’t saved to your library yet.
+              </p>
+              <Button type="button" size="sm" onClick={() => actions.continueEditing(draft.id)}>Continue editing</Button>
+            </div>
+          ))}
+        </section>
+      ) : null}
+
       <DashboardDialogs actions={actions} />
 
       {selectedRecipe ? (
